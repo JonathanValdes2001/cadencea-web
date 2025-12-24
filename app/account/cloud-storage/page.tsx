@@ -1,12 +1,28 @@
 import React from 'react';
 
-export default function VaultDashboard() {
+/**
+ * Cloud Storage Overview Page
+ * 
+ * This page displays cloud storage usage and connected devices for account management.
+ * 
+ * IMPORTANT: This is an ACCOUNT MANAGEMENT page - NOT a vault/project management interface.
+ * All vault and project management is done exclusively in the Cadencea Vault desktop app.
+ * 
+ * This page allows users to:
+ * - View cloud storage quota usage
+ * - View and manage connected devices (device slots)
+ * - See sync status across devices
+ */
+export default function CloudStorageOverview() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Vault Dashboard</h1>
-          <p className="text-gray-300">Monitor your cloud storage and file synchronization</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Cloud Storage Overview</h1>
+          <p className="text-gray-300">Monitor your cloud storage usage and connected devices</p>
+          <p className="text-gray-400 text-sm mt-2">
+            To manage your vault projects, open the <span className="text-blue-400">Cadencea Vault desktop app</span>.
+          </p>
         </div>
 
         {/* Storage & Device Overview */}
@@ -87,7 +103,28 @@ export default function VaultDashboard() {
           </div>
         </div>
 
+        {/* Info Banner */}
+        <div className="bg-blue-900/30 border border-blue-700/50 rounded-xl p-6">
+          <div className="flex items-start space-x-4">
+            <svg className="w-6 h-6 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="text-white font-medium mb-1">Managing Your Projects</h3>
+              <p className="text-gray-300 text-sm">
+                Project management (creating, editing, and organizing vaults) is done exclusively in the 
+                <span className="text-blue-400 font-medium"> Cadencea Vault desktop application</span>. 
+                This page only shows your cloud storage usage and connected devices.
+              </p>
+              <a href="/download" className="inline-block mt-3 text-blue-400 hover:text-blue-300 text-sm font-medium">
+                Download Cadencea Vault →
+              </a>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 }
+

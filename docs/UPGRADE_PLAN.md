@@ -1,9 +1,11 @@
-# Cadencea Vault - Production Ready Auth & Profile System
+# Cadencea Web - Production Ready Auth & Profile System
 ## Comprehensive Codebase Audit & Upgrade Plan
 
 ### Executive Summary
 
-This document outlines the complete transformation of the Cadencea Vault codebase from a static UI prototype to a production-ready application with full authentication, user management, and newsletter functionality.
+This document outlines the complete transformation of the Cadencea Web codebase from a static UI prototype to a production-ready marketing website and account management portal with full authentication, user management, and newsletter functionality.
+
+> **Note**: Cadencea Web is the marketing website and account management portal. Cadencea Vault (the desktop app) is a separate application.
 
 ## 📋 Initial Codebase Audit Findings
 

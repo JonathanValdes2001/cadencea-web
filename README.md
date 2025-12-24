@@ -1,6 +1,14 @@
-# Cadencea Vault - Production Ready Auth & Profile System
+# Cadencea Web - Marketing & Account Management Website
 
-A modern, secure web application for music creators with complete user authentication, profile management, and newsletter functionality. Built with Next.js 15, Supabase, and TypeScript.
+The official marketing website and account management portal for Cadencea products. Built with Next.js 15, Supabase, and TypeScript.
+
+> **IMPORTANT**: This is NOT a web version of Cadencea Vault. Cadencea Vault is a **desktop-only application** (Electron-based). This website provides:
+> - Marketing and landing pages
+> - Desktop app download page
+> - User account management (profile, settings, billing)
+> - Future: E-commerce for VST software and sample packs
+>
+> **Project management is done exclusively in the Cadencea Vault desktop app.**
 
 ## 🚀 Features
 
