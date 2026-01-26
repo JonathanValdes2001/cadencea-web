@@ -11,7 +11,7 @@ interface AuthContextType {
   user: User | null
   profile: Profile | null
   loading: boolean
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: AuthError | null }>
+  signUp: (email: string, password: string, firstName: string, lastName: string, username?: string) => Promise<{ error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>
@@ -40,8 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+  const signUp = async (email: string, password: string, firstName: string, lastName: string, username?: string) => {
     try {
+      // Generate username from email if not provided
+      const finalUsername = username || email.split('@')[0].toLowerCase()
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -49,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             first_name: firstName,
             last_name: lastName,
+            username: finalUsername,
           },
         },
       })

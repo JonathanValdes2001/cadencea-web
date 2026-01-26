@@ -10,6 +10,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -34,9 +35,14 @@ export default function Signup() {
 
     // Basic validation
     const newErrors: string[] = []
-    
+
     if (!formData.firstName.trim()) newErrors.push('First name is required')
     if (!formData.lastName.trim()) newErrors.push('Last name is required')
+    if (!formData.username.trim()) newErrors.push('Username is required')
+    if (formData.username.trim().length < 3) newErrors.push('Username must be at least 3 characters')
+    if (!/^[a-zA-Z0-9_-]+$/.test(formData.username.trim())) {
+      newErrors.push('Username can only contain letters, numbers, underscores, and hyphens')
+    }
     if (!formData.email.trim()) newErrors.push('Email is required')
     if (!formData.password) newErrors.push('Password is required')
     if (formData.password !== formData.confirmPassword) {
@@ -57,7 +63,8 @@ export default function Signup() {
         formData.email,
         formData.password,
         formData.firstName,
-        formData.lastName
+        formData.lastName,
+        formData.username.trim().toLowerCase()
       )
 
       if (error) {
@@ -154,6 +161,26 @@ export default function Signup() {
                   placeholder="Last name"
                 />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-300">
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                value={formData.username}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Choose a username"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                This is how others will find you when sharing projects
+              </p>
             </div>
 
             <div>
