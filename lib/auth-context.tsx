@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User, AuthError } from '@supabase/supabase-js'
+import { User, AuthError, Session } from '@supabase/supabase-js'
 import { supabase, getCurrentUserProfile } from './supabase'
 import type { Database } from './database.types'
 
@@ -11,7 +11,7 @@ interface AuthContextType {
   user: User | null
   profile: Profile | null
   loading: boolean
-  signUp: (email: string, password: string, firstName: string, lastName: string, username?: string) => Promise<{ error: AuthError | null }>
+  signUp: (email: string, password: string, firstName: string, lastName: string, username?: string) => Promise<{ error: AuthError | null; session: Session | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>
@@ -58,19 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        return { error }
+        return { error, session: null }
       }
 
-      // If signup is successful and user is confirmed, fetch their profile
-      if (data.user && !data.user.email_confirmed_at) {
-        // User needs to confirm email
-        return { error: null }
-      }
-
-      return { error: null }
+      // data.session is non-null when email confirmation is disabled.
+      // It is null when the user must confirm their email first.
+      return { error: null, session: data.session }
     } catch (error) {
       console.error('Error during sign up:', error)
-      return { error: error as AuthError }
+      return { error: error as AuthError, session: null }
     }
   }
 

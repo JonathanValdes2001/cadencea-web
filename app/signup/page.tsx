@@ -16,6 +16,7 @@ export default function Signup() {
     confirmPassword: '',
   })
   const [errors, setErrors] = useState<string[]>([])
+  const [successMessage, setSuccessMessage] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +60,7 @@ export default function Signup() {
     }
 
     try {
-      const { error } = await signUp(
+      const { error, session } = await signUp(
         formData.email,
         formData.password,
         formData.firstName,
@@ -69,9 +70,14 @@ export default function Signup() {
 
       if (error) {
         setErrors([error.message])
-      } else {
-        // Redirect to dashboard on successful signup
+      } else if (session) {
+        // User is signed in (email confirmation disabled) — go to dashboard
         router.push('/dashboard')
+      } else {
+        // Email confirmation required — show message instead of redirecting
+        setSuccessMessage(
+          'Account created! Please check your email and click the confirmation link, then sign in.'
+        )
       }
     } catch (error) {
       setErrors(['An unexpected error occurred. Please try again.'])
@@ -103,6 +109,24 @@ export default function Signup() {
         </div>
         
         <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700">
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-900/50 border border-green-500 rounded-lg">
+              <div className="flex">
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-green-200">Success</h3>
+                  <div className="mt-2 text-sm text-green-300">
+                    <p>{successMessage}</p>
+                  </div>
+                  <div className="mt-3">
+                    <a href="/login" className="text-sm font-medium text-green-400 hover:text-green-300 underline">
+                      Go to sign in →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {errors.length > 0 && (
             <div className="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg">
               <div className="flex">
