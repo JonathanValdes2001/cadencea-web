@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import CookieBanner from "../components/CookieBanner";
 import { AuthProvider } from "../lib/auth-context";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Cadencea Vault - Professional Music Project Management",
-  description: "Desktop app for artists to manage music projects, cloud backups, and license keys. Professional tools for music creators.",
+  title: "Cadencea — Innovative Software for Music Creators",
+  description:
+    "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
 };
 
 export default function RootLayout({
@@ -25,13 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-900 text-white`}
-      >
+    <html lang="en" className={inter.variable}>
+      <body className="bg-canvas text-ink antialiased">
         <AuthProvider>
           <Navbar />
-          {children}
+          <main>{children}</main>
+          <Footer />
+          <CookieBanner />
         </AuthProvider>
       </body>
     </html>

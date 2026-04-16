@@ -66,17 +66,23 @@ CREATE POLICY "Only service role can modify entitlements" ON download_entitlemen
   FOR ALL USING (current_setting('request.jwt.claims')::json->>'role' = 'service_role');
 
 -- Newsletter subscriptions policies
--- Users can view their own newsletter subscription
+-- SECURITY FIX (2026-04-13): Removed "OR auth.uid() IS NULL" from SELECT —
+-- that clause allowed the anon role to read all subscription records (emails).
+-- Authenticated users can only view their own subscription.
 CREATE POLICY "Users can view their own newsletter subscription" ON newsletter_subscriptions
-  FOR SELECT USING (auth.uid() = user_id OR auth.uid() IS NULL);
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
--- Users can insert their own newsletter subscription
+-- Users can insert their own newsletter subscription.
+-- "user_id IS NULL" allows anonymous signups (user_id left NULL).
+-- This does NOT grant read access — INSERT-only.
 CREATE POLICY "Users can create newsletter subscription" ON newsletter_subscriptions
   FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
 
--- Users can update their own newsletter subscription (for unsubscribe)
+-- SECURITY FIX (2026-04-13): Removed "OR user_id IS NULL" from UPDATE —
+-- that clause allowed anon users to update any record where user_id was NULL.
+-- Authenticated users can only update their own subscription (e.g. unsubscribe).
 CREATE POLICY "Users can update their own newsletter subscription" ON newsletter_subscriptions
-  FOR UPDATE USING (auth.uid() = user_id OR user_id IS NULL);
+  FOR UPDATE TO authenticated USING (auth.uid() = user_id);
 
 -- Service role can manage all newsletter subscriptions
 CREATE POLICY "Service role can manage newsletter subscriptions" ON newsletter_subscriptions

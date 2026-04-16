@@ -1,130 +1,166 @@
 import React from 'react';
+import Link from 'next/link';
+
+const devices = [
+  {
+    name: 'MacBook Pro (Main Studio)',
+    type: 'macOS',
+    lastSync: '2 hours ago',
+    status: 'online' as const,
+  },
+  {
+    name: 'Windows Desktop (Home)',
+    type: 'Windows',
+    lastSync: '1 day ago',
+    status: 'offline' as const,
+  },
+];
 
 /**
- * Cloud Storage Overview Page
- * 
- * This page displays cloud storage usage and connected devices for account management.
- * 
- * IMPORTANT: This is an ACCOUNT MANAGEMENT page - NOT a vault/project management interface.
- * All vault and project management is done exclusively in the Cadencea Vault desktop app.
- * 
- * This page allows users to:
- * - View cloud storage quota usage
- * - View and manage connected devices (device slots)
- * - See sync status across devices
+ * Cloud Storage Overview — ACCOUNT page, not a vault/project manager.
+ * Project management lives in the Cadencea Vault desktop app.
  */
 export default function CloudStorageOverview() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Cloud Storage Overview</h1>
-          <p className="text-gray-300">Monitor your cloud storage usage and connected devices</p>
-          <p className="text-gray-400 text-sm mt-2">
-            To manage your vault projects, open the <span className="text-blue-400">Cadencea Vault desktop app</span>.
+    <div className="bg-canvas text-ink">
+      <div className="mx-auto max-w-6xl px-6 py-16 lg:px-8 lg:py-24">
+        <header className="mb-12">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+            Account
           </p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
+            Cloud storage.
+          </h1>
+          <p className="mt-4 max-w-xl text-base text-ink-muted">
+            Monitor your cloud storage usage and connected devices. To manage
+            vault projects, open the Cadencea Vault desktop app.
+          </p>
+        </header>
+
+        {/* Usage */}
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+          <UsageCard
+            label="Cloud storage used"
+            headline="847 GB of 1 TB"
+            percent={84.7}
+            sub="84.7% used"
+          />
+          <UsageCard
+            label="Connected devices"
+            headline="2 of 3 devices"
+            percent={66.7}
+            sub="1 slot available"
+          />
         </div>
 
-        {/* Storage & Device Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-medium">Cloud Storage Used</h3>
-              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <p className="text-2xl font-bold text-white mb-2">847 GB of 1 TB</p>
-            <div className="w-full bg-slate-700 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full" style={{width: '84.7%'}}></div>
-            </div>
-            <p className="text-gray-400 text-sm mt-2">84.7% used</p>
-          </div>
-
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-medium">Connected Devices</h3>
-              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <p className="text-2xl font-bold text-white mb-2">2 of 3 devices</p>
-            <div className="w-full bg-slate-700 rounded-full h-2">
-              <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style={{width: '66.7%'}}></div>
-            </div>
-            <p className="text-gray-400 text-sm mt-2">1 slot available</p>
-          </div>
-        </div>
-
-        {/* Connected Devices */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 mb-8">
-          <h2 className="text-xl font-bold text-white mb-6">Device Management</h2>
-          <div className="space-y-4">
-            {[
-              { name: 'MacBook Pro (Main Studio)', type: 'macOS', lastSync: '2 hours ago', status: 'online' },
-              { name: 'Windows Desktop (Home)', type: 'Windows', lastSync: '1 day ago', status: 'offline' }
-            ].map((device, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    {device.type === 'macOS' ? (
-                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.09 22C7.78 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.19 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5M13.17 5.33C13.97 4.44 14.59 3.24 14.43 2C13.45 2.07 12.25 2.67 11.4 3.54C10.61 4.36 9.9 5.58 10.08 6.77C11.16 6.86 12.27 6.24 13.17 5.33Z"/>
-                      </svg>
-                    ) : (
-                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M3,12V6.75L9,5.43V11.91L3,12M20,3V11.75L10,11.9V5.21L20,3M3,13L9,13.09V19.9L3,18.75V13M20,13.25V22L10,20.09V13.1L20,13.25Z"/>
-                      </svg>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium">{device.name}</h3>
-                    <p className="text-gray-400 text-sm">{device.type} • Last synced {device.lastSync}</p>
-                  </div>
+        {/* Device management */}
+        <section className="mb-8 rounded-md border border-line bg-canvas">
+          <header className="border-b border-line px-6 py-4">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-ink">
+              Device management
+            </h2>
+          </header>
+          <ul className="divide-y divide-line">
+            {devices.map((d) => (
+              <li
+                key={d.name}
+                className="flex flex-wrap items-center justify-between gap-4 px-6 py-4"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-ink">{d.name}</p>
+                  <p className="mt-1 text-xs uppercase tracking-widest text-ink-subtle">
+                    {d.type} · last synced {d.lastSync}
+                  </p>
                 </div>
-                <div className="flex items-center space-x-3">
-                  {device.status === 'online' && (
-                    <span className="bg-green-900/50 text-green-300 px-2 py-1 rounded text-xs">Online</span>
-                  )}
-                  {device.status === 'offline' && (
-                    <span className="bg-gray-900/50 text-gray-300 px-2 py-1 rounded text-xs">Offline</span>
-                  )}
-                  <button className="text-red-400 hover:text-red-300 text-sm">
+                <div className="flex items-center gap-4">
+                  <span
+                    className={`inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-semibold uppercase tracking-widest ${
+                      d.status === 'online'
+                        ? 'bg-elevated text-price'
+                        : 'bg-elevated text-ink-muted'
+                    }`}
+                  >
+                    {d.status}
+                  </span>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-ink-muted hover:text-ink"
+                  >
                     Remove
                   </button>
-                  <button className="text-gray-400 hover:text-white">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                    </svg>
-                  </button>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </section>
 
-        {/* Info Banner */}
-        <div className="bg-blue-900/30 border border-blue-700/50 rounded-xl p-6">
-          <div className="flex items-start space-x-4">
-            <svg className="w-6 h-6 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        {/* Info banner */}
+        <section className="rounded-md border border-line bg-elevated px-6 py-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+            Managing your projects
+          </p>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
+            Project management (creating, editing, and organizing vaults) is
+            done exclusively in the Cadencea Vault desktop application. This
+            page only shows your cloud storage usage and connected devices.
+          </p>
+          <Link
+            href="/cadenceavault"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-hover"
+          >
+            Download Cadencea Vault
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
-            <div>
-              <h3 className="text-white font-medium mb-1">Managing Your Projects</h3>
-              <p className="text-gray-300 text-sm">
-                Project management (creating, editing, and organizing vaults) is done exclusively in the 
-                <span className="text-blue-400 font-medium"> Cadencea Vault desktop application</span>. 
-                This page only shows your cloud storage usage and connected devices.
-              </p>
-              <a href="/download" className="inline-block mt-3 text-blue-400 hover:text-blue-300 text-sm font-medium">
-                Download Cadencea Vault →
-              </a>
-            </div>
-          </div>
-        </div>
-
+          </Link>
+        </section>
       </div>
     </div>
   );
 }
 
+function UsageCard({
+  label,
+  headline,
+  percent,
+  sub,
+}: {
+  label: string;
+  headline: string;
+  percent: number;
+  sub: string;
+}) {
+  return (
+    <section className="rounded-md border border-line bg-canvas p-6">
+      <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-bold tracking-tight text-ink">
+        {headline}
+      </p>
+      <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-inset">
+        <div
+          className="h-full bg-accent"
+          style={{ width: `${percent}%` }}
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          role="progressbar"
+        />
+      </div>
+      <p className="mt-2 text-xs uppercase tracking-widest text-ink-subtle">
+        {sub}
+      </p>
+    </section>
+  );
+}

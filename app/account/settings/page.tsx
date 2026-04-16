@@ -1,62 +1,64 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 
 export default function AccountSettings() {
-  const { user, profile, updateProfile, signOut } = useAuth()
-  const router = useRouter()
-  const [isEditing, setIsEditing] = useState(false)
+  const { user, profile, updateProfile, signOut } = useAuth();
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: profile?.first_name || '',
     lastName: profile?.last_name || '',
     email: profile?.email || user?.email || '',
-  })
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
-  // Update form data when profile changes
   React.useEffect(() => {
     if (profile) {
       setFormData({
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         email: profile.email || user?.email || '',
-      })
+      });
     }
-  }, [profile, user])
+  }, [profile, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSave = async () => {
-    if (!profile) return
-    
-    setIsUpdating(true)
-    setMessage(null)
-
+    if (!profile) return;
+    setIsUpdating(true);
+    setMessage(null);
     try {
       const { error } = await updateProfile({
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
-      })
-
+      });
       if (error) {
-        setMessage({ type: 'error', text: error.message || 'Failed to update profile' })
+        setMessage({
+          type: 'error',
+          text: error.message || 'Failed to update profile',
+        });
       } else {
-        setMessage({ type: 'success', text: 'Profile updated successfully' })
-        setIsEditing(false)
+        setMessage({ type: 'success', text: 'Profile updated successfully.' });
+        setIsEditing(false);
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'An unexpected error occurred' })
+    } catch {
+      setMessage({ type: 'error', text: 'An unexpected error occurred.' });
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   const handleCancel = () => {
     if (profile) {
@@ -64,206 +66,290 @@ export default function AccountSettings() {
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         email: profile.email || user?.email || '',
-      })
+      });
     }
-    setIsEditing(false)
-    setMessage(null)
-  }
+    setIsEditing(false);
+    setMessage(null);
+  };
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push('/')
-  }
+    await signOut();
+    router.push('/');
+  };
 
   if (!user || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="flex min-h-[60vh] items-center justify-center bg-canvas text-sm text-ink-muted">
+        Loading…
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Account Settings</h1>
-          <p className="text-gray-300">Manage your account preferences and profile information</p>
-        </div>
+    <div className="bg-canvas text-ink">
+      <div className="mx-auto max-w-5xl px-6 py-16 lg:px-8 lg:py-24">
+        <header className="mb-12">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+            Account
+          </p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
+            Settings.
+          </h1>
+          <p className="mt-4 max-w-xl text-base text-ink-muted">
+            Manage your account preferences and profile information.
+          </p>
+        </header>
 
         <div className="space-y-8">
-          {/* Status Message */}
           {message && (
-            <div className={`p-4 rounded-lg ${
-              message.type === 'success' 
-                ? 'bg-green-900/50 border border-green-500 text-green-200' 
-                : 'bg-red-900/50 border border-red-500 text-red-200'
-            }`}>
+            <div className="rounded-sm border border-line bg-elevated px-4 py-3 text-sm text-ink">
               {message.text}
             </div>
           )}
 
-          {/* Profile Information */}
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Profile Information</h2>
-              {!isEditing ? (
+          {/* Profile */}
+          <Section
+            title="Profile information"
+            action={
+              !isEditing ? (
                 <button
+                  type="button"
                   onClick={() => setIsEditing(true)}
-                  className="text-purple-400 hover:text-purple-300 font-medium"
+                  className="text-sm font-medium text-accent hover:text-accent-hover"
                 >
                   Edit
                 </button>
               ) : (
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={handleSave}
                     disabled={isUpdating}
-                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                    className="inline-flex h-9 items-center rounded-sm bg-accent px-4 text-xs font-semibold tracking-wide text-white hover:bg-accent-hover disabled:opacity-60"
                   >
-                    {isUpdating ? 'Saving...' : 'Save'}
+                    {isUpdating ? 'Saving…' : 'Save'}
                   </button>
                   <button
+                    type="button"
                     onClick={handleCancel}
-                    className="text-gray-400 hover:text-gray-300 px-4 py-2"
+                    className="inline-flex h-9 items-center rounded-sm border border-line px-4 text-xs font-semibold tracking-wide text-ink hover:bg-elevated"
                   >
                     Cancel
                   </button>
                 </div>
-              )}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">First Name</label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="Enter your first name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Last Name</label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="Enter your last name"
-                />
-              </div>
+              )
+            }
+          >
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <Field
+                label="First name"
+                name="firstName"
+                type="text"
+                value={formData.firstName}
+                onChange={handleChange}
+                disabled={!isEditing}
+              />
+              <Field
+                label="Last name"
+                name="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={handleChange}
+                disabled={!isEditing}
+              />
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
-                <input
-                  type="email"
+                <Field
+                  label="Email address"
                   name="email"
+                  type="email"
                   value={formData.email}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="Enter your email"
                 />
               </div>
             </div>
-          </div>
+          </Section>
 
           {/* Security */}
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-            <h2 className="text-xl font-bold text-white mb-6">Security</h2>
-            <div className="space-y-4">
-                <button className="w-full text-left p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-white font-medium">Change Email</h3>
-                    <p className="text-gray-400 text-sm">Update your email address</p>
-                  </div>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </button>
-              <button className="w-full text-left p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-white font-medium">Change Password</h3>
-                    <p className="text-gray-400 text-sm">Update your account password</p>
-                  </div>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </button>
-              <button className="w-full text-left p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-white font-medium">Two-Factor Authentication</h3>
-                    <p className="text-gray-400 text-sm">Add extra security to your account</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-green-400 text-sm">Enabled</span>
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
+          <Section title="Security">
+            <ul className="divide-y divide-line">
+              {[
+                {
+                  title: 'Change email',
+                  desc: 'Update your email address.',
+                },
+                {
+                  title: 'Change password',
+                  desc: 'Update your account password.',
+                },
+                {
+                  title: 'Two-factor authentication',
+                  desc: 'Add extra security to your account.',
+                  status: 'Enabled',
+                },
+              ].map((row) => (
+                <li key={row.title}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-4 py-4 text-left hover:bg-elevated"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-ink">
+                        {row.title}
+                      </p>
+                      <p className="mt-1 text-sm text-ink-muted">{row.desc}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {row.status && (
+                        <span className="text-xs font-semibold uppercase tracking-widest text-price">
+                          {row.status}
+                        </span>
+                      )}
+                      <Chevron />
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Section>
 
           {/* Preferences */}
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-            <h2 className="text-xl font-bold text-white mb-6">Preferences</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-white font-medium">Email Notifications</h3>
-                  <p className="text-gray-400 text-sm">Receive updates about new products and features</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" defaultChecked />
-                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-                </label>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-white font-medium">Marketing Communications</h3>
-                  <p className="text-gray-400 text-sm">Receive promotional offers and product announcements</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-                </label>
-              </div>
-            </div>
-          </div>
+          <Section title="Preferences">
+            <ul className="divide-y divide-line">
+              <PreferenceRow
+                title="Email notifications"
+                desc="Receive updates about new products and features."
+                defaultChecked
+              />
+              <PreferenceRow
+                title="Marketing communications"
+                desc="Receive promotional offers and product announcements."
+              />
+            </ul>
+          </Section>
 
-          {/* Account Actions */}
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-            <h2 className="text-xl font-bold text-white mb-6">Account Actions</h2>
-            <div className="space-y-4">
-              <button
-                onClick={handleSignOut}
-                className="w-full text-left p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-white font-medium">Sign Out</h3>
-                    <p className="text-gray-400 text-sm">Sign out of your account</p>
-                  </div>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                </div>
-              </button>
-            </div>
-          </div>
+          {/* Account actions */}
+          <Section title="Account">
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="flex w-full items-center justify-between gap-4 py-4 text-left hover:bg-elevated"
+            >
+              <div>
+                <p className="text-sm font-semibold text-ink">Sign out</p>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Sign out of your account.
+                </p>
+              </div>
+              <Chevron />
+            </button>
+          </Section>
         </div>
       </div>
     </div>
+  );
+}
+
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-md border border-line bg-canvas">
+      <header className="flex items-center justify-between gap-4 border-b border-line px-6 py-4">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink">
+          {title}
+        </h2>
+        {action}
+      </header>
+      <div className="px-6 py-6">{children}</div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  name,
+  type,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  name: string;
+  type: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={name}
+        className="mb-2 block text-xs font-semibold uppercase tracking-widest text-ink"
+      >
+        {label}
+      </label>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className="block h-11 w-full rounded-sm border border-line bg-elevated px-3.5 text-base text-ink placeholder-ink-subtle focus:border-accent focus:bg-canvas focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:opacity-60"
+      />
+    </div>
+  );
+}
+
+function PreferenceRow({
+  title,
+  desc,
+  defaultChecked,
+}: {
+  title: string;
+  desc: string;
+  defaultChecked?: boolean;
+}) {
+  return (
+    <li className="flex items-center justify-between gap-4 py-4">
+      <div>
+        <p className="text-sm font-semibold text-ink">{title}</p>
+        <p className="mt-1 text-sm text-ink-muted">{desc}</p>
+      </div>
+      <label className="relative inline-flex cursor-pointer items-center">
+        <input
+          type="checkbox"
+          defaultChecked={defaultChecked}
+          className="peer sr-only"
+        />
+        <div className="h-6 w-11 rounded-full bg-inset after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-canvas after:shadow-card-hover after:transition-transform peer-checked:bg-accent peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-accent/30" />
+      </label>
+    </li>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg
+      className="h-5 w-5 flex-shrink-0 text-ink-subtle"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 5l7 7-7 7"
+      />
+    </svg>
   );
 }

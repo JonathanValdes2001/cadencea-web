@@ -1,187 +1,178 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase'
-import type { Database } from '@/lib/database.types'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
+import type { Database } from '@/lib/database.types';
 
-type Order = Database['public']['Tables']['orders']['Row']
+type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Database['public']['Tables']['order_items']['Row'] & {
-  product: Database['public']['Tables']['products']['Row']
-}
+  product: Database['public']['Tables']['products']['Row'];
+};
 
 interface OrderWithItems extends Order {
-  order_items: OrderItem[]
+  order_items: OrderItem[];
 }
 
 export default function OrderHistory() {
-  const { user, loading: authLoading } = useAuth()
-  const [orders, setOrders] = useState<OrderWithItems[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { user, loading: authLoading } = useAuth();
+  const [orders, setOrders] = useState<OrderWithItems[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && !authLoading) {
-      fetchOrders()
+      fetchOrders();
     } else if (!authLoading) {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [user, authLoading])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]);
 
   const fetchOrders = async () => {
-    if (!user) return
-
+    if (!user) return;
     try {
-      setLoading(true)
-      setError(null)
-
-      const { data: ordersData, error: ordersError } = await supabase
+      setLoading(true);
+      setError(null);
+      const { data, error: err } = await supabase
         .from('orders')
-        .select(`
-          *,
-          order_items (
-            *,
-            product:products (*)
-          )
-        `)
+        .select(
+          `*,
+           order_items (*, product:products (*))`
+        )
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
-      if (ordersError) {
-        console.error('Error fetching orders:', ordersError)
-        setError('Failed to load order history')
-        return
+      if (err) {
+        setError('Failed to load order history.');
+        return;
       }
-
-      setOrders(ordersData || [])
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-      setError('An unexpected error occurred')
+      setOrders(data || []);
+    } catch {
+      setError('An unexpected error occurred.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (s: string) =>
+    new Date(s).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
-    })
-  }
+      day: 'numeric',
+    });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+  const formatPrice = (n: number) =>
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
-    }).format(price)
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'bg-green-900/50 text-green-300'
-      case 'pending':
-        return 'bg-yellow-900/50 text-yellow-300'
-      case 'cancelled':
-        return 'bg-red-900/50 text-red-300'
-      case 'active':
-        return 'bg-blue-900/50 text-blue-300'
-      default:
-        return 'bg-gray-900/50 text-gray-300'
-    }
-  }
+      currency: 'USD',
+    }).format(n);
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white">Loading order history...</div>
+      <div className="flex min-h-[60vh] items-center justify-center bg-canvas text-sm text-ink-muted">
+        Loading order history…
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-red-300">{error}</div>
+      <div className="flex min-h-[60vh] items-center justify-center bg-canvas text-sm text-ink">
+        {error}
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Order History</h1>
-          <p className="text-gray-300">View your past purchases and downloads</p>
-        </div>
+    <div className="bg-canvas text-ink">
+      <div className="mx-auto max-w-5xl px-6 py-16 lg:px-8 lg:py-24">
+        <header className="mb-12">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+            Account
+          </p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
+            Order history.
+          </h1>
+          <p className="mt-4 max-w-xl text-base text-ink-muted">
+            View your past purchases and downloads.
+          </p>
+        </header>
 
         {orders.length > 0 ? (
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-            <h2 className="text-xl font-bold text-white mb-6">Your Orders</h2>
-            
-            <div className="space-y-4">
+          <section className="rounded-md border border-line bg-canvas">
+            <ul className="divide-y divide-line">
               {orders.map((order) => (
-                <div key={order.id} className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
-                  <div className="flex justify-between items-start mb-4">
+                <li key={order.id} className="px-6 py-6">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <h3 className="text-white font-medium">Order #{order.id.slice(0, 8)}</h3>
-                      <p className="text-gray-400 text-sm">Purchased on {formatDate(order.created_at)}</p>
-                      <p className="text-gray-400 text-sm">{order.order_items.length} item(s)</p>
+                      <p className="text-sm font-semibold text-ink">
+                        Order #{order.id.slice(0, 8)}
+                      </p>
+                      <p className="mt-1 text-xs uppercase tracking-widest text-ink-subtle">
+                        {formatDate(order.created_at)} ·{' '}
+                        {order.order_items.length} item
+                        {order.order_items.length === 1 ? '' : 's'}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-medium">{formatPrice(order.total_amount)}</p>
-                      <span className={`px-2 py-1 rounded text-xs ${getStatusColor(order.status)}`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      <p className="text-base font-semibold text-ink">
+                        {formatPrice(order.total_amount)}
+                      </p>
+                      <span className="mt-1 inline-flex items-center rounded-sm bg-elevated px-2 py-1 text-[11px] font-semibold uppercase tracking-widest text-ink">
+                        {order.status}
                       </span>
                     </div>
                   </div>
 
-                  {/* Order Items */}
-                  <div className="space-y-2 mb-4">
+                  <ul className="mt-4 space-y-1 text-sm">
                     {order.order_items.map((item) => (
-                      <div key={item.id} className="flex justify-between items-center text-sm">
-                        <div className="text-gray-300">
-                          <span className="font-medium">{item.product.name}</span>
+                      <li
+                        key={item.id}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-ink">
+                          {item.product.name}
                           {item.quantity > 1 && (
-                            <span className="text-gray-400"> × {item.quantity}</span>
+                            <span className="text-ink-muted">
+                              {' '}
+                              × {item.quantity}
+                            </span>
                           )}
-                        </div>
-                        <span className="text-gray-400">{formatPrice(item.total_price)}</span>
-                      </div>
+                        </span>
+                        <span className="text-ink-muted">
+                          {formatPrice(item.total_price)}
+                        </span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
 
-                  {/* Actions */}
-                  <div className="flex space-x-4">
+                  <div className="mt-6 flex flex-wrap gap-2">
                     {order.status === 'completed' && (
-                      <button className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors">
+                      <button
+                        type="button"
+                        className="inline-flex h-9 items-center rounded-sm bg-accent px-4 text-xs font-semibold tracking-wide text-white hover:bg-accent-hover"
+                      >
                         Download
                       </button>
                     )}
-                    <button className="border border-slate-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700 transition-colors">
-                      View Details
+                    <button
+                      type="button"
+                      className="inline-flex h-9 items-center rounded-sm border border-line px-4 text-xs font-semibold tracking-wide text-ink hover:bg-elevated"
+                    >
+                      View details
                     </button>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </section>
         ) : (
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-12 border border-slate-700 text-center">
-            <div className="text-gray-400">
-              <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <h3 className="text-xl font-semibold text-white mb-2">No Orders Yet</h3>
-              <p className="text-gray-400">You haven't made any purchases yet. Browse our products to get started!</p>
-              <button 
-                onClick={() => window.location.href = '/products'}
-                className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Browse Products
-              </button>
-            </div>
+          <div className="rounded-md border border-line bg-canvas p-12 text-center">
+            <h2 className="text-xl font-semibold text-ink">No orders yet</h2>
+            <p className="mt-2 text-sm text-ink-muted">
+              You haven’t made any purchases yet.
+            </p>
           </div>
         )}
       </div>

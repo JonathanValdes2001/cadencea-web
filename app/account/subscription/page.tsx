@@ -1,82 +1,275 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import {
+  api,
+  ApiError,
+  type PortalSessionResponse,
+  type SubscriptionStatusResponse,
+} from '@/lib/api-client';
+
+const PLAN_COPY: Record<
+  string,
+  { name: string; tagline: string; priceMonthly: string }
+> = {
+  free: {
+    name: 'Free',
+    tagline: '5 GB cloud storage · 1 device',
+    priceMonthly: '€0',
+  },
+  basic: {
+    name: 'Basic',
+    tagline: '50 GB cloud storage · 2 devices',
+    priceMonthly: '€4.99',
+  },
+  standard: {
+    name: 'Standard',
+    tagline: '250 GB cloud storage · 3 devices',
+    priceMonthly: '€14.99',
+  },
+  pro: {
+    name: 'Pro',
+    tagline: '500 GB cloud storage · 5 devices',
+    priceMonthly: '€24.99',
+  },
+};
+
+function formatDate(value: string | null): string {
+  if (!value) return '—';
+  try {
+    return new Date(value).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return '—';
+  }
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const exp = Math.min(
+    units.length - 1,
+    Math.floor(Math.log(bytes) / Math.log(1024))
+  );
+  const value = bytes / Math.pow(1024, exp);
+  return `${value.toFixed(exp >= 3 ? 1 : 0)} ${units[exp]}`;
+}
 
 export default function Subscription() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const [status, setStatus] = useState<SubscriptionStatusResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.replace(
+        `/login?redirect=${encodeURIComponent('/account/subscription')}`
+      );
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    api
+      .get<SubscriptionStatusResponse>('/billing/subscription-status')
+      .then((res) => {
+        if (!cancelled) setStatus(res);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : 'Failed to load subscription details.'
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, authLoading, router]);
+
+  const openPortal = async () => {
+    setError(null);
+    try {
+      setPortalLoading(true);
+      const res = await api.post<PortalSessionResponse>(
+        '/billing/create-portal-session'
+      );
+      window.location.href = res.url;
+    } catch (err) {
+      setPortalLoading(false);
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'Could not open the billing portal. Please try again.'
+      );
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-canvas text-sm text-ink-muted">
+        Loading subscription…
+      </div>
+    );
+  }
+
+  if (!status) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-canvas text-sm text-ink">
+        {error || 'Unable to load subscription details.'}
+      </div>
+    );
+  }
+
+
+  const planKey = (status.plan || 'free').toLowerCase();
+  const copy = PLAN_COPY[planKey] || {
+    name: planKey.charAt(0).toUpperCase() + planKey.slice(1),
+    tagline: '',
+    priceMonthly: '',
+  };
+  const isPaid = planKey !== 'free';
+  const usedBytes = status.storage_used_bytes || 0;
+  const quotaBytes = status.storage_quota_bytes || 0;
+  const usagePct =
+    quotaBytes > 0 ? Math.min(100, (usedBytes / quotaBytes) * 100) : 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Subscription</h1>
-          <p className="text-gray-300">Manage your recurring subscriptions and billing</p>
-        </div>
+    <div className="bg-canvas text-ink">
+      <div className="mx-auto max-w-5xl px-6 py-16 lg:px-8 lg:py-24">
+        <header className="mb-12">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+            Account
+          </p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
+            Subscription.
+          </h1>
+          <p className="mt-4 max-w-xl text-base text-ink-muted">
+            Manage your recurring subscriptions and billing.
+          </p>
+        </header>
 
-        {/* Current Subscription */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 mb-8">
-          <h2 className="text-xl font-bold text-white mb-6">Current Plan</h2>
-          
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-2xl font-bold text-white">Cloud Storage Pro</h3>
-              <p className="text-gray-300">1TB cloud storage with advanced sync features</p>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-white">$19.99</p>
-              <p className="text-gray-400 text-sm">per month</p>
-            </div>
-          </div>
+        {error && (
+          <p
+            role="alert"
+            className="mb-6 rounded-sm border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            {error}
+          </p>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <p className="text-gray-400 text-sm">Next billing date</p>
-              <p className="text-white font-medium">April 15, 2024</p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm">Payment method</p>
-              <p className="text-white font-medium">•••• •••• •••• 4242</p>
-            </div>
-          </div>
-
-          <div className="flex space-x-4">
-            <button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all">
-              Upgrade Plan
-            </button>
-            <button className="border border-slate-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-slate-700 transition-all">
-              Update Payment
-            </button>
-            <button className="text-red-400 hover:text-red-300 px-6 py-2 rounded-lg font-medium transition-colors">
-              Cancel
-            </button>
-          </div>
-        </div>
-
-
-
-        {/* Billing History */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-          <h2 className="text-xl font-bold text-white mb-6">Recent Billing</h2>
-          
-          <div className="space-y-4">
-            {[
-              { date: 'March 15, 2024', amount: '$19.99', status: 'Paid', invoice: 'INV-2024-003' },
-              { date: 'February 15, 2024', amount: '$19.99', status: 'Paid', invoice: 'INV-2024-002' },
-              { date: 'January 15, 2024', amount: '$19.99', status: 'Paid', invoice: 'INV-2024-001' }
-            ].map((bill, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
+        <div className="space-y-8">
+          <section className="rounded-md border border-line bg-canvas">
+            <header className="border-b border-line px-6 py-4">
+              <h2 className="text-sm font-semibold uppercase tracking-widest text-ink">
+                Current plan
+              </h2>
+            </header>
+            <div className="px-6 py-6">
+              <div className="flex flex-col gap-6 border-b border-line pb-6 md:flex-row md:items-start md:justify-between">
                 <div>
-                  <p className="text-white font-medium">{bill.date}</p>
-                  <p className="text-gray-400 text-sm">Invoice {bill.invoice}</p>
+                  <h3 className="text-2xl font-semibold tracking-tight text-ink">
+                    Cadencea {copy.name}
+                  </h3>
+                  {copy.tagline && (
+                    <p className="mt-1 text-sm text-ink-muted">
+                      {copy.tagline}
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+                    Status: {status.status}
+                  </p>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <p className="text-white font-medium">{bill.amount}</p>
-                  <span className="bg-green-900/50 text-green-300 px-2 py-1 rounded text-xs">{bill.status}</span>
-                  <button className="text-purple-400 hover:text-purple-300 text-sm">
-                    Download
-                  </button>
-                </div>
+                {copy.priceMonthly && (
+                  <div className="text-left md:text-right">
+                    <p className="text-3xl font-bold tracking-tight text-ink">
+                      {copy.priceMonthly}
+                    </p>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-widest text-ink-subtle">
+                      per month
+                    </p>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+
+              <dl className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+                    {isPaid ? 'Next billing date' : 'Plan renews'}
+                  </dt>
+                  <dd className="mt-1 text-sm font-medium text-ink">
+                    {isPaid ? formatDate(status.current_period_end) : '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+                    Storage
+                  </dt>
+                  <dd className="mt-1 text-sm font-medium text-ink">
+                    {formatBytes(usedBytes)} of {formatBytes(quotaBytes)} used
+                  </dd>
+                  <div className="mt-2 h-1.5 w-full rounded-sm bg-elevated">
+                    <div
+                      className="h-full rounded-sm bg-accent"
+                      style={{ width: `${usagePct}%` }}
+                    />
+                  </div>
+                </div>
+              </dl>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                {isPaid ? (
+                  <button
+                    type="button"
+                    onClick={openPortal}
+                    disabled={portalLoading}
+                    aria-busy={portalLoading}
+                    className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {portalLoading ? 'Opening portal…' : 'Manage billing'}
+                  </button>
+                ) : (
+                  <Link
+                    href="/pricing"
+                    className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover"
+                  >
+                    Upgrade plan
+                  </Link>
+                )}
+                <Link
+                  href="/pricing"
+                  className="inline-flex h-10 items-center rounded-sm border border-ink px-6 text-sm font-semibold tracking-wide text-ink hover:bg-elevated"
+                >
+                  Compare plans
+                </Link>
+              </div>
+
+              {isPaid && (
+                <p className="mt-6 text-xs text-ink-subtle">
+                  Payment methods, invoices, and cancellation are handled
+                  securely through the Stripe customer portal.
+                </p>
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </div>
   );
-} 
+}
