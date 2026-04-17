@@ -144,14 +144,6 @@ const Navbar = () => {
                     >
                       Orders
                     </Link>
-                    <Link
-                      href="/account/license-manager"
-                      role="menuitem"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-ink hover:bg-elevated"
-                    >
-                      Licenses
-                    </Link>
                     <div className="my-1 border-t border-line" />
                     <button
                       type="button"

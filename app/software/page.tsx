@@ -16,11 +16,11 @@ const products: Product[] = [
     name: 'Cadencea Vault',
     tagline: 'Professional Music Project Manager',
     description:
-      'Organize your music projects, back them up securely to the cloud, and access them from any device. Designed to fit seamlessly into your existing DAW workflow — no migration required.',
+      'Organize your music projects, back them up securely to the cloud, and collaborate with ease. Currently available for Windows — macOS and Linux coming soon.',
     href: '/cadenceavault',
-    platforms: ['macOS', 'Windows', 'Linux'],
+    platforms: ['Windows'],
     status: 'available',
-    statusLabel: 'Available now',
+    statusLabel: 'Available now · Windows',
   },
 ];
 
@@ -92,35 +92,6 @@ export default function SoftwarePage() {
                   </span>
                 </div>
               </Link>
-            ))}
-
-            {/* Coming-soon placeholders */}
-            {['Instruments', 'Effects'].map((category) => (
-              <div
-                key={category}
-                className="flex flex-col overflow-hidden rounded-md border border-dashed border-line bg-elevated"
-              >
-                <div className="relative aspect-[16/9] w-full bg-inset">
-                  <div className="absolute inset-0 flex flex-col items-start justify-end p-6">
-                    <span className="mb-3 inline-flex w-fit items-center rounded-sm bg-canvas px-2 py-1 text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
-                      Coming soon
-                    </span>
-                    <p className="text-2xl font-bold tracking-tight text-ink">
-                      {category}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-1 flex-col p-6">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
-                    In development
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-                    We’re building the next generation of virtual{' '}
-                    {category.toLowerCase()}. Sign up to be the first to know
-                    when they ship.
-                  </p>
-                </div>
-              </div>
             ))}
           </div>
         </div>

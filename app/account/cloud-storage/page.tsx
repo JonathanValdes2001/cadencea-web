@@ -47,9 +47,9 @@ export default function CloudStorageOverview() {
           />
           <UsageCard
             label="Connected devices"
-            headline="2 of 3 devices"
-            percent={66.7}
-            sub="1 slot available"
+            headline="2 devices"
+            percent={0}
+            sub="Unlimited on all plans"
           />
         </div>
 

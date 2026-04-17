@@ -18,16 +18,8 @@ const features = [
 
 const systems = [
   {
-    name: 'macOS',
-    items: [
-      'macOS 10.15 or later',
-      'Intel or Apple Silicon',
-      '4 GB RAM minimum',
-      '2 GB free disk space',
-    ],
-  },
-  {
     name: 'Windows',
+    available: true,
     items: [
       'Windows 10 or later',
       '64-bit processor',
@@ -36,7 +28,18 @@ const systems = [
     ],
   },
   {
+    name: 'macOS',
+    available: false,
+    items: [
+      'macOS 10.15 or later',
+      'Intel or Apple Silicon',
+      '4 GB RAM minimum',
+      '2 GB free disk space',
+    ],
+  },
+  {
     name: 'Linux',
+    available: false,
     items: [
       'Ubuntu 18.04 or later',
       '64-bit processor',
@@ -60,13 +63,14 @@ export default function CadenceaVault() {
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
             Organize your samples, projects, and stems. Back them up securely
-            to the cloud. Access them from any device.
+            to the cloud. Currently available for Windows — more platforms
+            coming soon.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-3">
-            <DownloadButton platform="Mac" primary />
-            <DownloadButton platform="Windows" />
-            <DownloadButton platform="Linux" />
+            <DownloadButton platform="Windows" available primary />
+            <DownloadButton platform="Mac" available={false} />
+            <DownloadButton platform="Linux" available={false} />
           </div>
         </div>
       </section>
@@ -134,8 +138,18 @@ export default function CadenceaVault() {
           </div>
           <div className="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-3">
             {systems.map((sys) => (
-              <div key={sys.name} className="border-t border-line pt-6">
-                <h3 className="text-lg font-semibold text-ink">{sys.name}</h3>
+              <div
+                key={sys.name}
+                className={`border-t border-line pt-6${!sys.available ? ' opacity-50' : ''}`}
+              >
+                <h3 className="text-lg font-semibold text-ink">
+                  {sys.name}
+                  {!sys.available && (
+                    <span className="ml-2 text-xs font-normal uppercase tracking-wide text-ink-muted">
+                      Coming Soon
+                    </span>
+                  )}
+                </h3>
                 <ul className="mt-4 space-y-2 text-sm text-ink-muted">
                   {sys.items.map((it) => (
                     <li key={it}>{it}</li>
@@ -153,19 +167,24 @@ export default function CadenceaVault() {
 function DownloadButton({
   platform,
   primary,
+  available = true,
 }: {
   platform: 'Mac' | 'Windows' | 'Linux';
   primary?: boolean;
+  available?: boolean;
 }) {
-  const cls = primary
-    ? 'bg-accent text-white hover:bg-accent-hover'
-    : 'border border-dark-text text-dark-text hover:bg-white/10';
+  const cls = !available
+    ? 'border border-dark-text/40 text-dark-text/40 cursor-not-allowed'
+    : primary
+      ? 'bg-accent text-white hover:bg-accent-hover'
+      : 'border border-dark-text text-dark-text hover:bg-white/10';
   return (
     <button
       type="button"
+      disabled={!available}
       className={`inline-flex h-12 items-center rounded-sm px-8 text-sm font-semibold tracking-wide ${cls}`}
     >
-      Download for {platform}
+      {available ? `Download for ${platform}` : `${platform} — Coming Soon`}
     </button>
   );
 }

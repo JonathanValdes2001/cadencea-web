@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: 'What platforms is Cadencea Vault available on?',
-    a: 'Cadencea Vault is a desktop application available on macOS, Windows, and Linux.',
+    a: 'Cadencea Vault is currently available on Windows. macOS and Linux versions are coming soon.',
   },
   {
     q: 'Is my data secure?',
@@ -144,7 +144,7 @@ export default function Home() {
                   Available now
                 </span>
                 <p className="text-sm uppercase tracking-widest text-dark-muted">
-                  Desktop · macOS · Windows · Linux
+                  Desktop · Windows
                 </p>
                 <p className="mt-1 text-4xl font-bold tracking-tight text-dark-text md:text-5xl">
                   Cadencea Vault
@@ -163,8 +163,8 @@ export default function Home() {
                 </h3>
                 <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-muted">
                   Organize your music projects, back them up securely to the
-                  cloud, and access them from any device. Designed to fit
-                  seamlessly into your existing DAW workflow.
+                  cloud, and collaborate with ease. Currently available for
+                  Windows — macOS and Linux coming soon.
                 </p>
               </div>
               <div className="flex items-end lg:col-span-4">

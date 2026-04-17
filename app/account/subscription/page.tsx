@@ -17,22 +17,22 @@ const PLAN_COPY: Record<
 > = {
   free: {
     name: 'Free',
-    tagline: '5 GB cloud storage · 1 device',
+    tagline: '5 GB cloud storage',
     priceMonthly: '€0',
   },
   basic: {
     name: 'Basic',
-    tagline: '50 GB cloud storage · 2 devices',
+    tagline: '50 GB cloud storage',
     priceMonthly: '€4.99',
   },
   standard: {
     name: 'Standard',
-    tagline: '250 GB cloud storage · 3 devices',
+    tagline: '250 GB cloud storage · Priority support',
     priceMonthly: '€14.99',
   },
   pro: {
     name: 'Pro',
-    tagline: '500 GB cloud storage · 5 devices',
+    tagline: '500 GB cloud storage · Priority support',
     priceMonthly: '€24.99',
   },
 };
