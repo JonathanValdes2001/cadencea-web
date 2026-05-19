@@ -51,7 +51,7 @@ export default function ContactPage() {
             Get in touch.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted">
-            We read every message. Pick the channel that fits your question — it
+            We read every message. Pick the channel that fits your question. It
             helps us route things to the right place and get back to you faster.
           </p>
         </div>
@@ -140,7 +140,7 @@ export default function ContactPage() {
 
               <p className="mt-10 text-sm leading-relaxed text-ink-muted">
                 For EU/EEA data protection matters, our supervisory authority
-                is the Norwegian Data Protection Authority (Datatilsynet) —{' '}
+                is the Norwegian Data Protection Authority (Datatilsynet):{' '}
                 <a
                   href="https://www.datatilsynet.no"
                   target="_blank"

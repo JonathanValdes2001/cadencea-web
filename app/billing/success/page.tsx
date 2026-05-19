@@ -65,7 +65,7 @@ export default function BillingSuccessPage() {
           Welcome to Cadencea{planName && planName !== 'Free' ? ` ${planName}` : ''}.
         </h1>
         <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-muted">
-          Thank you for subscribing. Your new plan is being activated — this
+          Thank you for subscribing. Your new plan is being activated. This
           usually takes just a few seconds. A receipt will arrive in your
           inbox shortly.
         </p>

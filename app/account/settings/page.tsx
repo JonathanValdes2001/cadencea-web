@@ -351,7 +351,7 @@ function PendingDeletionBanner() {
       const next = await accountDeletion.cancel();
       setStatus(next);
       setMessage(
-        'Account deletion cancelled. Your shared projects were not restored — re-share them manually if needed.'
+        'Account deletion cancelled. Your shared projects were not restored. Re-share them manually if needed.'
       );
     } catch (err) {
       setMessage(
@@ -466,7 +466,7 @@ function ExportModal({ onClose }: { onClose: () => void }) {
         {!job && (
           <>
             <p className="mt-3 text-sm text-ink-muted">
-              Files on your local computer are not included — only what was
+              Files on your local computer are not included. Only what was
               uploaded to the cloud.
             </p>
             {error && (
@@ -728,7 +728,7 @@ function DeleteAccountModal({ onClose }: { onClose: () => void }) {
         {step === 'sent' && (
           <div>
             <p className="mt-3 text-sm text-ink-muted">
-              Check your email — we sent a confirmation link to{' '}
+              Check your email. We sent a confirmation link to{' '}
               <span className="font-mono text-ink">{maskedEmail}</span>. The
               link expires in 60 minutes.
             </p>

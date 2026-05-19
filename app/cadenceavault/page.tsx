@@ -66,7 +66,7 @@ export default function CadenceaVault() {
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
                 Organize your samples, projects, and stems. Back them up
-                securely to the cloud. Currently available for Windows — more
+                securely to the cloud. Currently available for Windows. More
                 platforms coming soon.
               </p>
 
@@ -136,7 +136,7 @@ export default function CadenceaVault() {
             Ready to get started?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-ink-muted">
-            Choose the plan that fits your workflow — from a free tier to get
+            Choose the plan that fits your workflow, from a free tier to get
             you going, up to 500 GB for serious creators.
           </p>
           <Link

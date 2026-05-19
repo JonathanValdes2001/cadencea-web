@@ -11,11 +11,11 @@ const faqs = [
   },
   {
     q: 'Is Cadencea Vault free to use?',
-    a: 'Yes — Cadencea Vault has a free tier with 5 GB of cloud storage. Paid plans start at €4.99/month for more storage and features.',
+    a: 'Yes. Cadencea Vault has a free tier with 5 GB of cloud storage. Paid plans start at €4.99/month for more storage and features.',
   },
   {
     q: 'Which DAWs does Cadencea Vault support?',
-    a: 'Cadencea Vault is DAW-agnostic. It works with any DAW — Ableton, FL Studio, Logic Pro, Pro Tools, and more. It manages your project files regardless of what software created them.',
+    a: 'Cadencea Vault is DAW-agnostic. It works with any DAW, including Ableton, FL Studio, Logic Pro, Pro Tools, and more. It manages your project files regardless of what software created them.',
   },
   {
     q: 'What platforms is Cadencea Vault available on?',
@@ -34,7 +34,7 @@ const faqs = [
 const pillars = [
   {
     title: 'Built for musicians',
-    desc: 'Every product is designed by people who make music — we understand the workflow because we live it.',
+    desc: 'Every product is designed by people who make music. We understand the workflow because we live it.',
   },
   {
     title: 'Privacy first',
@@ -42,7 +42,7 @@ const pillars = [
   },
   {
     title: 'Stay in flow',
-    desc: 'Our tools are designed to stay out of your way. No bloat, no distractions — just what you need.',
+    desc: 'Our tools are designed to stay out of your way. No bloat, no distractions, just what you need.',
   },
   {
     title: 'Always evolving',
@@ -96,18 +96,16 @@ export default function Home() {
                 Our mission
               </p>
               <h2 className="mt-3 text-4xl font-bold leading-tight tracking-tight text-ink md:text-5xl">
-                Tools as creative as the music.
+                Organize. Protect. Share.
               </h2>
             </div>
             <div className="lg:col-span-7 lg:col-start-6">
               <p className="max-w-xl text-lg leading-relaxed text-ink-muted">
-                At Cadencea we believe the tools musicians use should be as
-                creative as the music they make. We’re building a suite of
-                software that solves real problems in the music production
-                workflow — from project management and cloud backup to
-                intelligent creative assistance. Everything we create is
-                designed to stay out of your way and let you focus on what
-                matters: making music.
+                Cadencea builds software that solves real problems in music
+                production. We keep projects organized, back them up
+                losslessly to the cloud, and make them easy to share with
+                collaborators. No transcoding, no vendor lock-in, no
+                distractions. Just your work, safe and within reach.
               </p>
             </div>
           </div>
@@ -169,7 +167,7 @@ export default function Home() {
                 <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-muted">
                   Organize your music projects, back them up securely to the
                   cloud, and collaborate with ease. Currently available for
-                  Windows — macOS and Linux coming soon.
+                  Windows. macOS and Linux coming soon.
                 </p>
               </div>
               <div className="flex items-end lg:col-span-4">

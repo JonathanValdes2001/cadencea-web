@@ -18,7 +18,7 @@ const products: Product[] = [
     name: 'Cadencea Vault',
     tagline: 'Cadencea Vault',
     description:
-      'Organize your music projects, back them up securely to the cloud, and collaborate with ease. Currently available for Windows — macOS and Linux coming soon.',
+      'Organize your music projects, back them up securely to the cloud, and collaborate with ease. Currently available for Windows. macOS and Linux coming soon.',
     href: '/cadenceavault',
     platforms: ['Windows'],
     status: 'available',
@@ -41,7 +41,7 @@ export default function SoftwarePage() {
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted">
             Tools built specifically for music creators. Download, install, and
-            get back to making music — each product is designed to stay out of
+            get back to making music. Each product is designed to stay out of
             your way and elevate your workflow.
           </p>
         </div>

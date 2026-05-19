@@ -165,7 +165,7 @@ export default function PricingPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted">
             Unlock the full potential of Cadencea Vault with flexible pricing
-            designed for every artist — from bedroom producers to professional
+            designed for every artist, from bedroom producers to professional
             studios.
           </p>
 

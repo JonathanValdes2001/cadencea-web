@@ -74,7 +74,7 @@ export default function PrivacyPage() {
           files or project data
         </li>
         <li>
-          We do not store payment card details — all payment processing is
+          We do not store payment card details. All payment processing is
           handled securely by Stripe
         </li>
         <li>
