@@ -14,11 +14,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://cadencea.app"),
-  title: "Cadencea — Innovative Software for Music Creators",
+  title: "Cadencea | Innovative Software for Music Creators",
   description:
     "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
   openGraph: {
-    title: "Cadencea — Innovative Software for Music Creators",
+    title: "Cadencea | Innovative Software for Music Creators",
     description:
       "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
     url: "/",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cadencea — Innovative Software for Music Creators",
+    title: "Cadencea | Innovative Software for Music Creators",
     description:
       "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
     images: ["/logo/og-social-card.png"],

@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import LegalLayout from '../../components/LegalLayout';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service — Cadencea',
+  title: 'Terms of Service | Cadencea',
   description:
     'Legally binding terms governing use of Cadencea Vault, the Cadencea website, and related services.',
 };

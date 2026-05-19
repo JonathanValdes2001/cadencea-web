@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact — Cadencea',
+  title: 'Contact | Cadencea',
   description:
     'Get in touch with the Cadencea team for product support, privacy requests, or general inquiries.',
 };

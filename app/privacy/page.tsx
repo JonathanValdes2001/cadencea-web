@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import LegalLayout from '../../components/LegalLayout';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Cadencea',
+  title: 'Privacy Policy | Cadencea',
   description:
     'How Cadencea collects, uses, and protects your personal data under the GDPR.',
 };

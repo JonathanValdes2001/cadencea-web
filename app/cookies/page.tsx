@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import LegalLayout from '../../components/LegalLayout';
 
 export const metadata: Metadata = {
-  title: 'Cookie Notice — Cadencea',
+  title: 'Cookie Notice | Cadencea',
   description:
     'How Cadencea uses cookies and similar tracking technologies on cadencea.app and in the desktop application.',
 };
