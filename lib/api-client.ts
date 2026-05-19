@@ -54,14 +54,30 @@ export async function apiFetch<T = unknown>(
 
   const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
 
+  const controller = new AbortController();
+  const timeoutMs = 15000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   let response: Response;
   try {
-    response = await fetch(url, { ...init, headers });
+    response = await fetch(url, {
+      ...init,
+      headers,
+      signal: init.signal ?? controller.signal,
+    });
   } catch (err) {
+    const aborted =
+      err instanceof DOMException && err.name === 'AbortError';
     throw new ApiError(
-      err instanceof Error ? err.message : 'Network error',
+      aborted
+        ? `Request timed out after ${timeoutMs / 1000}s. Is the API server running?`
+        : err instanceof Error
+          ? err.message
+          : 'Network error',
       0
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   let data: unknown = null;
@@ -93,6 +109,13 @@ export const api = {
     apiFetch<T>(path, {
       ...init,
       method: 'POST',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    }),
+
+  patch: <T = unknown>(path: string, body?: unknown, init?: RequestInit) =>
+    apiFetch<T>(path, {
+      ...init,
+      method: 'PATCH',
       body: body !== undefined ? JSON.stringify(body) : undefined,
     }),
 };
@@ -134,3 +157,71 @@ export interface SubscriptionStatusResponse {
   max_devices: number;
   stripe_customer_id: string | null;
 }
+
+export interface InvoiceSummary {
+  id: string;
+  number: string | null;
+  status: string | null;
+  amount_paid: number;
+  amount_due: number;
+  currency: string;
+  created: number | null;
+  hosted_invoice_url: string | null;
+  invoice_pdf: string | null;
+}
+
+export interface InvoicesResponse {
+  invoices: InvoiceSummary[];
+}
+
+// ============================================================================
+// ADR-0038: Account deletion + data export
+// ============================================================================
+
+export interface AccountDeletionRequestResponse {
+  status: string; // 'confirmation_pending'
+  email_sent_to: string; // masked
+  expires_in_minutes: number;
+}
+
+export interface AccountDeletionStatusResponse {
+  deletion_status: 'active' | 'pending_deletion' | 'purging' | 'purged';
+  deletion_requested_at: string | null;
+  scheduled_purge_at: string | null;
+  can_cancel: boolean;
+}
+
+export interface DataExportResponse {
+  export_id: string;
+  status: 'pending' | 'running' | 'succeeded' | 'failed';
+  requested_at: string | null;
+  completed_at: string | null;
+  expires_at: string | null;
+  download_url: string | null;
+  bytes: number | null;
+  error_message: string | null;
+}
+
+export const accountDeletion = {
+  request: (reason?: string) =>
+    api.post<AccountDeletionRequestResponse>('/auth/me/deletion-request', {
+      reason: reason || undefined,
+    }),
+  /** Magic-link confirm — the token is the credential. The endpoint
+   *  ignores the Authorization header even when the browser still has a
+   *  session, so we don't need to strip it. */
+  confirm: (token: string) =>
+    api.post<AccountDeletionStatusResponse>('/auth/me/deletion-confirm', {
+      token,
+    }),
+  cancel: () =>
+    api.post<AccountDeletionStatusResponse>('/auth/me/deletion-cancel'),
+  getStatus: () =>
+    api.get<AccountDeletionStatusResponse>('/auth/me/deletion-status'),
+};
+
+export const dataExport = {
+  request: () => api.post<DataExportResponse>('/auth/me/export'),
+  get: (exportId: string) =>
+    api.get<DataExportResponse>(`/auth/me/export/${exportId}`),
+};

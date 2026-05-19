@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type Col = { title: string; links: { href: string; label: string }[] };
 
@@ -38,16 +39,23 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-1">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-dark-text hover:text-dark-text"
+              className="inline-flex items-center gap-2"
               aria-label="Cadencea home"
             >
-              <span
-                className="inline-block h-4 w-4 bg-dark-text"
-                aria-hidden="true"
+              <Image
+                src="/logo/cadencea-mark-grayscale.svg"
+                alt=""
+                width={32}
+                height={32}
+                className="h-7 w-7"
               />
-              <span className="text-base font-bold tracking-tight">
-                CADENCEA
-              </span>
+              <Image
+                src="/logo/cadencea-text-only.svg"
+                alt="Cadencea"
+                width={460}
+                height={80}
+                className="h-4 w-auto"
+              />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed">
               Innovative software and technology for music creators.

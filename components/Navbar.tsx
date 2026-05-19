@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 
 const navLinks = [
@@ -49,7 +50,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`sticky top-0 z-50 bg-canvas border-b border-line transition-shadow ${
+      className={`sticky top-0 z-50 bg-dark border-b border-white/10 transition-shadow ${
         scrolled ? 'shadow-nav' : ''
       }`}
     >
@@ -58,13 +59,25 @@ const Navbar = () => {
           {/* Wordmark */}
           <Link
             href="/"
-            className="flex items-center gap-2 text-ink hover:text-ink"
+            className="flex items-center gap-2"
             aria-label="Cadencea home"
           >
-            <span className="inline-block h-4 w-4 bg-ink" aria-hidden="true" />
-            <span className="text-base font-bold tracking-tight text-ink">
-              CADENCEA
-            </span>
+            <Image
+              src="/logo/cadencea-mark-grayscale.svg"
+              alt=""
+              width={32}
+              height={32}
+              priority
+              className="h-7 w-7"
+            />
+            <Image
+              src="/logo/cadencea-text-only.svg"
+              alt="Cadencea"
+              width={460}
+              height={80}
+              priority
+              className="h-4 w-auto"
+            />
           </Link>
 
           {/* Desktop nav */}
@@ -73,7 +86,7 @@ const Navbar = () => {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-ink hover:text-accent"
+                className="text-sm font-medium text-dark-text hover:text-accent"
               >
                 {link.label}
               </Link>
@@ -83,8 +96,8 @@ const Navbar = () => {
           {/* Desktop auth */}
           <div className="hidden md:flex md:items-center md:gap-4">
             {loading ? (
-              <div className="flex items-center gap-2 text-sm text-ink-muted">
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-line border-t-accent" />
+              <div className="flex items-center gap-2 text-sm text-dark-muted">
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/10 border-t-accent" />
                 Loading
               </div>
             ) : user ? (
@@ -92,11 +105,11 @@ const Navbar = () => {
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((v) => !v)}
-                  className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium text-ink hover:text-accent"
+                  className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium text-dark-text hover:text-accent"
                   aria-haspopup="menu"
                   aria-expanded={userMenuOpen}
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-ink text-xs font-semibold text-canvas">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-canvas text-xs font-semibold text-ink">
                     {initial}
                   </span>
                   <span className="max-w-[12rem] truncate">{displayName}</span>
@@ -118,13 +131,13 @@ const Navbar = () => {
                 {userMenuOpen && (
                   <div
                     role="menu"
-                    className="absolute right-0 mt-2 w-56 rounded-md border border-line bg-canvas py-1 shadow-dropdown"
+                    className="absolute right-0 mt-2 w-56 rounded-md border border-white/10 bg-dark py-1 shadow-dropdown"
                   >
                     <Link
                       href="/account/settings"
                       role="menuitem"
                       onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-ink hover:bg-elevated"
+                      className="block px-4 py-2 text-sm text-dark-text hover:bg-white/10"
                     >
                       Account settings
                     </Link>
@@ -132,24 +145,16 @@ const Navbar = () => {
                       href="/account/subscription"
                       role="menuitem"
                       onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-ink hover:bg-elevated"
+                      className="block px-4 py-2 text-sm text-dark-text hover:bg-white/10"
                     >
                       Subscription
                     </Link>
-                    <Link
-                      href="/account/order-history"
-                      role="menuitem"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-ink hover:bg-elevated"
-                    >
-                      Orders
-                    </Link>
-                    <div className="my-1 border-t border-line" />
+                    <div className="my-1 border-t border-white/10" />
                     <button
                       type="button"
                       role="menuitem"
                       onClick={handleSignOut}
-                      className="block w-full px-4 py-2 text-left text-sm text-ink hover:bg-elevated"
+                      className="block w-full px-4 py-2 text-left text-sm text-dark-text hover:bg-white/10"
                     >
                       Sign out
                     </button>
@@ -160,12 +165,12 @@ const Navbar = () => {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-ink hover:text-accent"
+                  className="text-sm font-medium text-dark-text hover:text-accent"
                 >
                   Sign in
                 </Link>
                 <Link
-                  href="/register"
+                  href="/signup"
                   className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover"
                 >
                   Sign up
@@ -178,7 +183,7 @@ const Navbar = () => {
           <button
             type="button"
             onClick={() => setIsMenuOpen((v) => !v)}
-            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-sm text-ink hover:bg-elevated"
+            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-sm text-dark-text hover:bg-white/10"
             aria-label="Toggle menu"
             aria-expanded={isMenuOpen}
           >
@@ -209,53 +214,46 @@ const Navbar = () => {
 
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-line py-4">
+          <div className="md:hidden border-t border-white/10 py-4">
             <div className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="rounded-sm px-3 py-3 text-base font-medium text-ink hover:bg-elevated"
+                  className="rounded-sm px-3 py-3 text-base font-medium text-dark-text hover:bg-white/10"
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
 
-            <div className="mt-4 border-t border-line pt-4">
+            <div className="mt-4 border-t border-white/10 pt-4">
               {loading ? (
-                <div className="px-3 py-2 text-sm text-ink-muted">Loading…</div>
+                <div className="px-3 py-2 text-sm text-dark-muted">Loading…</div>
               ) : user ? (
                 <div className="flex flex-col gap-1">
-                  <div className="px-3 py-2 text-xs uppercase tracking-wider text-ink-subtle">
+                  <div className="px-3 py-2 text-xs uppercase tracking-wider text-dark-muted">
                     {displayName}
                   </div>
                   <Link
                     href="/account/settings"
                     onClick={() => setIsMenuOpen(false)}
-                    className="rounded-sm px-3 py-3 text-base text-ink hover:bg-elevated"
+                    className="rounded-sm px-3 py-3 text-base text-dark-text hover:bg-white/10"
                   >
                     Account settings
                   </Link>
                   <Link
                     href="/account/subscription"
                     onClick={() => setIsMenuOpen(false)}
-                    className="rounded-sm px-3 py-3 text-base text-ink hover:bg-elevated"
+                    className="rounded-sm px-3 py-3 text-base text-dark-text hover:bg-white/10"
                   >
                     Subscription
-                  </Link>
-                  <Link
-                    href="/account/order-history"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="rounded-sm px-3 py-3 text-base text-ink hover:bg-elevated"
-                  >
-                    Orders
                   </Link>
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="rounded-sm px-3 py-3 text-left text-base text-ink hover:bg-elevated"
+                    className="rounded-sm px-3 py-3 text-left text-base text-dark-text hover:bg-white/10"
                   >
                     Sign out
                   </button>
@@ -265,12 +263,12 @@ const Navbar = () => {
                   <Link
                     href="/login"
                     onClick={() => setIsMenuOpen(false)}
-                    className="rounded-sm border border-ink px-3 py-3 text-center text-sm font-semibold text-ink hover:bg-elevated"
+                    className="rounded-sm border border-white/30 px-3 py-3 text-center text-sm font-semibold text-dark-text hover:bg-white/10"
                   >
                     Sign in
                   </Link>
                   <Link
-                    href="/register"
+                    href="/signup"
                     onClick={() => setIsMenuOpen(false)}
                     className="rounded-sm bg-accent px-3 py-3 text-center text-sm font-semibold text-white hover:bg-accent-hover"
                   >

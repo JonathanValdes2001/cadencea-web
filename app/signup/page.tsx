@@ -67,7 +67,7 @@ export default function Signup() {
       if (error) {
         setErrors([error.message]);
       } else if (session) {
-        router.push('/dashboard');
+        router.push('/');
       } else {
         setSuccessMessage(
           'Account created. Please check your email and click the confirmation link, then sign in.'

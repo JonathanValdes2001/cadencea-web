@@ -84,10 +84,10 @@ export default function BillingSuccessPage() {
             View my subscription
           </Link>
           <Link
-            href="/dashboard"
+            href="/"
             className="inline-flex h-11 items-center rounded-sm border border-ink px-6 text-sm font-semibold tracking-wide text-ink hover:bg-elevated"
           >
-            Go to dashboard
+            Go to home
           </Link>
         </div>
       </div>

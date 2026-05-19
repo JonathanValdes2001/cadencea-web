@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const features = [
   {
@@ -55,22 +56,44 @@ export default function CadenceaVault() {
       {/* Hero — dark immersive */}
       <section className="bg-dark text-dark-text">
         <div className="mx-auto max-w-7xl px-6 pb-24 pt-24 lg:px-8 lg:pb-32 lg:pt-32">
-          <p className="text-xs font-semibold uppercase tracking-widest text-dark-muted">
-            Cadencea Vault · Desktop app
-          </p>
-          <h1 className="mt-6 max-w-3xl text-5xl font-bold leading-tight tracking-tight md:text-6xl lg:text-7xl">
-            Professional music project management.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
-            Organize your samples, projects, and stems. Back them up securely
-            to the cloud. Currently available for Windows — more platforms
-            coming soon.
-          </p>
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
+            <div className="lg:col-span-7">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#c4b5fd]">
+                Cadencea Vault · Desktop app
+              </p>
+              <h1 className="mt-6 text-5xl font-bold leading-tight tracking-tight md:text-6xl lg:text-7xl">
+                Music project management.
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
+                Organize your samples, projects, and stems. Back them up
+                securely to the cloud. Currently available for Windows — more
+                platforms coming soon.
+              </p>
 
-          <div className="mt-10 flex flex-wrap gap-3">
-            <DownloadButton platform="Windows" available primary />
-            <DownloadButton platform="Mac" available={false} />
-            <DownloadButton platform="Linux" available={false} />
+              <div className="mt-10 flex flex-wrap gap-3">
+                <DownloadButton
+                  platform="Windows"
+                  available
+                  primary
+                  href={process.env.NEXT_PUBLIC_WIN_DOWNLOAD_URL}
+                />
+                <DownloadButton platform="Mac" available={false} />
+                <DownloadButton platform="Linux" available={false} />
+              </div>
+            </div>
+
+            <div className="lg:col-span-5">
+              <div className="relative aspect-[1200/630] w-full overflow-hidden rounded-md border border-white/10 shadow-2xl">
+                <Image
+                  src="/logo/og-social-card.svg"
+                  alt="Cadencea Vault"
+                  fill
+                  sizes="(min-width: 1024px) 480px, 100vw"
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -168,23 +191,44 @@ function DownloadButton({
   platform,
   primary,
   available = true,
+  href,
 }: {
   platform: 'Mac' | 'Windows' | 'Linux';
   primary?: boolean;
   available?: boolean;
+  href?: string;
 }) {
-  const cls = !available
-    ? 'border border-dark-text/40 text-dark-text/40 cursor-not-allowed'
-    : primary
-      ? 'bg-accent text-white hover:bg-accent-hover'
-      : 'border border-dark-text text-dark-text hover:bg-white/10';
+  const classes = `inline-flex h-12 items-center rounded-sm px-8 text-sm font-semibold tracking-wide ${
+    !available || !href
+      ? 'border border-dark-text/40 text-dark-text/40 cursor-not-allowed'
+      : primary
+        ? 'bg-accent text-white hover:bg-accent-hover'
+        : 'border border-dark-text text-dark-text hover:bg-white/10'
+  }`;
+
+  if (!available) {
+    return (
+      <button type="button" disabled className={classes}>
+        {platform} — Coming Soon
+      </button>
+    );
+  }
+
+  if (!href) {
+    return (
+      <button type="button" disabled className={classes}>
+        Download for {platform}
+      </button>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      disabled={!available}
-      className={`inline-flex h-12 items-center rounded-sm px-8 text-sm font-semibold tracking-wide ${cls}`}
+    <a
+      href={href}
+      rel="noopener noreferrer"
+      className={classes}
     >
-      {available ? `Download for ${platform}` : `${platform} — Coming Soon`}
-    </button>
+      Download for {platform}
+    </a>
   );
 }

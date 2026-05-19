@@ -98,7 +98,7 @@ This document outlines the complete transformation of the Cadencea Web codebase 
 - `app/signup/page.tsx` - Full signup functionality
 - `app/login/page.tsx` - Complete login system
 - `app/account/settings/page.tsx` - Live profile editing
-- `app/account/order-history/page.tsx` - Real-time order data
+- `app/account/subscription/page.tsx` - Plan details and invoice history
 
 **Features Implemented:**
 - **Form Validation**: Client-side validation with error display

@@ -13,9 +13,33 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cadencea.app"),
   title: "Cadencea — Innovative Software for Music Creators",
   description:
     "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
+  openGraph: {
+    title: "Cadencea — Innovative Software for Music Creators",
+    description:
+      "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
+    url: "/",
+    siteName: "Cadencea",
+    images: [
+      {
+        url: "/logo/og-social-card.png",
+        width: 1200,
+        height: 630,
+        alt: "Cadencea",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cadencea — Innovative Software for Music Creators",
+    description:
+      "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
+    images: ["/logo/og-social-card.png"],
+  },
 };
 
 export default function RootLayout({

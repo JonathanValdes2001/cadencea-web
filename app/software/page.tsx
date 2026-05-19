@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type Product = {
   name: string;
@@ -9,18 +10,20 @@ type Product = {
   platforms: string[];
   status: 'available' | 'coming';
   statusLabel: string;
+  image: string;
 };
 
 const products: Product[] = [
   {
     name: 'Cadencea Vault',
-    tagline: 'Professional Music Project Manager',
+    tagline: 'Cadencea Vault',
     description:
       'Organize your music projects, back them up securely to the cloud, and collaborate with ease. Currently available for Windows — macOS and Linux coming soon.',
     href: '/cadenceavault',
     platforms: ['Windows'],
     status: 'available',
     statusLabel: 'Available now · Windows',
+    image: '/logo/og-social-card.svg',
   },
 ];
 
@@ -55,15 +58,16 @@ export default function SoftwarePage() {
                 className="group flex flex-col overflow-hidden rounded-md border border-line bg-canvas hover:-translate-y-0.5 hover:border-line-strong hover:shadow-card-hover"
               >
                 <div className="relative aspect-[16/9] w-full bg-dark">
+                  <Image
+                    src={p.image}
+                    alt={p.name}
+                    fill
+                    sizes="(min-width: 1024px) 400px, (min-width: 768px) 50vw, 100vw"
+                    className="object-cover"
+                  />
                   <div className="absolute inset-0 flex flex-col justify-end p-6">
-                    <span className="mb-3 inline-flex w-fit items-center rounded-sm bg-price px-2 py-1 text-[11px] font-semibold uppercase tracking-widest text-white">
-                      {p.statusLabel}
-                    </span>
                     <p className="text-[11px] uppercase tracking-widest text-dark-muted">
                       {p.platforms.join(' · ')}
-                    </p>
-                    <p className="mt-1 text-2xl font-bold tracking-tight text-dark-text">
-                      {p.name}
                     </p>
                   </div>
                 </div>

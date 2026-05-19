@@ -275,6 +275,17 @@ export interface Database {
         }
         Returns: undefined
       }
+      search_profiles_by_username: {
+        Args: {
+          p_query: string
+          p_limit?: number
+        }
+        Returns: {
+          id: string
+          username: string
+          display_name: string | null
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

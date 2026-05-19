@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const faqs = [
   {
@@ -139,15 +140,19 @@ export default function Home() {
           >
             {/* Product image area — 16:9 dark plate */}
             <div className="relative aspect-[16/9] w-full bg-dark">
+              <Image
+                src="/logo/og-social-card.svg"
+                alt="Cadencea Vault"
+                fill
+                sizes="(min-width: 1024px) 1024px, 100vw"
+                className="object-cover"
+              />
               <div className="absolute inset-0 flex flex-col items-start justify-end p-8 lg:p-12">
                 <span className="mb-3 inline-flex items-center rounded-sm bg-price px-2 py-1 text-[11px] font-semibold uppercase tracking-widest text-white">
                   Available now
                 </span>
                 <p className="text-sm uppercase tracking-widest text-dark-muted">
                   Desktop · Windows
-                </p>
-                <p className="mt-1 text-4xl font-bold tracking-tight text-dark-text md:text-5xl">
-                  Cadencea Vault
                 </p>
               </div>
             </div>

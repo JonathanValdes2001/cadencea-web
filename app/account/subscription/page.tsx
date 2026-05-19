@@ -7,6 +7,8 @@ import { useAuth } from '@/lib/auth-context';
 import {
   api,
   ApiError,
+  type InvoicesResponse,
+  type InvoiceSummary,
   type PortalSessionResponse,
   type SubscriptionStatusResponse,
 } from '@/lib/api-client';
@@ -50,6 +52,30 @@ function formatDate(value: string | null): string {
   }
 }
 
+function formatInvoiceDate(value: number | null): string {
+  if (!value) return '—';
+  try {
+    return new Date(value * 1000).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return '—';
+  }
+}
+
+function formatCurrency(amountMinor: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: (currency || 'usd').toUpperCase(),
+    }).format((amountMinor || 0) / 100);
+  } catch {
+    return `${((amountMinor || 0) / 100).toFixed(2)} ${currency.toUpperCase()}`;
+  }
+}
+
 function formatBytes(bytes: number): string {
   if (!bytes || bytes <= 0) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -68,6 +94,9 @@ export default function Subscription() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [invoices, setInvoices] = useState<InvoiceSummary[] | null>(null);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [invoicesError, setInvoicesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -81,6 +110,9 @@ export default function Subscription() {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setInvoicesLoading(true);
+    setInvoicesError(null);
+
     api
       .get<SubscriptionStatusResponse>('/billing/subscription-status')
       .then((res) => {
@@ -96,6 +128,24 @@ export default function Subscription() {
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
+      });
+
+    api
+      .get<InvoicesResponse>('/billing/invoices?limit=10')
+      .then((res) => {
+        if (!cancelled) setInvoices(res.invoices || []);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setInvoicesError(
+          err instanceof ApiError
+            ? err.message
+            : 'Failed to load invoices.'
+        );
+        setInvoices([]);
+      })
+      .finally(() => {
+        if (!cancelled) setInvoicesLoading(false);
       });
 
     return () => {
@@ -234,37 +284,100 @@ export default function Subscription() {
               </dl>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                {isPaid ? (
+                <Link
+                  href="/pricing"
+                  className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover"
+                >
+                  Upgrade plan
+                </Link>
+                {isPaid && (
                   <button
                     type="button"
                     onClick={openPortal}
                     disabled={portalLoading}
                     aria-busy={portalLoading}
-                    className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-10 items-center rounded-sm border border-ink px-6 text-sm font-semibold tracking-wide text-ink hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {portalLoading ? 'Opening portal…' : 'Manage billing'}
+                    {portalLoading ? 'Opening portal…' : 'Cancel plan'}
                   </button>
-                ) : (
-                  <Link
-                    href="/pricing"
-                    className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover"
-                  >
-                    Upgrade plan
-                  </Link>
                 )}
-                <Link
-                  href="/pricing"
-                  className="inline-flex h-10 items-center rounded-sm border border-ink px-6 text-sm font-semibold tracking-wide text-ink hover:bg-elevated"
-                >
-                  Compare plans
-                </Link>
               </div>
 
               {isPaid && (
                 <p className="mt-6 text-xs text-ink-subtle">
-                  Payment methods, invoices, and cancellation are handled
+                  Cancellation, payment methods, and invoices are handled
                   securely through the Stripe customer portal.
                 </p>
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-md border border-line bg-canvas">
+            <header className="border-b border-line px-6 py-4">
+              <h2 className="text-sm font-semibold uppercase tracking-widest text-ink">
+                Recent invoices
+              </h2>
+            </header>
+            <div className="px-6 py-6">
+              {invoicesLoading ? (
+                <p className="text-sm text-ink-muted">Loading invoices…</p>
+              ) : invoicesError ? (
+                <p className="text-sm text-ink-muted">{invoicesError}</p>
+              ) : !invoices || invoices.length === 0 ? (
+                <p className="text-sm text-ink-muted">
+                  No invoices yet. Subscription payment history will appear here
+                  once you upgrade to a paid plan.
+                </p>
+              ) : (
+                <ul className="divide-y divide-line">
+                  {invoices.map((inv) => {
+                    const amount =
+                      inv.amount_paid && inv.amount_paid > 0
+                        ? inv.amount_paid
+                        : inv.amount_due;
+                    return (
+                      <li
+                        key={inv.id}
+                        className="flex flex-wrap items-center justify-between gap-4 py-4"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-ink">
+                            {inv.number || inv.id}
+                          </p>
+                          <p className="mt-1 text-xs text-ink-muted">
+                            {formatInvoiceDate(inv.created)}
+                            {inv.status ? ` · ${inv.status}` : ''}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <p className="text-sm font-semibold text-ink">
+                            {formatCurrency(amount, inv.currency)}
+                          </p>
+                          {inv.hosted_invoice_url && (
+                            <a
+                              href={inv.hosted_invoice_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm font-medium text-accent hover:text-accent-hover"
+                            >
+                              View
+                            </a>
+                          )}
+                          {inv.invoice_pdf && (
+                            <a
+                              href={inv.invoice_pdf}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm font-medium text-ink-muted hover:text-ink"
+                            >
+                              PDF
+                            </a>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
             </div>
           </section>

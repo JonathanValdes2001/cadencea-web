@@ -59,7 +59,7 @@ nextjs-boilerplate/
 │   │       └── unsubscribe/   # Unsubscribe handling
 │   ├── account/               # Protected user area
 │   │   ├── settings/          # Profile management
-│   │   └── order-history/     # Order tracking
+│   │   └── subscription/      # Plan and invoices
 │   ├── login/                 # Authentication pages
 │   ├── signup/                # User registration
 │   └── layout.tsx             # Root layout with auth provider
@@ -161,9 +161,8 @@ Navigate to `http://localhost:3000` and start using the application!
 - `/products` - Product showcase
 
 ### Protected Routes (Require Authentication)
-- `/dashboard` - User dashboard
 - `/account/settings` - Profile management
-- `/account/order-history` - Order tracking
+- `/account/subscription` - Plan details and payment history
 - `/account/*` - All account-related pages
 
 ## 🧪 Testing & Development

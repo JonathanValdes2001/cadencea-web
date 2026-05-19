@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, AuthError, Session } from '@supabase/supabase-js'
 import { supabase, getCurrentUserProfile } from './supabase'
+import { api, ApiError } from './api-client'
 import type { Database } from './database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -100,18 +101,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
+      // Username has to be changed via cadencea-api, NOT a direct write to
+      // Supabase `profiles`. The API owns the rename so it can:
+      //   - enforce server-side uniqueness + format,
+      //   - enforce a 24h cooldown,
+      //   - keep `users.username` (Postgres), `profiles.username` (Supabase),
+      //     and `auth.users.user_metadata.username` (JWT source) in sync.
+      // Writing only to `profiles` from here was the original bug: the JWT
+      // kept carrying the old name and the API silently reverted every rename.
+      const { username, ...profileOnly } = updates
+      const currentUsername = profile?.username ?? null
+      const usernameChanged =
+        typeof username === 'string' && username !== currentUsername
 
-      if (error) {
-        return { error }
+      if (usernameChanged) {
+        try {
+          await api.patch('/auth/me/username', { new_username: username })
+        } catch (err) {
+          if (err instanceof ApiError) {
+            return {
+              error: {
+                code: String(err.status),
+                message: err.message,
+              },
+            }
+          }
+          return { error: err }
+        }
+
+        // The next JWT needs to carry the new `user_metadata.username`.
+        // refreshSession() forces Supabase to mint a fresh token; until then
+        // the middleware would still see the OLD name in the JWT (it's now
+        // guarded against reverting us thanks to `username_changed_at`, but
+        // we still want the JWT to agree with reality for downstream
+        // services that read `user_metadata` directly).
+        try {
+          await supabase.auth.refreshSession()
+        } catch (err) {
+          console.warn('[auth-context] refreshSession after rename failed:', err)
+        }
       }
 
-      // Refresh profile data
+      if (Object.keys(profileOnly).length > 0) {
+        const { error } = await supabase
+          .from('profiles')
+          .update(profileOnly)
+          .eq('id', user.id)
+
+        if (error) {
+          return { error }
+        }
+      }
+
+      // Refresh profile data (pulls the now-updated row, including the
+      // username written server-side by cadencea-api).
       await refreshProfile()
-      
+
       return { error: null }
     } catch (error) {
       console.error('Error updating profile:', error)
