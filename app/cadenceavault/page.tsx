@@ -17,7 +17,7 @@ const features = [
   },
 ];
 
-const systems = [
+const systemRequirements = [
   {
     name: 'Windows',
     available: true,
@@ -51,6 +51,14 @@ const systems = [
 ];
 
 export default function CadenceaVault() {
+  const windowsDownloadUrl = process.env.NEXT_PUBLIC_WIN_DOWNLOAD_URL;
+  const macArm64DownloadUrl = process.env.NEXT_PUBLIC_MAC_ARM64_DOWNLOAD_URL;
+  const macX64DownloadUrl = process.env.NEXT_PUBLIC_MAC_X64_DOWNLOAD_URL;
+  const macAvailable = Boolean(macArm64DownloadUrl || macX64DownloadUrl);
+  const systems = systemRequirements.map((system) =>
+    system.name === 'macOS' ? { ...system, available: macAvailable } : system,
+  );
+
   return (
     <div className="bg-canvas text-ink">
       {/* Hero — dark immersive */}
@@ -66,8 +74,9 @@ export default function CadenceaVault() {
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
                 Organize your samples, projects, and stems. Back them up
-                securely to the cloud. Currently available for Windows. More
-                platforms coming soon.
+                securely to the cloud. {macAvailable
+                  ? 'Available for Windows and macOS desktop workflows, with Linux planned for a later release.'
+                  : 'Currently available for Windows, with macOS build support being prepared next.'}
               </p>
 
               <div className="mt-10 flex flex-wrap gap-3">
@@ -75,9 +84,18 @@ export default function CadenceaVault() {
                   platform="Windows"
                   available
                   primary
-                  href={process.env.NEXT_PUBLIC_WIN_DOWNLOAD_URL}
+                  href={windowsDownloadUrl}
                 />
-                <DownloadButton platform="Mac" available={false} />
+                <DownloadButton
+                  platform="Mac Apple Silicon"
+                  available={Boolean(macArm64DownloadUrl)}
+                  href={macArm64DownloadUrl}
+                />
+                <DownloadButton
+                  platform="Mac Intel"
+                  available={Boolean(macX64DownloadUrl)}
+                  href={macX64DownloadUrl}
+                />
                 <DownloadButton platform="Linux" available={false} />
               </div>
             </div>
@@ -193,7 +211,7 @@ function DownloadButton({
   available = true,
   href,
 }: {
-  platform: 'Mac' | 'Windows' | 'Linux';
+  platform: 'Mac Apple Silicon' | 'Mac Intel' | 'Windows' | 'Linux';
   primary?: boolean;
   available?: boolean;
   href?: string;
