@@ -2,6 +2,44 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+const heroChips = ['Lossless backups', 'Works with any DAW', 'Offline-first'];
+
+const showcases = [
+  {
+    eyebrow: 'Harmonic filtering',
+    title: 'Find every track in the right key.',
+    desc: 'Browse your catalog through an interactive circle of fifths. Click any major or minor key and your projects filter instantly — ideal for building harmonically compatible sets and finding the track that fits next.',
+    points: ['Major and minor selection', 'Camelot-style key wheel', 'One-click filtering'],
+    src: '/vault/key-wheel.png',
+    alt: 'Cadencea Vault circle-of-fifths key wheel filtering projects by musical key',
+    width: 1715,
+    height: 1137,
+    reverse: false,
+  },
+  {
+    eyebrow: 'Detail view',
+    title: 'Every detail, at a glance.',
+    desc: 'Switch to a sortable table to see artist, BPM, key, date, DAW, tags, and cloud-sync status across your whole library — then sort by any column to surface exactly what you need.',
+    points: ['BPM, key & metadata', 'Per-project sync status', 'Sort and filter by tag'],
+    src: '/vault/table.png',
+    alt: 'Cadencea Vault detailed table view showing artist, BPM, key, tags and sync status',
+    width: 1713,
+    height: 957,
+    reverse: true,
+  },
+  {
+    eyebrow: 'Built for big libraries',
+    title: 'Hundreds of projects, zero clutter.',
+    desc: 'A compact list packs more of your catalog onto the screen while keeping tags, sync indicators, and instant playback one click away — so moving through a deep library stays fast.',
+    points: ['High-density layout', 'Instant in-app playback', 'Color-coded tags'],
+    src: '/vault/list.png',
+    alt: 'Cadencea Vault compact list view of a large project library',
+    width: 1702,
+    height: 1002,
+    reverse: false,
+  },
+];
+
 const features = [
   {
     title: 'Project management',
@@ -68,11 +106,23 @@ export default function CadenceaVault() {
 
   return (
     <div className="bg-canvas text-ink">
-      {/* Hero — dark immersive */}
-      <section className="bg-dark text-dark-text">
-        <div className="mx-auto max-w-7xl px-6 pb-24 pt-24 lg:px-8 lg:pb-32 lg:pt-32">
-          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
-            <div className="lg:col-span-7">
+      {/* ============================================================
+          DARK IMMERSIVE SHOWROOM — hero + product showcase.
+          One continuous violet-lit dark region, the way a product
+          gets its own color world on Native Instruments.
+          ============================================================ */}
+      <div className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#1A1A1A_0%,#15121c_42%,#100d18_100%)] text-dark-text">
+        {/* Ambient purple glows */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute -top-40 left-1/2 h-[460px] w-[940px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(124,58,237,0.30),transparent)] blur-3xl" />
+          <div className="absolute left-[-10%] top-[38%] h-[420px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(139,92,246,0.18),transparent)] blur-3xl" />
+          <div className="absolute right-[-8%] top-[64%] h-[460px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(167,139,250,0.16),transparent)] blur-3xl" />
+        </div>
+
+        {/* Hero */}
+        <section className="relative">
+          <div className="mx-auto max-w-7xl px-6 pt-20 lg:px-8 lg:pt-28">
+            <div className="max-w-3xl">
               <p className="text-xs font-semibold uppercase tracking-widest text-[#c4b5fd]">
                 Cadencea Vault · Desktop app
               </p>
@@ -81,10 +131,23 @@ export default function CadenceaVault() {
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
                 Organize your samples, projects, and stems. Back them up
-                securely to the cloud. {macAvailable
+                securely to the cloud.{' '}
+                {macAvailable
                   ? 'Available for Windows and macOS desktop workflows, with Linux planned for a later release.'
                   : 'Currently available for Windows, with macOS build support being prepared next.'}
               </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-2.5">
+                {heroChips.map((chip) => (
+                  <span
+                    key={chip}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#a78bfa]/30 bg-[#a78bfa]/10 px-3 py-1 text-xs font-medium text-[#c4b5fd]"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#a78bfa]" />
+                    {chip}
+                  </span>
+                ))}
+              </div>
 
               <div className="mt-10 flex flex-wrap gap-3">
                 <DownloadButton
@@ -113,21 +176,44 @@ export default function CadenceaVault() {
               )}
             </div>
 
-            <div className="lg:col-span-5">
-              <div className="relative aspect-[1200/630] w-full overflow-hidden rounded-md border border-white/10 shadow-2xl">
-                <Image
-                  src="/logo/og-social-card.svg"
-                  alt="Cadencea Vault"
-                  fill
-                  sizes="(min-width: 1024px) 480px, 100vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
+            {/* Flagship screenshot */}
+            <div className="relative mx-auto mt-16 max-w-6xl lg:mt-20">
+              <ScreenshotFrame
+                src="/vault/library.png"
+                alt="Cadencea Vault project library with album art, tags and a playback bar"
+                width={2005}
+                height={1357}
+                priority
+                sizes="(min-width: 1024px) 1152px, 100vw"
+              />
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Product showcase — alternating screenshot rows */}
+        <section className="relative">
+          <div className="mx-auto max-w-7xl px-6 pb-24 pt-24 lg:px-8 lg:pb-32 lg:pt-32">
+            <div className="mb-16 max-w-2xl lg:mb-20">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#c4b5fd]">
+                A closer look
+              </p>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
+                Built around the way you work.
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-dark-muted">
+                Every view in Cadencea Vault is designed to keep your catalog
+                organized and your next idea close at hand.
+              </p>
+            </div>
+
+            <div className="space-y-24 lg:space-y-32">
+              {showcases.map((s) => (
+                <ShowcaseRow key={s.title} {...s} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
 
       {/* Features */}
       <section className="border-b border-line">
@@ -218,6 +304,111 @@ export default function CadenceaVault() {
   );
 }
 
+function ShowcaseRow({
+  eyebrow,
+  title,
+  desc,
+  points,
+  src,
+  alt,
+  width,
+  height,
+  reverse,
+}: {
+  eyebrow: string;
+  title: string;
+  desc: string;
+  points: string[];
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  reverse: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+      <div className={reverse ? 'lg:order-2' : ''}>
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#c4b5fd]">
+          {eyebrow}
+        </p>
+        <h3 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
+          {title}
+        </h3>
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-dark-muted">
+          {desc}
+        </p>
+        <ul className="mt-6 space-y-3">
+          {points.map((p) => (
+            <li key={p} className="flex items-center gap-3 text-sm text-dark-text">
+              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-[#a78bfa]/40 bg-[#a78bfa]/10">
+                <svg
+                  className="h-3 w-3 text-[#c4b5fd]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </span>
+              {p}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className={reverse ? 'lg:order-1' : ''}>
+        <ScreenshotFrame
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          sizes="(min-width: 1024px) 600px, 100vw"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ScreenshotFrame({
+  src,
+  alt,
+  width,
+  height,
+  priority = false,
+  sizes,
+}: {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  priority?: boolean;
+  sizes: string;
+}) {
+  return (
+    <div className="relative isolate">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-8 -z-10 bg-[radial-gradient(55%_55%_at_50%_45%,rgba(139,92,246,0.40),rgba(109,40,217,0.12)_55%,transparent_78%)] blur-2xl"
+      />
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0d0c11] shadow-[0_24px_70px_-24px_rgba(124,58,237,0.55)] ring-1 ring-white/[0.06]">
+        <Image
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          priority={priority}
+          sizes={sizes}
+          className="h-auto w-full"
+        />
+      </div>
+    </div>
+  );
+}
+
 function DownloadButton({
   platform,
   primary,
@@ -257,11 +448,7 @@ function DownloadButton({
   }
 
   return (
-    <a
-      href={href}
-      rel="noopener noreferrer"
-      className={classes}
-    >
+    <a href={href} rel="noopener noreferrer" className={classes}>
       Download for {platform}
     </a>
   );
