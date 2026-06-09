@@ -18,11 +18,11 @@ const products: Product[] = [
     name: 'Cadencea Vault',
     tagline: 'Cadencea Vault',
     description:
-      'Organize your music projects, back them up securely to the cloud, and collaborate with ease. Currently available for Windows. macOS and Linux coming soon.',
+      'Organize your music projects, back them up securely to the cloud, and collaborate with ease. Available for Windows and macOS, with Linux planned for a later release.',
     href: '/cadenceavault',
-    platforms: ['Windows'],
+    platforms: ['Windows', 'macOS'],
     status: 'available',
-    statusLabel: 'Available now · Windows',
+    statusLabel: 'Available now · Windows and macOS',
     image: '/logo/og-social-card.svg',
   },
 ];

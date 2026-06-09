@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: 'What platforms is Cadencea Vault available on?',
-    a: 'Cadencea Vault is currently available on Windows. macOS and Linux versions are coming soon.',
+    a: 'Cadencea Vault is available on Windows and macOS. Separate macOS installers are available for Apple Silicon and Intel Macs. Linux is coming later.',
   },
   {
     q: 'Is my data secure?',
@@ -150,7 +150,7 @@ export default function Home() {
                   Available now
                 </span>
                 <p className="text-sm uppercase tracking-widest text-dark-muted">
-                  Desktop · Windows
+                  Desktop · Windows and macOS
                 </p>
               </div>
             </div>
@@ -166,8 +166,8 @@ export default function Home() {
                 </h3>
                 <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-muted">
                   Organize your music projects, back them up securely to the
-                  cloud, and collaborate with ease. Currently available for
-                  Windows. macOS and Linux coming soon.
+                  cloud, and collaborate with ease. Available for Windows and
+                  macOS, with Linux planned for a later release.
                 </p>
               </div>
               <div className="flex items-end lg:col-span-4">

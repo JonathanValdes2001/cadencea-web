@@ -33,7 +33,7 @@ const systemRequirements = [
     available: false,
     items: [
       'macOS 10.15 or later',
-      'Intel or Apple Silicon',
+      'Apple Silicon (M1 or later) or 64-bit Intel',
       '4 GB RAM minimum',
       '2 GB free disk space',
     ],
@@ -87,17 +87,23 @@ export default function CadenceaVault() {
                   href={windowsDownloadUrl}
                 />
                 <DownloadButton
-                  platform="Mac Apple Silicon"
+                  platform="Mac (Apple Silicon)"
                   available={Boolean(macArm64DownloadUrl)}
                   href={macArm64DownloadUrl}
                 />
                 <DownloadButton
-                  platform="Mac Intel"
+                  platform="Mac (Intel)"
                   available={Boolean(macX64DownloadUrl)}
                   href={macX64DownloadUrl}
                 />
                 <DownloadButton platform="Linux" available={false} />
               </div>
+              {macAvailable && (
+                <p className="mt-4 text-sm text-dark-muted">
+                  Choose Apple Silicon for M1, M2, M3, M4, and newer chips.
+                  Choose Intel for older Intel-based Macs.
+                </p>
+              )}
             </div>
 
             <div className="lg:col-span-5">
@@ -211,17 +217,20 @@ function DownloadButton({
   available = true,
   href,
 }: {
-  platform: 'Mac Apple Silicon' | 'Mac Intel' | 'Windows' | 'Linux';
+  platform: 'Mac (Apple Silicon)' | 'Mac (Intel)' | 'Windows' | 'Linux';
   primary?: boolean;
   available?: boolean;
   href?: string;
 }) {
-  const classes = `inline-flex h-12 items-center rounded-sm px-8 text-sm font-semibold tracking-wide ${
+  const isMac = platform === 'Mac (Apple Silicon)' || platform === 'Mac (Intel)';
+  const classes = `inline-flex h-12 items-center justify-center rounded-sm border px-8 text-sm font-semibold tracking-wide shadow-sm ${
     !available || !href
-      ? 'border border-dark-text/40 text-dark-text/40 cursor-not-allowed'
+      ? 'cursor-not-allowed border-dark-text/30 text-dark-text/40 shadow-none'
       : primary
-        ? 'bg-accent text-white hover:bg-accent-hover'
-        : 'border border-dark-text text-dark-text hover:bg-white/10'
+        ? 'border-accent bg-accent text-white shadow-[0_4px_14px_rgba(0,102,255,0.25)] hover:-translate-y-0.5 hover:bg-accent-hover'
+        : isMac
+          ? 'border-white bg-white text-[#111111] shadow-[0_4px_14px_rgba(255,255,255,0.14)] hover:-translate-y-0.5 hover:border-[#e5e5e5] hover:bg-[#e5e5e5]'
+          : 'border-dark-text text-dark-text hover:bg-white/10'
   }`;
 
   if (!available) {
