@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 
 const heroChips = ['Lossless backups', 'Works with any DAW', 'Offline-first'];
 
@@ -88,17 +89,11 @@ const systemRequirements = [
   },
 ];
 
-const macArm64FallbackUrl =
-  'https://f003.backblazeb2.com/file/cadencea-products/updates/cadencea-vault/mac/arm64/CadenceaVault-1.0.6-arm64.dmg';
-const macX64FallbackUrl =
-  'https://f003.backblazeb2.com/file/cadencea-products/updates/cadencea-vault/mac/x64/CadenceaVault-1.0.6-x64.dmg';
-
-export default function CadenceaVault() {
-  const windowsDownloadUrl = process.env.NEXT_PUBLIC_WIN_DOWNLOAD_URL;
-  const macArm64DownloadUrl =
-    process.env.NEXT_PUBLIC_MAC_ARM64_DOWNLOAD_URL || macArm64FallbackUrl;
-  const macX64DownloadUrl =
-    process.env.NEXT_PUBLIC_MAC_X64_DOWNLOAD_URL || macX64FallbackUrl;
+export default async function CadenceaVault() {
+  const releases = await loadCadenceaVaultReleases();
+  const windowsDownloadUrl = releases.windows?.downloadUrl;
+  const macArm64DownloadUrl = releases.macArm64?.downloadUrl;
+  const macX64DownloadUrl = releases.macX64?.downloadUrl;
   const macAvailable = Boolean(macArm64DownloadUrl || macX64DownloadUrl);
   const systems = systemRequirements.map((system) =>
     system.name === 'macOS' ? { ...system, available: macAvailable } : system,
