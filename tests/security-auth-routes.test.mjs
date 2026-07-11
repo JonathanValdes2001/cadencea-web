@@ -72,3 +72,18 @@ test('browser auth uses SSR cookies and middleware verifies claims', () => {
   assert.match(middleware, /auth\.getClaims\(\)/)
   assert.doesNotMatch(middleware, /auth\.getSession\(\)/)
 })
+
+test('production tree excludes Sentry wizard demos and development litter', () => {
+  for (const relativePath of [
+    'app/sentry-example-page/page.tsx',
+    'app/api/sentry-example-api/route.ts',
+    'dev-server.log',
+    'let',
+  ]) {
+    assert.equal(existsSync(join(repositoryRoot, relativePath)), false, relativePath)
+  }
+
+  const nextConfig = readFileSync(join(repositoryRoot, 'next.config.ts'), 'utf8')
+  assert.match(nextConfig, /process\.env\.SENTRY_PROJECT/)
+  assert.doesNotMatch(nextConfig, /project:\s*["']electron["']/)
+})
