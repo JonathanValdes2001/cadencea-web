@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceSupabaseClient } from '@/lib/supabase'
+import { createServiceSupabaseClient } from '@/lib/supabase/service'
 import { renderNewsletterPage } from '@/lib/newsletter-html'
 import { z } from 'zod'
 

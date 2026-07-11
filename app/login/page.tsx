@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { safePostLoginPath } from '@/lib/auth-route-policy.mjs';
 
 export default function Login() {
   const router = useRouter();
@@ -34,7 +35,8 @@ export default function Login() {
       if (error) {
         setError(error.message);
       } else {
-        router.push('/');
+        const requestedPath = new URLSearchParams(window.location.search).get('redirect');
+        router.push(safePostLoginPath(requestedPath));
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');

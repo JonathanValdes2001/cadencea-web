@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, AuthError, Session } from '@supabase/supabase-js'
-import { supabase, getCurrentUserProfile } from './supabase'
+import { supabase, getCurrentUserProfile } from './supabase/client'
 import { api, ApiError } from './api-client'
 import type { Database } from './database.types'
 

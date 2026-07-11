@@ -1,17 +1,17 @@
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
 
-// NOTE: The Supabase client stores sessions in localStorage (client-side only),
-// not in cookies. This means the middleware cannot reliably detect auth state
-// without the @supabase/ssr package. Route protection is handled client-side
-// in individual page components using the useAuth() hook instead.
-export function middleware(_req: NextRequest) {
-  return NextResponse.next()
+export async function middleware(req: NextRequest) {
+  return updateSession(req)
 }
 
 export const config = {
+  // Supabase's current client uses Node APIs while verifying/refreshing JWTs.
+  // Node middleware is stable in Next.js 15.5 and avoids an Edge compatibility
+  // warning that could become a runtime failure as the client evolves.
+  runtime: 'nodejs',
   matcher: [
-    // Match all routes except static files and API routes (except auth API routes)
-    '/((?!_next/static|_next/image|favicon.ico|.*\\..*|api/(?!auth)).*)',
+    // Refresh browser auth for pages; route handlers validate their own input.
+    '/((?!_next/static|_next/image|favicon.ico|.*\\..*|api/).*)',
   ],
 }

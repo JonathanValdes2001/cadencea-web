@@ -56,3 +56,19 @@ test('interactive signup keeps the user-verification flow', () => {
     /\/api\/auth\/(?:signup|change-email|change-password)/,
   )
 })
+
+test('browser auth uses SSR cookies and middleware verifies claims', () => {
+  const browserClient = readFileSync(
+    join(repositoryRoot, 'lib', 'supabase', 'client.ts'),
+    'utf8',
+  )
+  const middleware = readFileSync(
+    join(repositoryRoot, 'lib', 'supabase', 'middleware.ts'),
+    'utf8',
+  )
+
+  assert.match(browserClient, /createBrowserClient/)
+  assert.doesNotMatch(browserClient, /localStorage/)
+  assert.match(middleware, /auth\.getClaims\(\)/)
+  assert.doesNotMatch(middleware, /auth\.getSession\(\)/)
+})

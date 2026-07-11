@@ -46,6 +46,7 @@ export interface Database {
           user_agent?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       download_entitlements: {
         Row: {
@@ -81,6 +82,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       newsletter_subscriptions: {
         Row: {
@@ -116,6 +118,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -145,6 +148,7 @@ export interface Database {
           total_price?: number
           created_at?: string
         }
+        Relationships: []
       }
       orders: {
         Row: {
@@ -174,6 +178,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       processed_webhooks: {
         Row: {
@@ -197,6 +202,7 @@ export interface Database {
           processed_at?: string
           data?: Json | null
         }
+        Relationships: []
       }
       products: {
         Row: {
@@ -226,6 +232,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -255,6 +262,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
     }
     Views: {

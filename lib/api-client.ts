@@ -9,7 +9,7 @@
  * All paths passed to this client should be relative (e.g. '/billing/plans').
  */
 
-import { supabase } from './supabase';
+import { supabase } from './supabase/client';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api';

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceSupabaseClient, supabase } from '@/lib/supabase'
+import {
+  createAnonymousServerSupabaseClient,
+  createServiceSupabaseClient,
+} from '@/lib/supabase/service'
 import { z } from 'zod'
 import { randomBytes } from 'crypto'
 
@@ -24,6 +27,7 @@ export async function POST(request: NextRequest) {
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '')
       try {
+        const supabase = createAnonymousServerSupabaseClient()
         const { data: { user } } = await supabase.auth.getUser(token)
         userId = user?.id || null
       } catch (error) {
