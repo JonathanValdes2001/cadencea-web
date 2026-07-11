@@ -87,3 +87,13 @@ test('production tree excludes Sentry wizard demos and development litter', () =
   assert.match(nextConfig, /process\.env\.SENTRY_PROJECT/)
   assert.doesNotMatch(nextConfig, /project:\s*["']electron["']/)
 })
+
+test('newsletter subscriptions deliver tokens through mail, not logs or responses', () => {
+  const route = readFileSync(
+    join(repositoryRoot, 'app', 'api', 'newsletter', 'subscribe', 'route.ts'),
+    'utf8',
+  )
+  assert.match(route, /sendNewsletterConfirmation/)
+  assert.doesNotMatch(route, /console\.log\([^\n]*(?:Token|token)/)
+  assert.doesNotMatch(route, /token:\s*process\.env\.NODE_ENV/)
+})

@@ -5,10 +5,30 @@ import {
 } from '@/lib/supabase/service'
 import { z } from 'zod'
 import { randomBytes } from 'crypto'
+import { sendNewsletterConfirmation } from '@/lib/newsletter-email.mjs'
 
 const subscribeSchema = z.object({
   email: z.string().email('Invalid email address'),
 })
+
+const RESEND_COOLDOWN_MS = 60_000
+
+async function deliverConfirmation(email: string, token: string) {
+  try {
+    await sendNewsletterConfirmation({ email, token })
+    return null
+  } catch (error) {
+    const mailError = error as { code?: string; command?: string; name?: string }
+    console.error('[Newsletter] Confirmation delivery failed', {
+      code: mailError?.code || mailError?.name || 'unknown',
+      command: mailError?.command || undefined,
+    })
+    return NextResponse.json(
+      { error: 'Could not send confirmation email. Please try again later.' },
+      { status: 503 },
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,6 +77,13 @@ export async function POST(request: NextRequest) {
           { status: 200 }
         )
       } else if (existingSubscription.status === 'pending') {
+        const lastUpdate = Date.parse(existingSubscription.updated_at)
+        if (Number.isFinite(lastUpdate) && Date.now() - lastUpdate < RESEND_COOLDOWN_MS) {
+          return NextResponse.json(
+            { error: 'Please wait before requesting another confirmation email.' },
+            { status: 429 },
+          )
+        }
         // Resend confirmation email (regenerate token)
         const newToken = randomBytes(32).toString('hex')
         
@@ -76,12 +103,11 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        // In production, send email here
-        console.log(`Confirmation email should be sent to ${email} with token: ${newToken}`)
+        const deliveryFailure = await deliverConfirmation(email, newToken)
+        if (deliveryFailure) return deliveryFailure
 
         return NextResponse.json({
-          message: 'Confirmation email resent. Please check your inbox.',
-          token: process.env.NODE_ENV === 'development' ? newToken : undefined
+          message: 'Confirmation email resent. Please check your inbox.'
         })
       } else if (existingSubscription.status === 'unsubscribed') {
         // Resubscribe with new token
@@ -106,12 +132,11 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        // In production, send email here
-        console.log(`Confirmation email should be sent to ${email} with token: ${newToken}`)
+        const deliveryFailure = await deliverConfirmation(email, newToken)
+        if (deliveryFailure) return deliveryFailure
 
         return NextResponse.json({
-          message: 'Subscription renewed! Please check your email to confirm.',
-          token: process.env.NODE_ENV === 'development' ? newToken : undefined
+          message: 'Subscription renewed! Please check your email to confirm.'
         })
       }
     }
@@ -138,13 +163,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // In production, send confirmation email here
-    console.log(`Confirmation email should be sent to ${email} with token: ${confirmationToken}`)
+    const deliveryFailure = await deliverConfirmation(email, confirmationToken)
+    if (deliveryFailure) return deliveryFailure
 
     return NextResponse.json({
       message: 'Subscription created! Please check your email to confirm.',
-      subscription_id: newSubscription.id,
-      token: process.env.NODE_ENV === 'development' ? confirmationToken : undefined
+      subscription_id: newSubscription.id
     })
 
   } catch (error) {
