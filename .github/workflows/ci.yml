@@ -1,0 +1,44 @@
+name: Web CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-test-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key
+      NEXT_PUBLIC_API_URL: https://api-ci.example.invalid/api
+      NEWSLETTER_PUBLIC_URL: https://ci.example.invalid
+      NEWSLETTER_TOKEN_SECRET: ci-placeholder-not-used-at-build-time
+      SMTP_HOST: smtp.example.invalid
+      SMTP_PORT: 587
+      SMTP_USER: ci-placeholder
+      SMTP_PASS: ci-placeholder
+      FROM_EMAIL: Cadencea CI <noreply@example.invalid>
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Reject tracked credentials
+        run: npm run security:secrets
+      - name: Audit the lockfile before running package lifecycle scripts
+        run: npm audit --package-lock-only --ignore-scripts --audit-level=high
+      - name: Install the audited tree without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run build

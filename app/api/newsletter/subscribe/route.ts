@@ -4,186 +4,180 @@ import {
   createServiceSupabaseClient,
 } from '@/lib/supabase/service'
 import { z } from 'zod'
-import { randomBytes } from 'crypto'
 import { sendNewsletterConfirmation } from '@/lib/newsletter-email.mjs'
+import {
+  GENERIC_SUBSCRIBE_MESSAGE,
+  NewsletterRequestError,
+  consumeNewsletterRateLimits,
+  createConfirmationToken,
+  deriveUnsubscribeTokenHash,
+  newsletterRateLimitChecks,
+  normalizeNewsletterEmail,
+  readBoundedJson,
+  requestId,
+  safeErrorCode,
+} from '@/lib/newsletter-security.mjs'
 
 const subscribeSchema = z.object({
-  email: z.string().email('Invalid email address'),
-})
+  email: z.preprocess(
+    normalizeNewsletterEmail,
+    z.string().email().max(254),
+  ),
+}).strict()
 
 const RESEND_COOLDOWN_MS = 60_000
 
-async function deliverConfirmation(email: string, token: string) {
+function accepted() {
+  return NextResponse.json(
+    { message: GENERIC_SUBSCRIBE_MESSAGE },
+    { status: 202 },
+  )
+}
+
+function logFailure(operation: string, id: string, error: unknown) {
+  console.error('[Newsletter] Request failed', {
+    operation,
+    requestId: id,
+    code: safeErrorCode(error),
+  })
+}
+
+async function deliverConfirmation(email: string, token: string, id: string) {
   try {
     await sendNewsletterConfirmation({ email, token })
-    return null
   } catch (error) {
-    const mailError = error as { code?: string; command?: string; name?: string }
-    console.error('[Newsletter] Confirmation delivery failed', {
-      code: mailError?.code || mailError?.name || 'unknown',
-      command: mailError?.command || undefined,
-    })
-    return NextResponse.json(
-      { error: 'Could not send confirmation email. Please try again later.' },
-      { status: 503 },
-    )
+    logFailure('confirmation_delivery', id, error)
   }
 }
 
 export async function POST(request: NextRequest) {
+  const id = requestId()
   try {
-    const body = await request.json()
-    
-    // Validate input
-    const validatedData = subscribeSchema.parse(body)
-    const { email } = validatedData
-
-    // Create service client for database operations
+    const parsed = subscribeSchema.safeParse(await readBoundedJson(request))
+    if (!parsed.success) {
+      throw new NewsletterRequestError('Invalid newsletter request')
+    }
+    const { email } = parsed.data
     const serviceSupabase = createServiceSupabaseClient()
+    await consumeNewsletterRateLimits(
+      serviceSupabase,
+      newsletterRateLimitChecks(request, email),
+    )
 
-    // Check if user is authenticated to link subscription
-    let userId = null
+    let userId: string | null = null
     const authHeader = request.headers.get('authorization')
     if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '')
       try {
         const supabase = createAnonymousServerSupabaseClient()
-        const { data: { user } } = await supabase.auth.getUser(token)
+        const { data: { user } } = await supabase.auth.getUser(authHeader.slice(7))
         userId = user?.id || null
-      } catch (error) {
-        // Not authenticated, that's okay for newsletter signup
+      } catch {
+        // Newsletter signup remains available without an account.
       }
     }
 
-    // Check if email is already subscribed
-    const { data: existingSubscription, error: checkError } = await serviceSupabase
+    const { data: existing, error: findError } = await serviceSupabase
       .from('newsletter_subscriptions')
-      .select('*')
+      .select('id,email,user_id,status,updated_at,unsubscribe_token_hash,unsubscribe_token_version')
       .eq('email', email)
-      .single()
+      .maybeSingle()
+    if (findError) throw findError
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows returned
-      console.error('Error checking existing subscription:', checkError)
-      return NextResponse.json(
-        { error: 'Failed to check subscription status' },
-        { status: 500 }
-      )
+    if (existing?.status === 'confirmed') {
+      if (!existing.unsubscribe_token_hash) {
+        const unsubscribeTokenVersion = Math.max(1, existing.unsubscribe_token_version || 1)
+        const unsubscribeTokenHash = deriveUnsubscribeTokenHash({
+          id: existing.id,
+          email,
+          version: unsubscribeTokenVersion,
+        })
+        const { error: repairError } = await serviceSupabase
+          .from('newsletter_subscriptions')
+          .update({ unsubscribe_token_hash: unsubscribeTokenHash })
+          .eq('id', existing.id)
+          .is('unsubscribe_token_hash', null)
+        if (repairError) throw repairError
+      }
+      return accepted()
     }
-
-    if (existingSubscription) {
-      if (existingSubscription.status === 'confirmed') {
-        return NextResponse.json(
-          { message: 'Email is already subscribed to our newsletter' },
-          { status: 200 }
-        )
-      } else if (existingSubscription.status === 'pending') {
-        const lastUpdate = Date.parse(existingSubscription.updated_at)
-        if (Number.isFinite(lastUpdate) && Date.now() - lastUpdate < RESEND_COOLDOWN_MS) {
-          return NextResponse.json(
-            { error: 'Please wait before requesting another confirmation email.' },
-            { status: 429 },
-          )
-        }
-        // Resend confirmation email (regenerate token)
-        const newToken = randomBytes(32).toString('hex')
-        
-        const { error: updateError } = await serviceSupabase
-          .from('newsletter_subscriptions')
-          .update({ 
-            confirmation_token: newToken,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingSubscription.id)
-
-        if (updateError) {
-          console.error('Error updating subscription token:', updateError)
-          return NextResponse.json(
-            { error: 'Failed to resend confirmation' },
-            { status: 500 }
-          )
-        }
-
-        const deliveryFailure = await deliverConfirmation(email, newToken)
-        if (deliveryFailure) return deliveryFailure
-
-        return NextResponse.json({
-          message: 'Confirmation email resent. Please check your inbox.'
-        })
-      } else if (existingSubscription.status === 'unsubscribed') {
-        // Resubscribe with new token
-        const newToken = randomBytes(32).toString('hex')
-        
-        const { error: updateError } = await serviceSupabase
-          .from('newsletter_subscriptions')
-          .update({ 
-            status: 'pending',
-            confirmation_token: newToken,
-            user_id: userId,
-            unsubscribed_at: null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingSubscription.id)
-
-        if (updateError) {
-          console.error('Error resubscribing:', updateError)
-          return NextResponse.json(
-            { error: 'Failed to resubscribe' },
-            { status: 500 }
-          )
-        }
-
-        const deliveryFailure = await deliverConfirmation(email, newToken)
-        if (deliveryFailure) return deliveryFailure
-
-        return NextResponse.json({
-          message: 'Subscription renewed! Please check your email to confirm.'
-        })
+    if (existing?.status === 'pending') {
+      const lastUpdate = Date.parse(existing.updated_at)
+      if (Number.isFinite(lastUpdate) && Date.now() - lastUpdate < RESEND_COOLDOWN_MS) {
+        return accepted()
       }
     }
 
-    // Create new subscription
-    const confirmationToken = randomBytes(32).toString('hex')
-    
-    const { data: newSubscription, error: insertError } = await serviceSupabase
+    const confirmation = createConfirmationToken()
+
+    if (existing) {
+      const currentVersion = Math.max(1, existing.unsubscribe_token_version || 1)
+      const unsubscribeTokenVersion = existing.status === 'unsubscribed'
+        ? currentVersion + 1
+        : currentVersion
+      const unsubscribeTokenHash = deriveUnsubscribeTokenHash({
+        id: existing.id,
+        email,
+        version: unsubscribeTokenVersion,
+      })
+      const { error: updateError } = await serviceSupabase
+        .from('newsletter_subscriptions')
+        .update({
+          status: 'pending',
+          confirmation_token_hash: confirmation.tokenHash,
+          confirmation_expires_at: confirmation.expiresAt,
+          unsubscribe_token_hash: unsubscribeTokenHash,
+          unsubscribe_token_version: unsubscribeTokenVersion,
+          user_id: userId ?? existing.user_id,
+          confirmed_at: null,
+          unsubscribed_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existing.id)
+      if (updateError) throw updateError
+
+      await deliverConfirmation(email, confirmation.token, id)
+      return accepted()
+    }
+
+    const { data: created, error: insertError } = await serviceSupabase
       .from('newsletter_subscriptions')
       .insert({
         email,
         user_id: userId,
         status: 'pending',
-        confirmation_token: confirmationToken,
+        confirmation_token_hash: confirmation.tokenHash,
+        confirmation_expires_at: confirmation.expiresAt,
+        unsubscribe_token_version: 1,
       })
-      .select()
+      .select('id')
       .single()
+    if (insertError?.code === '23505') return accepted()
+    if (insertError || !created) throw insertError || new Error('Insert failed')
 
-    if (insertError) {
-      console.error('Error creating subscription:', insertError)
-      return NextResponse.json(
-        { error: 'Failed to create subscription' },
-        { status: 500 }
-      )
-    }
-
-    const deliveryFailure = await deliverConfirmation(email, confirmationToken)
-    if (deliveryFailure) return deliveryFailure
-
-    return NextResponse.json({
-      message: 'Subscription created! Please check your email to confirm.',
-      subscription_id: newSubscription.id
+    const unsubscribeTokenHash = deriveUnsubscribeTokenHash({
+      id: created.id,
+      email,
+      version: 1,
     })
+    const { error: tokenError } = await serviceSupabase
+      .from('newsletter_subscriptions')
+      .update({ unsubscribe_token_hash: unsubscribeTokenHash })
+      .eq('id', created.id)
+    if (tokenError) throw tokenError
 
+    await deliverConfirmation(email, confirmation.token, id)
+    return accepted()
   } catch (error) {
-    console.error('Newsletter subscribe error:', error)
-    
-    if (error instanceof z.ZodError) {
+    logFailure('subscribe', id, error)
+    if (error instanceof NewsletterRequestError) {
       return NextResponse.json(
-        { error: 'Invalid email address', details: error.issues },
-        { status: 400 }
+        { error: error.message, request_id: id },
+        { status: error.status },
       )
     }
-
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      { error: 'Newsletter service is temporarily unavailable.', request_id: id },
+      { status: 503 },
     )
   }
 }

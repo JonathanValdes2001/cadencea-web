@@ -2,215 +2,151 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceSupabaseClient } from '@/lib/supabase/service'
 import { renderNewsletterPage } from '@/lib/newsletter-html'
 import { z } from 'zod'
+import {
+  GENERIC_UNSUBSCRIBE_MESSAGE,
+  NewsletterRequestError,
+  consumeNewsletterRateLimits,
+  hashOpaqueToken,
+  isOpaqueNewsletterToken,
+  newsletterLookupRateLimitChecks,
+  readUnsubscribeToken,
+  requestId,
+  safeErrorCode,
+} from '@/lib/newsletter-security.mjs'
 
 const unsubscribeSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  token: z.string().refine(isOpaqueNewsletterToken),
 })
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const validatedData = unsubscribeSchema.parse(body)
-    const { email } = validatedData
-
-    const serviceSupabase = createServiceSupabaseClient()
-
-    const { data: subscription, error: findError } = await serviceSupabase
-      .from('newsletter_subscriptions')
-      .select('*')
-      .eq('email', email)
-      .single()
-
-    if (findError || !subscription) {
-      console.error('Error finding subscription:', findError)
-      return NextResponse.json(
-        { error: 'Email not found in our newsletter database' },
-        { status: 404 }
-      )
-    }
-
-    if (subscription.status === 'unsubscribed') {
-      return NextResponse.json({
-        message: 'Email is already unsubscribed from our newsletter',
-        email: subscription.email,
-      })
-    }
-
-    const { data: updatedSubscription, error: updateError } =
-      await serviceSupabase
-        .from('newsletter_subscriptions')
-        .update({
-          status: 'unsubscribed',
-          unsubscribed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', subscription.id)
-        .select()
-        .single()
-
-    if (updateError) {
-      console.error('Error unsubscribing:', updateError)
-      return NextResponse.json(
-        { error: 'Failed to unsubscribe' },
-        { status: 500 }
-      )
-    }
-
-    try {
-      await serviceSupabase.rpc('log_user_action', {
-        p_action: 'newsletter_unsubscribed',
-        p_table_name: 'newsletter_subscriptions',
-        p_record_id: subscription.id,
-        p_new_values: {
-          status: 'unsubscribed',
-          email: subscription.email,
-        },
-      })
-    } catch (logError) {
-      console.error('Error logging newsletter unsubscribe:', logError)
-    }
-
-    return NextResponse.json({
-      message: 'Successfully unsubscribed from our newsletter',
-      email: subscription.email,
-      unsubscribed_at: updatedSubscription.unsubscribed_at,
-    })
-  } catch (error) {
-    console.error('Newsletter unsubscribe error:', error)
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid email address', details: error.issues },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : 'Internal server error',
-      },
-      { status: 500 }
-    )
-  }
+function logFailure(operation: string, id: string, error: unknown) {
+  console.error('[Newsletter] Request failed', {
+    operation,
+    requestId: id,
+    code: safeErrorCode(error),
+  })
 }
 
-// Handle GET request for email link unsubscribe
-export async function GET(request: NextRequest) {
+function jsonResult(body: object, status: number) {
+  return NextResponse.json(body, {
+    status,
+    headers: { 'Cache-Control': 'no-store' },
+  })
+}
+
+function htmlResult(success: boolean, id?: string) {
+  return renderNewsletterPage({
+    title: success ? 'Unsubscribed' : 'Unsubscribe error',
+    heading: success ? 'Unsubscribe request completed.' : 'We couldn’t process the request.',
+    body: success
+      ? GENERIC_UNSUBSCRIBE_MESSAGE
+      : `Please try again later. Support reference: ${id}`,
+    variant: success ? 'success' : 'error',
+    status: success ? 200 : 503,
+  })
+}
+
+export async function POST(request: NextRequest) {
+  const id = requestId()
+  const wantsHtml = (request.headers.get('content-type') || '')
+    .includes('application/x-www-form-urlencoded')
   try {
-    const url = new URL(request.url)
-    const email = url.searchParams.get('email')
-
-    if (!email) {
-      return renderNewsletterPage({
-        title: 'Unsubscribe error',
-        heading: 'Missing email address.',
-        body:
-          'This unsubscribe link is missing the required email parameter. ' +
-          'Please try the link in the most recent newsletter you received.',
-        variant: 'error',
-        status: 400,
-      })
+    const parsed = unsubscribeSchema.safeParse({
+      token: await readUnsubscribeToken(request),
+    })
+    if (!parsed.success) {
+      return wantsHtml
+        ? htmlResult(true)
+        : jsonResult({ message: GENERIC_UNSUBSCRIBE_MESSAGE }, 200)
     }
 
-    const validatedData = unsubscribeSchema.parse({ email })
-
+    const tokenHash = hashOpaqueToken(parsed.data.token)
     const serviceSupabase = createServiceSupabaseClient()
-
-    const { data: subscription, error: findError } = await serviceSupabase
-      .from('newsletter_subscriptions')
-      .select('*')
-      .eq('email', validatedData.email)
-      .single()
-
-    if (findError || !subscription) {
-      console.error('Error finding subscription:', findError)
-      return renderNewsletterPage({
-        title: 'Email not found',
-        heading: 'Email address not found.',
-        body:
-          'We couldn’t find this email in our newsletter database. ' +
-          'You may have already been unsubscribed, or never subscribed in the first place.',
-        variant: 'info',
-        status: 404,
-      })
-    }
-
-    if (subscription.status === 'unsubscribed') {
-      return renderNewsletterPage({
-        title: 'Already unsubscribed',
-        heading: 'You’re already unsubscribed.',
-        body:
-          'This email address is already unsubscribed from our newsletter. ' +
-          'You won’t receive any further emails from us.',
-        variant: 'info',
-      })
-    }
-
-    const { error: updateError } = await serviceSupabase
+    await consumeNewsletterRateLimits(
+      serviceSupabase,
+      newsletterLookupRateLimitChecks(request, 'unsubscribe'),
+    )
+    const now = new Date().toISOString()
+    const { error } = await serviceSupabase
       .from('newsletter_subscriptions')
       .update({
         status: 'unsubscribed',
-        unsubscribed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        unsubscribed_at: now,
+        confirmation_token_hash: null,
+        confirmation_expires_at: null,
+        unsubscribe_token_hash: null,
+        updated_at: now,
       })
-      .eq('id', subscription.id)
+      .eq('unsubscribe_token_hash', tokenHash)
+    if (error) throw error
 
-    if (updateError) {
-      console.error('Error unsubscribing:', updateError)
-      return renderNewsletterPage({
-        title: 'Unsubscribe error',
-        heading: 'We couldn’t unsubscribe you right now.',
-        body: 'Something went wrong on our end. Please try again later.',
-        variant: 'error',
-        status: 500,
-      })
-    }
-
-    try {
-      await serviceSupabase.rpc('log_user_action', {
-        p_action: 'newsletter_unsubscribed',
-        p_table_name: 'newsletter_subscriptions',
-        p_record_id: subscription.id,
-        p_new_values: {
-          status: 'unsubscribed',
-          email: subscription.email,
-        },
-      })
-    } catch (logError) {
-      console.error('Error logging newsletter unsubscribe:', logError)
-    }
-
-    return renderNewsletterPage({
-      title: 'Unsubscribed',
-      heading: 'Successfully unsubscribed.',
-      body:
-        `You have been unsubscribed from the Cadencea newsletter. ` +
-        `You’ll no longer receive newsletter emails from us.`,
-      variant: 'success',
-      extraBodyHtml: `
-        <p><strong>Email:</strong> ${escape(subscription.email)}</p>
-        <p class="footnote">
-          We’re sorry to see you go. If you have feedback about our
-          newsletter, please let us know at support@cadenceavn.com.
-        </p>
-      `,
-    })
+    return wantsHtml
+      ? htmlResult(true)
+      : jsonResult({ message: GENERIC_UNSUBSCRIBE_MESSAGE }, 200)
   } catch (error) {
-    console.error('Newsletter unsubscribe GET error:', error)
-
-    return renderNewsletterPage({
-      title: 'Error',
-      heading: 'Something went wrong.',
-      body: 'An unexpected error occurred. Please try again later.',
-      variant: 'error',
-      status: 500,
-    })
+    logFailure('unsubscribe', id, error)
+    if (error instanceof NewsletterRequestError) {
+      if (error.status === 429) {
+        if (wantsHtml) {
+          const response = renderNewsletterPage({
+            title: 'Unsubscribe delayed',
+            heading: 'Please try this link again later.',
+            body: 'Too many unsubscribe attempts have been made from this network.',
+            variant: 'info',
+            status: 429,
+          })
+          response.headers.set('Retry-After', '3600')
+          return response
+        }
+        return NextResponse.json(
+          { error: 'Please try again later.', request_id: id },
+          {
+            status: 429,
+            headers: { 'Cache-Control': 'no-store', 'Retry-After': '3600' },
+          },
+        )
+      }
+      return wantsHtml
+        ? htmlResult(true)
+        : jsonResult({ message: GENERIC_UNSUBSCRIBE_MESSAGE }, 200)
+    }
+    return wantsHtml
+      ? htmlResult(false, id)
+      : jsonResult(
+        { error: 'Newsletter service is temporarily unavailable.', request_id: id },
+        503,
+      )
   }
 }
 
-function escape(s: string): string {
-  return s
+export async function GET(request: NextRequest) {
+  const token = new URL(request.url).searchParams.get('token')
+  const parsed = unsubscribeSchema.safeParse({ token })
+  if (!parsed.success) {
+    return renderNewsletterPage({
+      title: 'Unsubscribe link',
+      heading: 'This link is not valid.',
+      body: 'Use the unsubscribe link in the most recent newsletter you received.',
+      variant: 'info',
+      status: 400,
+    })
+  }
+
+  return renderNewsletterPage({
+    title: 'Confirm unsubscribe',
+    heading: 'Stop receiving the Cadencea newsletter?',
+    body: 'Confirm below. Opening this page has not changed your subscription.',
+    variant: 'info',
+    extraBodyHtml: `
+      <form method="post" action="/api/newsletter/unsubscribe">
+        <input type="hidden" name="token" value="${escape(parsed.data.token)}" />
+        <button type="submit" class="btn">Unsubscribe</button>
+      </form>
+    `,
+  })
+}
+
+function escape(value: string) {
+  return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { randomBytes } from 'node:crypto';
 
 type Variant = 'success' | 'error' | 'info';
 
 type RenderArgs = {
   title: string;
   heading: string;
-  body: string; // plain text or inline HTML
+  body: string;
   variant?: Variant;
   status?: number;
   extraBodyHtml?: string;
@@ -24,6 +25,7 @@ export function renderNewsletterPage({
   status = 200,
   extraBodyHtml = '',
 }: RenderArgs): NextResponse {
+  const nonce = randomBytes(16).toString('base64');
   const variantLabel =
     variant === 'success' ? 'Confirmed' : variant === 'error' ? 'Error' : 'Notice';
   const html = `<!DOCTYPE html>
@@ -32,7 +34,7 @@ export function renderNewsletterPage({
     <title>${escape(title)} | Cadencea</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
+    <style nonce="${nonce}">
       :root {
         --canvas: #FFFFFF;
         --elevated: #F5F5F5;
@@ -133,6 +135,8 @@ export function renderNewsletterPage({
         border: 1px solid var(--ink);
       }
       .btn.secondary:hover { background: var(--elevated); }
+      button.btn { border: 0; cursor: pointer; }
+      form { margin: 0; }
       .footnote {
         margin-top: 24px;
         padding-top: 24px;
@@ -151,7 +155,7 @@ export function renderNewsletterPage({
         </a>
         <p class="eyebrow">${escape(variantLabel)}</p>
         <h1>${escape(heading)}</h1>
-        <p>${body}</p>
+        <p>${escape(body)}</p>
         ${extraBodyHtml}
         <a href="/" class="btn secondary">Return to homepage</a>
       </div>
@@ -161,7 +165,20 @@ export function renderNewsletterPage({
 
   return new NextResponse(html, {
     status,
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'Content-Security-Policy': [
+        "default-src 'none'",
+        `style-src 'nonce-${nonce}'`,
+        "form-action 'self'",
+        "base-uri 'none'",
+        "frame-ancestors 'none'",
+      ].join('; '),
+      'Referrer-Policy': 'no-referrer',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+    },
   });
 }
 

@@ -91,6 +91,10 @@ export interface Database {
           user_id: string | null
           status: 'pending' | 'confirmed' | 'unsubscribed'
           confirmation_token: string | null
+          confirmation_token_hash: string | null
+          confirmation_expires_at: string | null
+          unsubscribe_token_hash: string | null
+          unsubscribe_token_version: number
           confirmed_at: string | null
           unsubscribed_at: string | null
           created_at: string
@@ -102,6 +106,10 @@ export interface Database {
           user_id?: string | null
           status?: 'pending' | 'confirmed' | 'unsubscribed'
           confirmation_token?: string | null
+          confirmation_token_hash?: string | null
+          confirmation_expires_at?: string | null
+          unsubscribe_token_hash?: string | null
+          unsubscribe_token_version?: number
           confirmed_at?: string | null
           unsubscribed_at?: string | null
           created_at?: string
@@ -113,6 +121,10 @@ export interface Database {
           user_id?: string | null
           status?: 'pending' | 'confirmed' | 'unsubscribed'
           confirmation_token?: string | null
+          confirmation_token_hash?: string | null
+          confirmation_expires_at?: string | null
+          unsubscribe_token_hash?: string | null
+          unsubscribe_token_version?: number
           confirmed_at?: string | null
           unsubscribed_at?: string | null
           created_at?: string
@@ -269,6 +281,14 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      consume_newsletter_rate_limit: {
+        Args: {
+          p_key_hash: string
+          p_limit: number
+          p_window_seconds: number
+        }
+        Returns: boolean
+      }
       handle_new_user: {
         Args: Record<PropertyKey, never>
         Returns: undefined

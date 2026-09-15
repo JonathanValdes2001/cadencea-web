@@ -1,8 +1,18 @@
 import type { NextRequest } from 'next/server'
+import { randomBytes } from 'node:crypto'
 import { updateSession } from '@/lib/supabase/middleware'
+import { buildContentSecurityPolicy } from '@/lib/security-headers.mjs'
 
 export async function middleware(req: NextRequest) {
-  return updateSession(req)
+  const nonce = randomBytes(16).toString('base64')
+  const forwardedHeaders = new Headers(req.headers)
+  forwardedHeaders.set('x-nonce', nonce)
+  const response = await updateSession(req, forwardedHeaders)
+  response.headers.set(
+    'Content-Security-Policy',
+    buildContentSecurityPolicy(nonce),
+  )
+  return response
 }
 
 export const config = {

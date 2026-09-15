@@ -29,14 +29,14 @@ The official marketing website and account management portal for Cadencea produc
 
 ### Technical Excellence
 - **TypeScript** - Full type safety throughout the application
-- **Next.js 15.3.4** - Latest App Router with server-side functionality
+- **Next.js 15.5.25** - App Router with server-side functionality
 - **Supabase Integration** - Modern BaaS with real-time capabilities
 - **Input Validation** - Zod schemas for secure data processing
 - **Production Ready** - Security, performance, and scalability focused
 
 ## 🛠 Tech Stack
 
-- **Frontend**: Next.js 15.3.4, React 19, TypeScript
+- **Frontend**: Next.js 15.5.25, React 19, TypeScript
 - **Styling**: Tailwind CSS v4 with custom design system
 - **Database**: Supabase (PostgreSQL) with Row Level Security
 - **Authentication**: Supabase Auth with custom flows
@@ -107,11 +107,10 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 ```
 
 ### 3. Database Setup
-Run the SQL migrations in your Supabase SQL editor (in order):
 
-1. **Schema Creation**: `supabase/migrations/001_initial_schema.sql`
-2. **Security Policies**: `supabase/migrations/002_rls_policies.sql`
-3. **Sample Data**: `supabase/migrations/003_seed_data.sql`
+The shared Supabase schema is owned exclusively by `cadencea-api`. Apply the canonical chain from `cadencea-api/supabase/migrations` through its protected deployment workflow. Do not run an independent Web migration set; see [`supabase/README.md`](./supabase/README.md).
+
+After applying migration `029_cybersecurity_remediation.sql`, configure the same `NEWSLETTER_TOKEN_SECRET` in the protected Web runtime and run `npm run newsletter:backfill-unsubscribe-tokens` once. This stores only hashes for existing confirmed subscriptions; never print or persist the derived URL tokens.
 
 ### 4. Start Development
 ```bash
@@ -150,7 +149,8 @@ Navigate to `http://localhost:3000` and start using the application!
 ### Newsletter
 - `POST /api/newsletter/subscribe` - Double opt-in email subscription
 - `GET /api/newsletter/confirm?token=` - Email confirmation (HTML response)
-- `GET /api/newsletter/unsubscribe?email=` - One-click unsubscribe
+- `GET /api/newsletter/unsubscribe?token=` - Render unsubscribe confirmation without changing state
+- `POST /api/newsletter/unsubscribe` - Consume a signed opaque unsubscribe token
 
 ## 🎯 Available Routes
 
@@ -181,7 +181,8 @@ Navigate to `http://localhost:3000` and start using the application!
 npm run dev          # Start development server
 npm run build        # Build for production
 npm run start        # Start production server
-npm run lint         # Run ESLint
+npm test             # Run the regression suite
+npm run security:secrets # Scan source for high-confidence credentials
 ```
 
 ## 🚀 Deployment

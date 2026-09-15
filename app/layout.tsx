@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -42,11 +43,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Nonce-based CSP requires request-time rendering so Next can apply the
+  // middleware-provided nonce to every framework script.
+  await headers();
   return (
     <html lang="en" className={inter.variable}>
       <body className="bg-canvas text-ink antialiased">

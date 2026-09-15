@@ -197,7 +197,6 @@ export interface DataExportResponse {
   requested_at: string | null;
   completed_at: string | null;
   expires_at: string | null;
-  download_url: string | null;
   bytes: number | null;
   error_message: string | null;
 }

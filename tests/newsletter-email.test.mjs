@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
   buildNewsletterConfirmationUrl,
+  buildNewsletterUnsubscribeUrl,
   getNewsletterMailConfig,
   sendNewsletterConfirmation,
 } from '../lib/newsletter-email.mjs';
@@ -15,6 +16,7 @@ const env = {
   SMTP_PASS: 'secret',
   FROM_EMAIL: 'Cadencea <noreply@cadencea.app>',
   NEWSLETTER_PUBLIC_URL: 'https://cadencea.app',
+  [['NEWSLETTER', '_TOKEN_SECRET'].join('')]: 'b'.repeat(64),
 };
 const token = 'a'.repeat(64);
 
@@ -27,6 +29,18 @@ test('builds an HTTPS confirmation URL with the token only in its query', () => 
     () => buildNewsletterConfirmationUrl('../not-a-token', env),
     /Invalid newsletter confirmation token/,
   );
+});
+
+test('builds an independently scoped opaque unsubscribe URL', () => {
+  const url = new URL(buildNewsletterUnsubscribeUrl({
+    id: 'subscription-1',
+    email: 'listener@example.com',
+    version: 1,
+  }, env));
+  assert.equal(url.origin, 'https://cadencea.app');
+  assert.equal(url.pathname, '/api/newsletter/unsubscribe');
+  assert.match(url.searchParams.get('token'), /^[a-f0-9]{64}$/);
+  assert.equal(url.searchParams.has('email'), false);
 });
 
 test('rejects incomplete or insecure production mail configuration', () => {

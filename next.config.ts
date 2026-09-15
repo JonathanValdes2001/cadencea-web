@@ -1,8 +1,17 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import { STATIC_SECURITY_HEADERS } from "./lib/security-headers.mjs";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: STATIC_SECURITY_HEADERS,
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

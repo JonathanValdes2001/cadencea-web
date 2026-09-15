@@ -499,15 +499,13 @@ function ExportModal({ onClose }: { onClose: () => void }) {
             {job.status === 'running' && (
               <p className="text-ink-muted">Building your zip…</p>
             )}
-            {job.status === 'succeeded' && job.download_url && (
+            {job.status === 'succeeded' && (
               <div>
                 <p className="text-emerald-300">Ready.</p>
-                <a
-                  href={job.download_url}
-                  className="mt-2 inline-flex h-9 items-center rounded-sm bg-accent px-4 text-xs font-semibold tracking-wide text-white hover:bg-accent-hover"
-                >
-                  Download zip
-                </a>
+                <p className="mt-2 text-sm text-ink-muted">
+                  Check your email for the one-time download link. The public
+                  download page also works when the export was requested from Mobile.
+                </p>
                 <p className="mt-2 text-xs text-ink-subtle">
                   Link expires{' '}
                   {job.expires_at

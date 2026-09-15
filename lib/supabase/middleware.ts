@@ -15,16 +15,19 @@ function copySessionResponse(source: NextResponse, target: NextResponse) {
   return target
 }
 
-export async function updateSession(request: NextRequest) {
+export async function updateSession(
+  request: NextRequest,
+  forwardedHeaders = new Headers(request.headers),
+) {
   const [supabaseUrl, supabaseAnonKey] = requirePublicSupabaseConfig()
-  let response = NextResponse.next({ request })
+  let response = NextResponse.next({ request: { headers: forwardedHeaders } })
 
   const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-        response = NextResponse.next({ request })
+        response = NextResponse.next({ request: { headers: forwardedHeaders } })
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
         )
@@ -52,4 +55,3 @@ export async function updateSession(request: NextRequest) {
 
   return response
 }
-
