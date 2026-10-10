@@ -21,10 +21,10 @@ export const MARKET_HOME_COPY = {
   seeAll: 'See all {n}',
   splitsTitle: 'Splits: loops with the deal built in.',
   splitsBody:
-    'A Splits pack is a set of loops with royalty terms attached. If you release a song that uses one, the loop maker gets the share and credit shown on the pack, and Cadencea generates the split sheet. No DMs, no guesswork.',
+    'A Splits pack is a set of loops with royalty terms attached. If you release a song that uses one, the loop maker gets the share and credit shown on the pack, and Cadencea generates the split sheet.',
   splitsPoints: [
-    'Terms shown before you download',
-    'Standard terms only, no fine print',
+    'Terms shown in full before you download',
+    'One standard contract, with the shares on each pack',
     'You both register with your own PRO',
   ],
   splitsButton: 'Browse Splits',

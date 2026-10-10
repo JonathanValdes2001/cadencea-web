@@ -384,7 +384,7 @@ export function validateSubmission(payload: ReleasePayload, ctx: SubmissionConte
   if (payload.kind !== 'theme') {
     payload.licensedMaterial.forEach((entry, i) => {
       if (!entry.description.trim() || !entry.source.trim() || !entry.licence.trim()) {
-        out.push(issue(`licensedMaterial.${i}`, 'required', { field: 'a description, source and licence' }));
+        out.push(issue(`licensedMaterial.${i}`, 'required', { field: 'a description, source and license' }));
       }
     });
   }

@@ -817,7 +817,7 @@ const R06_STATEMENT = statement(
       'Track 2, "Pipe Organ", uses a vocal phrase from a commercial record that isn\'t listed as licensed material.',
     ),
   ],
-  'The vocal phrase at 1:12 in "Pipe Organ" matches a released recording, and no licence for it is listed.',
+  'The vocal phrase at 1:12 in "Pipe Organ" matches a released recording, and no license for it is listed.',
   terms('Cadencea Content Policy: licensed material'),
   false,
   '2026-10-03T12:00:00Z',

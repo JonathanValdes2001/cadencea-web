@@ -58,7 +58,7 @@ export const ACTIVITY_LABEL: Readonly<Partial<Record<ReviewEventType, string>>> 
   appeal_filed: 'Appeal sent',
   appeal_upheld: 'Appeal decided',
   appeal_overturned: 'Appeal decided',
-  exclusive_sold: 'Exclusive licence sold',
+  exclusive_sold: 'Exclusive license sold',
 };
 
 /** Seller action dialogs beyond RL §9.4's keys. */
@@ -142,7 +142,7 @@ export const CHANGE_KIND_LABEL: Readonly<Record<ChangeKind, string>> = {
   metadata: 'Details',
   cover: 'Cover',
   price: 'Price',
-  license: 'Licence and terms',
+  license: 'License and terms',
   files: 'Files',
   credits_splits: 'Credits and splits',
   tracklist: 'Track list',
@@ -491,7 +491,7 @@ export const WIZARD_UI = {
     fromPurchasesPlaceholder: 'Pick a purchase',
     licensedDescription: 'What it is',
     licensedSource: 'Where it came from',
-    licensedLicence: 'Licence',
+    licensedLicence: 'License',
     marketSource: 'Cadencea Market',
     marketLicence: 'Cadencea RF Asset License',
     remove: 'Remove',

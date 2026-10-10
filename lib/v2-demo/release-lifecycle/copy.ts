@@ -26,7 +26,7 @@ export const CHIP_COPY: Readonly<Record<PrimaryChipId | SecondaryChipId, { label
   scheduled: { label: 'Scheduled', hint: 'Approved. It goes live on {date}.' },
   live: { label: 'Live', hint: 'On sale in the Market.' },
   unpublished: { label: 'Unpublished', hint: 'Off sale. Buyers keep what they bought. You can relist it.' },
-  sold_exclusive: { label: 'Sold exclusively', hint: 'You sold the exclusive licence, so this beat is off sale for good.' },
+  sold_exclusive: { label: 'Sold exclusively', hint: 'You sold the exclusive license, so this beat is off sale for good.' },
   removed: { label: 'Removed', hint: 'Cadencea took this release down. See why, and how to appeal.' },
   suspended: { label: 'On hold', hint: 'Hidden while we look into a report. Buyers keep access.' },
   update_draft: { label: 'Update draft', hint: "Your changes aren't submitted yet. Version {n} stays live." },
@@ -98,7 +98,7 @@ export const BANNER_COPY = {
     actions: ['Read the reasons', 'Appeal'],
   },
   scheduled: { title: 'Scheduled', body: 'Approved. It goes live on {date}.', actions: ['Edit release', 'Unpublish'] },
-  live: { title: 'Live', body: 'Version {n} is live since {date}.', actions: ['Edit release', 'Unpublish'] },
+  live: { title: 'Live', body: 'Version {n} has been live since {date}.', actions: ['Edit release', 'Unpublish'] },
   live_update_draft: {
     title: 'Update not submitted',
     body: "Version {n} stays live. Submit your changes when they're ready.",
@@ -127,7 +127,7 @@ export const BANNER_COPY = {
   },
   unpublished_seller: {
     title: 'Unpublished',
-    body: 'You took this release off sale on {date}. Everyone who bought it keeps their files and licence.',
+    body: 'You took this release off sale on {date}. Everyone who bought it keeps their files and license.',
     actions: ['Relist', 'Edit release'],
   },
   unpublished_storage: {
@@ -137,7 +137,7 @@ export const BANNER_COPY = {
   },
   sold_exclusive: {
     title: 'Sold exclusively',
-    body: "You sold the exclusive licence on {date}. This beat can't be relisted. Earlier lease holders keep their rights.",
+    body: "You sold the exclusive license on {date}. This beat can't be relisted. Earlier lease holders keep their rights.",
     actions: [],
   },
   removed: {
@@ -280,7 +280,7 @@ export const CONFIRM_COPY = {
   },
   unpublish: {
     title: 'Unpublish "{title}"?',
-    body: "It disappears from the Market and can't be bought. Everyone who bought it keeps their files and licence. You can relist it later.",
+    body: "It disappears from the Market and can't be bought. Everyone who bought it keeps their files and license. You can relist it later.",
     confirm: 'Unpublish',
     cancel: 'Cancel',
   },
@@ -412,7 +412,7 @@ export const EVENT_COPY = {
   exclusive_sold: {
     noticeTitle: 'You sold "{title}" exclusively',
     noticeBody: 'The beat is now off sale for good. Earlier lease holders keep their rights.',
-    timeline: 'Exclusive licence sold',
+    timeline: 'Exclusive license sold',
   },
   appeal_filed: {
     noticeTitle: 'We got your appeal',
@@ -484,7 +484,7 @@ export const HUMAN_MADE_COPY = {
     'Mixing, mastering, tuning, noise reduction and time-stretching, AI-powered or not',
     'Stem separation of audio you have the rights to',
     'Key, BPM and tag detection',
-    'Licensed human-made samples and loops, listed below (Cadencea Market packs qualify automatically)',
+    'Licensed human-made samples and loops, listed by the creator when they submit (Cadencea Market packs qualify automatically)',
   ],
   notAllowedTitle: 'Not allowed',
   notAllowed: [
@@ -509,14 +509,22 @@ export const HUMAN_MADE_COPY = {
 /** [`rights.*`] */
 export const RIGHTS_COPY = {
   market:
-    'You keep all your rights. Cadencea is a store and streaming service, not a publisher or label. By submitting, you give Cadencea a non-exclusive licence to sell this release under the licence you chose. You can unpublish at any time.',
-  song: 'You keep all your rights. Cadencea is a store and streaming service, not a publisher or label. By submitting, you give Cadencea a non-exclusive licence to stream this release in the territories you chose. You can unpublish at any time.',
+    'You keep all your rights. Cadencea is a store and streaming service, not a publisher or label. By submitting, you give Cadencea a non-exclusive license to sell this release under the license you chose. You can unpublish at any time.',
+  song: 'You keep all your rights. Cadencea is a store and streaming service, not a publisher or label. By submitting, you give Cadencea a non-exclusive license to stream this release in the territories you chose. You can unpublish at any time.',
 } as const;
 
 /** [`evidence.*`] The three promises are [verify] items (RL §9.7). */
 export const EVIDENCE_COPY = {
   title: 'Your project is the evidence',
-  body: 'To check the Human-Made Standard, we attach your project\'s file list and DAW session from your Vault: {count} files, a {daw} session, {stems} stems, started {date}.',
+  // RL §9.7's line, assembled from parts so it stays grammatical: "71 files and an
+  // Ableton Live session" without stems, "1 stem", and no "started" without a date.
+  body: 'To check the Human-Made Standard, we attach your project\'s file list and DAW session from your Vault: {contents}.',
+  files: '{n} files',
+  oneFile: '1 file',
+  stems: '{n} stems',
+  oneStem: '1 stem',
+  session: '{daw} session',
+  started: 'started {date}',
   promises: [
     'Only the Cadencea review team can open it.',
     "It's never shown to buyers or listeners, and never used to train AI.",
@@ -560,11 +568,11 @@ export const WIZARD_STEP_LABELS: Readonly<Record<WizardType, Readonly<Record<Wiz
   },
   preset_pack: {
     source: 'Project', details: 'Details', contents: 'Presets', cover_preview: 'Cover and demo',
-    license_price: 'Price and licence', review_submit: 'Review, Human-Made and submit',
+    license_price: 'Price and license', review_submit: 'Review, Human-Made and submit',
   },
   sample_pack: {
     source: 'Project', details: 'Details', contents: 'Samples', cover_preview: 'Cover and demo',
-    license_price: 'Price and licence', review_submit: 'Review, Human-Made and submit',
+    license_price: 'Price and license', review_submit: 'Review, Human-Made and submit',
   },
   splits_pack: {
     source: 'Project', details: 'Details', contents: 'Loops', cover_preview: 'Cover and demo',
@@ -572,7 +580,7 @@ export const WIZARD_STEP_LABELS: Readonly<Record<WizardType, Readonly<Record<Wiz
   },
   midi_pack: {
     source: 'Project', details: 'Details', contents: 'MIDI files', cover_preview: 'Cover and demo',
-    license_price: 'Price and licence', review_submit: 'Review, Human-Made and submit',
+    license_price: 'Price and license', review_submit: 'Review, Human-Made and submit',
   },
 };
 
@@ -602,7 +610,7 @@ export const WIZARD_COPY = {
     preset_pack: { title: 'Preset pack', body: 'Serum 2 or Vital, at least 15 presets' },
     sample_pack: { title: 'Sample pack', body: 'Royalty-free, at least 20 files' },
     splits_pack: { title: 'Splits pack', body: 'Loops with royalty-split terms' },
-    midi_pack: { title: 'MIDI pack', body: '' },
+    midi_pack: { title: 'MIDI pack', body: 'At least 10 MIDI files, from 10 credits (€1)' },
     theme: { title: 'Theme', body: 'Themes are made by Cadencea for now' },
   },
   comingLaterTitle: 'Coming later',

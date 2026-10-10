@@ -89,7 +89,7 @@ const SAMPLE_PACKS: readonly SeedItem[] = [
     tags: ['ambient', 'field recording', 'texture'],
     price: credits(30),
     description:
-      "Field recordings from Bergen's light rail, turned into drones, washes and small percussive details. The tonal beds are tuned to D minor and loop cleanly at 72 BPM. Use them as a floor under ambient pieces or as transitions between sections.",
+      "Field recordings from Bergen's light rail, turned into drones, washes and small percussive details. The tonal beds are tuned to D Minor and loop cleanly at 72 BPM. Use them as a floor under ambient pieces or as transitions between sections.",
     publishedAt: '2026-06-20T10:00:00Z',
     versions: firstRelease('2026-06-20T10:00:00Z'),
     files: {
@@ -112,7 +112,7 @@ const SAMPLE_PACKS: readonly SeedItem[] = [
     tags: ['drill', '808', 'dark'],
     price: credits(120),
     description:
-      "A full drill kit: punchy kicks, sliding 808s tuned to F# minor, hats with the rolls already programmed, and 36 loops at 142 BPM. Everything was recorded and programmed in Kiln Theory's Manchester room, then printed through the same small analog desk. Dark, dry and ready to arrange.",
+      "A full drill kit: punchy kicks, sliding 808s tuned to F# Minor, hats with the rolls already programmed, and 36 loops at 142 BPM. Everything was recorded and programmed in Kiln Theory's Manchester room, then printed through the same small analog desk. Dark, dry and ready to arrange.",
     publishedAt: '2026-06-09T10:00:00Z',
     versions: firstRelease('2026-06-09T10:00:00Z'),
     files: {
@@ -187,7 +187,7 @@ const SAMPLE_PACKS: readonly SeedItem[] = [
     tags: ['house', 'chords', 'keys'],
     price: credits(40),
     description:
-      'Forty-eight chord and keys loops in A minor at 124 BPM, played on an electric piano and a polysynth. Deep, bright and stab versions of each progression make them easy to layer. Built for house, and they hold up slowed down too.',
+      'Forty-eight chord and keys loops in A Minor at 124 BPM, played on an electric piano and a polysynth. Deep, bright and stab versions of each progression make them easy to layer. Built for house, and they hold up slowed down too.',
     publishedAt: '2026-08-25T10:00:00Z',
     versions: firstRelease('2026-08-25T10:00:00Z'),
     files: {
@@ -273,7 +273,7 @@ const SAMPLE_PACKS: readonly SeedItem[] = [
     tags: ['lo-fi', 'keys', 'rhodes'],
     price: credits(120),
     description:
-      'Rhodes loops, chopped piano phrases and vinyl textures in A# minor at 92 BPM. Recorded on an old Rhodes through a cassette deck in Gothenburg, then trimmed to clean loop points. One hundred and forty files for lo-fi and boom bap.',
+      'Rhodes loops, chopped piano phrases and vinyl textures in A# Minor at 92 BPM. Recorded on an old Rhodes through a cassette deck in Gothenburg, then trimmed to clean loop points. One hundred and forty files for lo-fi and boom bap.',
     publishedAt: '2026-06-05T10:00:00Z',
     versions: firstRelease('2026-06-05T10:00:00Z'),
     files: {
@@ -325,7 +325,7 @@ const SPLITS_PACKS: readonly SeedItem[] = [
     price: credits(10),
     splits: { publishing: 50, advance: 50 },
     description:
-      'Twelve guitar and highlife loops in C# minor at 108 BPM, played by Okra Sun in Accra. If your song uses one, Okra Sun gets the share and credit shown in the split terms. The loops come dry, so you can process them your way.',
+      'Twelve guitar and highlife loops in C# Minor at 108 BPM, played by Okra Sun in Accra. If your song uses one, Okra Sun gets the share and credit shown in the split terms. The loops come dry, so you can process them your way.',
     publishedAt: '2026-07-14T10:00:00Z',
     versions: firstRelease('2026-07-14T10:00:00Z'),
     files: {
@@ -348,7 +348,7 @@ const SPLITS_PACKS: readonly SeedItem[] = [
     price: ZERO,
     splits: { publishing: 25, advance: 0 },
     description:
-      'Six amapiano loops at 112 BPM in F major: log drum, shuffled keys and piano stabs. Light terms: a quarter of your producer publishing share and no share of advances.',
+      'Six amapiano loops at 112 BPM in F Major: log drum, shuffled keys and piano stabs. Light terms: a quarter of your producer publishing share and no share of advances.',
     publishedAt: '2026-08-30T10:00:00Z',
     versions: firstRelease('2026-08-30T10:00:00Z'),
     files: {
@@ -369,7 +369,7 @@ const SPLITS_PACKS: readonly SeedItem[] = [
     price: ZERO,
     splits: { publishing: 50, advance: 25 },
     description:
-      'Eight UK garage loops at 134 BPM in D# minor, built around vocal phrases sung and chopped by Mire & Mica. Pads, skippy bass and shuffled keys complete the set.',
+      'Eight UK garage loops at 134 BPM in D# Minor, built around vocal phrases sung and chopped by Mire & Mica. Pads, skippy bass and shuffled keys complete the set.',
     publishedAt: '2026-07-21T10:00:00Z',
     versions: firstRelease('2026-07-21T10:00:00Z'),
     files: {
@@ -392,7 +392,7 @@ const SPLITS_PACKS: readonly SeedItem[] = [
     price: credits(20),
     splits: { publishing: 25, advance: 25 },
     description:
-      'Twenty-four dubstep loops in G# minor at 140 BPM: rain-soaked pads, wobbles, subs and reese basses. Recorded and resampled in Bristol.',
+      'Twenty-four dubstep loops in G# Minor at 140 BPM: rain-soaked pads, wobbles, subs and reese basses. Recorded and resampled in Bristol.',
     publishedAt: '2026-09-08T10:00:00Z',
     versions: firstRelease('2026-09-08T10:00:00Z'),
     files: {
@@ -413,7 +413,7 @@ const SPLITS_PACKS: readonly SeedItem[] = [
     price: ZERO,
     splits: { publishing: 25, advance: 0 },
     description:
-      'Five warm piano and keys loops in A# major at 88 BPM, played on a felt piano in Lisbon. A small pack with light terms for lo-fi sketches.',
+      'Five warm piano and keys loops in A# Major at 88 BPM, played on a felt piano in Lisbon. A small pack with light terms for lo-fi sketches.',
     publishedAt: '2026-06-23T10:00:00Z',
     versions: firstRelease('2026-06-23T10:00:00Z'),
     files: {
@@ -446,7 +446,7 @@ const PRESET_PACKS: readonly SeedItem[] = [
     synth: 'serum2',
     minSynthVersion: '2.0',
     description:
-      'Sixty-four Serum 2 presets: wide pads, bright leads, chrome basses and glassy plucks for synthwave. Every preset maps the mod wheel to something useful. The audio demo plays them at 100 BPM in C minor.',
+      'Sixty-four Serum 2 presets: wide pads, bright leads, chrome basses and glassy plucks for synthwave. Every preset maps the mod wheel to something useful. The audio demo plays them at 100 BPM in C Minor.',
     publishedAt: '2026-07-07T10:00:00Z',
     versions: [
       ...firstRelease('2026-07-07T10:00:00Z'),
@@ -479,7 +479,7 @@ const PRESET_PACKS: readonly SeedItem[] = [
     synth: 'vital',
     minSynthVersion: '1.5',
     description:
-      'Forty Vital presets modelled by ear on the basses and plucks of 80s analog synths. Each one has macros for drive, cutoff and width.',
+      'Forty Vital presets modeled by ear on the basses and plucks of 80s analog synths. Each one has macros for drive, cutoff and width.',
     publishedAt: '2026-08-12T10:00:00Z',
     versions: firstRelease('2026-08-12T10:00:00Z'),
     files: {
@@ -529,7 +529,7 @@ const PRESET_PACKS: readonly SeedItem[] = [
     synth: 'vital',
     minSynthVersion: '1.5',
     description:
-      'Fifty Vital presets for house: electric pianos, organ stabs, soft pads and plucks. The audio demo plays them at 124 BPM in D minor.',
+      'Fifty Vital presets for house: electric pianos, organ stabs, soft pads and plucks. The audio demo plays them at 124 BPM in D Minor.',
     publishedAt: '2026-09-21T10:00:00Z',
     versions: firstRelease('2026-09-21T10:00:00Z'),
     files: {
@@ -630,7 +630,7 @@ const MIDI_PACKS: readonly SeedItem[] = [
     tags: ['cinematic', 'chords', 'strings'],
     price: credits(50),
     description:
-      'Sixty MIDI files of string, choir and piano progressions in D minor, plus ostinatos to drive a cue. Play them on any instrument and change the voicings to make them yours. The audio demo shows them orchestrated.',
+      'Sixty MIDI files of string, choir and piano progressions in D Minor, plus ostinatos to drive a cue. Play them on any instrument and change the voicings to make them yours. The audio demo shows them orchestrated.',
     publishedAt: '2026-07-01T10:00:00Z',
     versions: firstRelease('2026-07-01T10:00:00Z'),
     files: {
@@ -653,7 +653,7 @@ const MIDI_PACKS: readonly SeedItem[] = [
     tags: ['uk garage', 'chords'],
     price: credits(30),
     description:
-      'Forty chord progressions in F minor at 130 BPM, written for UK garage organs, stabs and pads. Short memos, ready to rearrange.',
+      'Forty chord progressions in F Minor at 130 BPM, written for UK garage organs, stabs and pads. Short memos, ready to rearrange.',
     publishedAt: '2026-08-05T10:00:00Z',
     versions: firstRelease('2026-08-05T10:00:00Z'),
     files: {
@@ -676,7 +676,7 @@ const MIDI_PACKS: readonly SeedItem[] = [
     tags: ['afrobeats', 'melody'],
     price: credits(40),
     description:
-      'Fifty melodies, hooks and counter-lines in G major at 110 BPM, written for afrobeats guitar, flute and keys. Each idea comes in a short and a long version, so you can loop it or build a whole section from it.',
+      'Fifty melodies, hooks and counter-lines in G Major at 110 BPM, written for afrobeats guitar, flute and keys. Each idea comes in a short and a long version, so you can loop it or build a whole section from it.',
     publishedAt: '2026-09-26T10:00:00Z',
     versions: firstRelease('2026-09-26T10:00:00Z'),
     files: {
@@ -699,7 +699,7 @@ const MIDI_PACKS: readonly SeedItem[] = [
     tags: ['lo-fi', 'jazz', 'chords'],
     price: credits(30),
     description:
-      'Forty-five jazz voicings, walking bass lines and turnarounds in A# minor at 85 BPM. Put them on a Rhodes or piano patch and move the voices around.',
+      'Forty-five jazz voicings, walking bass lines and turnarounds in A# Minor at 85 BPM. Put them on a Rhodes or piano patch and move the voices around.',
     publishedAt: '2026-07-16T10:00:00Z',
     versions: firstRelease('2026-07-16T10:00:00Z'),
     files: {
@@ -727,7 +727,7 @@ const MIDI_PACKS: readonly SeedItem[] = [
     tags: ['ambient', 'motifs', 'piano'],
     price: credits(30),
     description:
-      'Thirty-six short piano, celesta, string and bell motifs in E minor at 70 BPM, for ambient pieces and film cues. They leave plenty of space, so they layer well over pads and field recordings.',
+      'Thirty-six short piano, celesta, string and bell motifs in E Minor at 70 BPM, for ambient pieces and film cues. They leave plenty of space, so they layer well over pads and field recordings.',
     publishedAt: '2026-10-02T10:00:00Z',
     versions: firstRelease('2026-10-02T10:00:00Z'),
     files: {
@@ -754,7 +754,7 @@ const BEATS: readonly SeedItem[] = [
     price: PER_TIER,
     leaseTiers: leases({ wav: 25, stems: 60, unlimited: 120 }),
     description:
-      'A boom bap beat at 86 BPM in A minor, built on a dusty piano loop and live-played drums. Leased with WAV or stems; there is no exclusive.',
+      'A boom bap beat at 86 BPM in A Minor, built on a dusty piano loop and live-played drums. Leased with WAV or stems; there is no exclusive.',
     publishedAt: '2026-06-27T10:00:00Z',
     versions: firstRelease('2026-06-27T10:00:00Z'),
   },
@@ -772,7 +772,7 @@ const BEATS: readonly SeedItem[] = [
     price: PER_TIER,
     leaseTiers: leases({ wav: 30, stems: 75, unlimited: 150, exclusive: 650 }),
     description:
-      'A dark drill beat at 144 BPM in C# minor with sliding 808s and a sparse bell melody. All four licenses are available, exclusive included.',
+      'A dark drill beat at 144 BPM in C# Minor with sliding 808s and a sparse bell melody. All four licenses are available, exclusive included.',
     publishedAt: '2026-08-19T10:00:00Z',
     versions: firstRelease('2026-08-19T10:00:00Z'),
   },
@@ -789,7 +789,7 @@ const BEATS: readonly SeedItem[] = [
     price: PER_TIER,
     leaseTiers: leases({ wav: 30, stems: 75, unlimited: 150, exclusive: 500 }),
     description:
-      'An afrobeats beat at 104 BPM in F# minor with live guitar, log drum and a bouncing groove. Okra Sun played the guitar parts in one take and kept the room sound.',
+      'An afrobeats beat at 104 BPM in F# Minor with live guitar, log drum and a bouncing groove. Okra Sun played the guitar parts in one take and kept the room sound.',
     publishedAt: '2026-08-08T10:00:00Z',
     versions: firstRelease('2026-08-08T10:00:00Z'),
   },
@@ -806,7 +806,7 @@ const BEATS: readonly SeedItem[] = [
     price: PER_TIER,
     leaseTiers: leases({ wav: 35, stems: 80, unlimited: 160 }),
     description:
-      'A smooth R&B beat at 92 BPM in B minor with Rhodes chords and soft, swung drums. It leaves room in the middle for a lead vocal.',
+      'A smooth R&B beat at 92 BPM in B Minor with Rhodes chords and soft, swung drums. It leaves room in the middle for a lead vocal.',
     publishedAt: '2026-09-10T10:00:00Z',
     versions: firstRelease('2026-09-10T10:00:00Z'),
   },
@@ -823,7 +823,7 @@ const BEATS: readonly SeedItem[] = [
     price: PER_TIER,
     leaseTiers: leases({ wav: 30, unlimited: 150 }),
     description:
-      'A grime beat at 140 BPM in E minor with square-wave leads and a heavy sub. Offered as a WAV lease or an unlimited lease.',
+      'A grime beat at 140 BPM in E Minor with square-wave leads and a heavy sub. Offered as a WAV lease or an unlimited lease.',
     publishedAt: '2026-09-29T10:00:00Z',
     versions: firstRelease('2026-09-29T10:00:00Z'),
   },
@@ -840,7 +840,7 @@ const BEATS: readonly SeedItem[] = [
     price: PER_TIER,
     leaseTiers: leases({ wav: 30, stems: 75, unlimited: 150, exclusive: 500 }),
     description:
-      'A synth-pop beat at 120 BPM in G minor, built from the same synths as Neon Cathedral. Gated drums, an arpeggiated bass and a wide chorus pad.',
+      'A synth-pop beat at 120 BPM in G Minor, built from the same synths as Neon Cathedral. Gated drums, an arpeggiated bass and a wide chorus pad.',
     publishedAt: '2026-07-24T10:00:00Z',
     versions: firstRelease('2026-07-24T10:00:00Z'),
   },
@@ -894,7 +894,7 @@ const SONGS: readonly SeedItem[] = [
     price: STREAM_ONLY,
     song: { format: 'single', tracks: 1 },
     description:
-      'A melodic electronic single at 122 BPM in F minor. Tessellate played it on hardware synths and a drum machine and mixed it in one evening.',
+      'A melodic electronic single at 122 BPM in F Minor. Tessellate played it on hardware synths and a drum machine and mixed it in one evening.',
     publishedAt: '2026-08-11T10:00:00Z',
     versions: firstRelease('2026-08-11T10:00:00Z'),
   },

@@ -123,21 +123,24 @@ const MONTHS_LONG = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-/** "12 Sep 2026", always in UTC whatever the viewer's time zone. */
+/** A non-breaking space: a date or "3 days ago" never wraps mid-value ("19 / Oct 2026"). */
+const NBSP = '\u00A0';
+
+/** "12 Sep 2026", always in UTC whatever the viewer's time zone; the spaces don't break. */
 export function formatDate(iso: string): string {
   const d = new Date(iso);
-  return `${d.getUTCDate()} ${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  return [d.getUTCDate(), MONTHS_SHORT[d.getUTCMonth()], d.getUTCFullYear()].join(NBSP);
 }
 
-/** "September 2026" ("Selling since {month year}"). */
+/** "September 2026" ("Selling since {month year}"); the space doesn't break. */
 export function formatMonthYear(iso: string): string {
   const d = new Date(iso);
-  return `${MONTHS_LONG[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  return `${MONTHS_LONG[d.getUTCMonth()]}${NBSP}${d.getUTCFullYear()}`;
 }
 
 /**
  * Relative to the demo clock: "today", "yesterday", "3 days ago", "tomorrow",
- * "in 3 days"; two weeks or more away falls back to formatDate.
+ * "in 3 days" (non-breaking spaces); two weeks or more away falls back to formatDate.
  */
 export function formatRelative(iso: string, now: string = DEMO_NOW): string {
   const startOfDay = (value: string) => {
@@ -148,8 +151,8 @@ export function formatRelative(iso: string, now: string = DEMO_NOW): string {
   if (days === 0) return 'today';
   if (days === 1) return 'yesterday';
   if (days === -1) return 'tomorrow';
-  if (days > 1 && days < 14) return `${days} days ago`;
-  if (days < -1 && days > -14) return `in ${-days} days`;
+  if (days > 1 && days < 14) return [days, 'days', 'ago'].join(NBSP);
+  if (days < -1 && days > -14) return ['in', -days, 'days'].join(NBSP);
   return formatDate(iso);
 }
 

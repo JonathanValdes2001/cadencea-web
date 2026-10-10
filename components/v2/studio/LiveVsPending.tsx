@@ -98,7 +98,7 @@ function isPriceField(f: FieldChange) {
 
 /**
  * Live vs pending (RL §6.3): covers side by side, the changed fields, price,
- * files, tracks, licence terms, the review depth and the change note. Pending
+ * files, tracks, license terms, the review depth and the change note. Pending
  * changes are visible to the seller only; buyers keep seeing the live version.
  */
 export default function LiveVsPending({ view }: { view: ReleaseView }) {

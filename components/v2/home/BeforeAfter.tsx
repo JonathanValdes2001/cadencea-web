@@ -23,7 +23,7 @@ const CHIP_CLASS: Record<SyncChip, string> = {
 const AFTER_PROJECTS: { title: string; meta: string; chip: SyncChip; palette: 'violet' | 'ice' | 'ember' }[] = [
   { title: 'Night Ferry', meta: '128 BPM · A Minor', chip: 'Synced', palette: 'violet' },
   { title: 'Frost Lines', meta: '140 BPM · F# Minor', chip: 'Modified', palette: 'ice' },
-  { title: 'Copper Rain', meta: '118 BPM · No key', chip: 'Local only', palette: 'ember' },
+  { title: 'Copper Rain', meta: '118 BPM · Key not set', chip: 'Local only', palette: 'ember' },
 ];
 
 /** Home "Before and after": a messy project folder next to the same work in the vault. */

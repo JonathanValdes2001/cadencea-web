@@ -57,24 +57,25 @@ export default function StreamPage() {
               Music made by people. Paid for by the people who listen.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
-              A streaming service where a person reviews every release, and each listener&rsquo;s money goes to the
-              artists they actually played.
+              A streaming service where a person reviews every release, and the artists&rsquo; share of each
+              listener&rsquo;s money goes only to the artists they actually played.
             </p>
-            <div className="mt-10 flex flex-wrap gap-3">
-              {demoUrl ? (
+            {/* Without a demo address, "How payouts work" leads; a disabled primary button looks broken. */}
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              {demoUrl && (
                 <Button href={demoUrl} variant="onDark" size="lg" prefetch={false}>
                   Open the demo
                 </Button>
-              ) : (
-                <Button variant="onDark" size="lg" disabled>
-                  Open the demo
-                </Button>
               )}
-              <Button href="#payouts" variant="onDarkOutline" size="lg" prefetch={false}>
+              <Button href="#payouts" variant={demoUrl ? 'onDarkOutline' : 'onDark'} size="lg" prefetch={false}>
                 How payouts work
               </Button>
+              {!demoUrl && (
+                <span className="inline-flex h-8 items-center rounded-sm border border-white/15 px-3 text-sm text-dark-muted">
+                  Demo coming soon
+                </span>
+              )}
             </div>
-            {!demoUrl && <p className="mt-3 text-sm text-dark-muted">The demo link is on its way.</p>}
           </div>
           <div className="mt-16 lg:mt-20">
             <StreamPhones />
@@ -105,7 +106,7 @@ export default function StreamPage() {
         <Container>
           <SectionHeader
             title="Support artists directly"
-            subtitle="Tip an artist or support them monthly, from NOK 35 (about €3). Fan support is paid by card, never with credits, and artists keep 90% after card fees."
+            subtitle="Tip an artist or support them monthly, from NOK 35 (about €3). Fan support is paid by card, never with credits, and artists keep 90% after card fees (and VAT, if it applies)."
           />
         </Container>
       </section>

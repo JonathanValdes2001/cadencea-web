@@ -124,10 +124,10 @@ export const CREDITS_FAQ = [
   },
   {
     q: "Why can't I use credits for beats, songs or fan support?",
-    a: 'Credits buy tools for making music, and money buys music. Beat leases, songs and fan support are paid by card at one all-in price, and the artist keeps 90% after VAT and card fees.',
+    a: 'Credits buy tools for making music, and money buys music. Beat leases, songs and fan support are paid by card at one all-in price, and the artist keeps 90% after card fees (and VAT, if it applies).',
   },
   {
     q: 'What happens if the Market closes?',
-    a: "We'd give at least 90 days' notice and stop selling credits on day one. Credits you bought stay spendable during the notice period, and anything left is refunded at the price you paid. Licences are perpetual, files in your vault stay yours, and re-downloads stay open for 12 months.",
+    a: "We'd give at least 90 days' notice and stop selling credits on day one. Credits you bought stay spendable during the notice period, and anything left is refunded at the price you paid. Licenses are perpetual, files in your vault stay yours, and re-downloads stay open for 12 months.",
   },
 ] as const;

@@ -52,6 +52,47 @@ test('no page or component repeats a false or retired claim', async () => {
   }
 })
 
+/** The source with its comments blanked out; strings, JSX text and code stay. */
+function withoutComments(source) {
+  let out = ''
+  for (let i = 0; i < source.length; i++) {
+    const ch = source[i]
+    if (ch === '/' && source[i + 1] === '/' && source[i - 1] !== ':') {
+      const end = source.indexOf('\n', i)
+      i = end === -1 ? source.length : end - 1
+      continue
+    }
+    if (ch === '/' && source[i + 1] === '*') {
+      const end = source.indexOf('*/', i + 2)
+      i = end === -1 ? source.length : end + 1
+      continue
+    }
+    out += ch
+  }
+  return out
+}
+
+// WEB-V2-SPEC §3.2: US spelling, as on the current site. RELEASE-LIFECYCLE's
+// copy was written with "licence"; the stored field `licence` keeps that name
+// (property access and object keys are allowed), the words people read don't.
+const UK_SPELLING = /(?<![.\w])licences?\b(?!\s*\??:)|\b(modelled|catalogue|colour|organis\w*)\b/i
+
+test('user-facing copy uses US spelling', async () => {
+  const files = [...(await sourcesUnder('app')), ...(await sourcesUnder('components')), ...(await sourcesUnder('lib/v2-demo'))]
+  for (const { rel, source } of files) {
+    const match = withoutComments(source).match(UK_SPELLING)
+    assert.equal(match, null, `${rel}: "${match?.input.slice(Math.max(0, match.index - 40), match.index + 40)}"`)
+  }
+})
+
+// Human-Made Standard copy appears on /stream and in the Market, where nothing
+// follows it, so it must not point at a list "below".
+test('the Human-Made allowed list points at no list below', async () => {
+  const copy = await readFile(path.join(root, 'lib/v2-demo/release-lifecycle/copy.ts'), 'utf8')
+  const block = copy.slice(copy.indexOf('allowed: ['), copy.indexOf('notAllowedTitle'))
+  assert.doesNotMatch(block, /listed below/)
+})
+
 // DETECT-SPEC §0 principle 3: Detect never claims AI, in words or with a sparkles icon.
 test('the Detect showcase never claims AI', async () => {
   const files = await sourcesUnder('components/v2/vault')

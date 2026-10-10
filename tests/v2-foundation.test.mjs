@@ -95,7 +95,7 @@ test('format: dates are UTC whatever the machine time zone', () => {
   try {
     for (const tz of ['UTC', 'Pacific/Kiritimati', 'America/Los_Angeles', 'Europe/Oslo']) {
       process.env.TZ = tz
-      assert.equal(formatDate('2026-09-12T23:30:00Z'), '12 Sep 2026', tz)
+      assert.equal(formatDate('2026-09-12T23:30:00Z'), '12\u00A0Sep\u00A02026', tz)
       assert.equal(formatRelative('2026-10-09T23:59:00Z'), 'yesterday', tz)
     }
   } finally {
@@ -103,9 +103,16 @@ test('format: dates are UTC whatever the machine time zone', () => {
     else process.env.TZ = original
   }
   assert.equal(formatRelative(DEMO_NOW), 'today')
-  assert.equal(formatRelative('2026-10-08T08:00:00Z'), '2 days ago')
-  assert.equal(formatRelative('2026-10-24T00:00:00Z'), '24 Oct 2026')
-  assert.equal(formatRelative('2026-10-13T00:00:00Z'), 'in 3 days')
+  assert.equal(formatRelative('2026-10-08T08:00:00Z'), '2\u00A0days\u00A0ago')
+  assert.equal(formatRelative('2026-10-24T00:00:00Z'), '24\u00A0Oct\u00A02026')
+  assert.equal(formatRelative('2026-10-13T00:00:00Z'), 'in\u00A03\u00A0days')
+})
+
+// A date or relative time is one unbreakable value, so lines never end mid-date.
+test('format: dates and relative times never wrap inside the value', () => {
+  for (const value of [formatDate('2026-10-19T12:05:00Z'), formatRelative('2026-10-05T09:30:00Z'), formatRelative('2026-10-13T00:00:00Z')]) {
+    assert.doesNotMatch(value, / /, `"${value}" has a breaking space`)
+  }
 })
 
 test('format: keys encode as F#m / F# / none and round-trip', () => {

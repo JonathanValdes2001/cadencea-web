@@ -6,6 +6,23 @@ import { dawWithArticle } from '@/lib/v2-demo/release-lifecycle/options';
 import type { ProvenanceEvidence, ReleaseType } from '@/lib/v2-demo/release-lifecycle/types';
 import { DETAIL_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
 
+/** "71 files, an Ableton Live session, 12 stems, started 20 May 2026" (or "71 files and a Logic Pro session"). */
+export function evidenceContents(evidence: ProvenanceEvidence, daw: string): string {
+  const count = evidence.manifest.length;
+  const files = count === 1 ? EVIDENCE_COPY.oneFile : fill(EVIDENCE_COPY.files, { n: count });
+  const session = fill(EVIDENCE_COPY.session, { daw });
+  const stems =
+    evidence.stemCount > 0
+      ? evidence.stemCount === 1
+        ? EVIDENCE_COPY.oneStem
+        : fill(EVIDENCE_COPY.stems, { n: evidence.stemCount })
+      : null;
+  const contents = stems ? `${files}, ${session}, ${stems}` : `${files} and ${session}`;
+  return evidence.projectCreatedAt
+    ? `${contents}, ${fill(EVIDENCE_COPY.started, { date: formatDate(evidence.projectCreatedAt) })}`
+    : contents;
+}
+
 /** The evidence summary and its privacy promises (RL §5.7, §9.7). Only reviewers see the bundle itself. */
 export function EvidenceSummary({
   evidence,
@@ -22,12 +39,7 @@ export function EvidenceSummary({
     <div className="text-sm leading-relaxed text-ink-muted">
       {session ? (
         <p>
-          {fill(EVIDENCE_COPY.body.replace('a {daw}', '{daw}'), {
-            count: evidence.manifest.length,
-            daw: dawWithArticle(session.daw),
-            stems: evidence.stemCount,
-            date: evidence.projectCreatedAt ? formatDate(evidence.projectCreatedAt) : '',
-          })}
+          {fill(EVIDENCE_COPY.body, { contents: evidenceContents(evidence, dawWithArticle(session.daw)) })}
         </p>
       ) : (
         <p>{EVIDENCE_COPY.noDawSession}</p>

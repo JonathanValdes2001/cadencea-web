@@ -290,8 +290,8 @@ export default async function CadenceaVault() {
                   id="detect"
                   eyebrow="New in 2.0 · Detect"
                   title="Key, BPM and tag suggestions, on your computer."
-                  desc="Detect reads a project's audio on your computer to suggest its key and BPM, with a high, medium or low confidence and alternates, and suggests tags from your own library and file names. Nothing changes until you accept it, field by field, and it's free on every plan."
-                  points={['Free · runs on this computer', 'Confidence and alternates', 'You approve every change']}
+                  desc="Detect listens to a project's audio on your computer and suggests a key and BPM, each marked High, Medium or Low confidence, with alternates. It also suggests tags from your own library and file names. Nothing changes until you accept it, field by field, and it's free on every plan."
+                  points={['Free · runs on your computer', 'Confidence and alternates', 'You approve every change']}
                   reverse
                 >
                   <div className="mx-auto max-w-md">

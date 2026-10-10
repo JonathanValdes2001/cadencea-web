@@ -281,7 +281,7 @@ export interface SongPayload extends CommonDetails {
 export const LEASE_TIER_IDS = ['wav', 'stems', 'unlimited', 'exclusive'] as const;
 export type LeaseTierId = (typeof LEASE_TIER_IDS)[number];
 
-/** ADR-0042 licence value for each tier (CREDITS-MODEL §6.2). */
+/** ADR-0042 license value for each tier (CREDITS-MODEL §6.2). */
 export const LEASE_TIER_LICENSE: Readonly<Record<LeaseTierId, string>> = {
   wav: 'music_beat_basic',
   stems: 'music_beat_premium',

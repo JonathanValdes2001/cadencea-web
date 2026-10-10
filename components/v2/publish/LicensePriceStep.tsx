@@ -243,7 +243,7 @@ function SongRelease({
 }
 
 /**
- * Step 5, "Release and price / Leases / Price and licence" (RL §5.5; numbers
+ * Step 5, "Release and price / Leases / Price and license" (RL §5.5; numbers
  * from CREDITS-MODEL through credits/config.ts): pack prices on a 10-credit
  * slider with the seller earnings line, beat lease tiers by card, song downloads
  * by card from €3, release date and territories.
