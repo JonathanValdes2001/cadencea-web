@@ -13,8 +13,10 @@ import { diffRevision } from '../lib/v2-demo/release-lifecycle/diff.ts'
 import { validateSubmission } from '../lib/v2-demo/release-lifecycle/validation.ts'
 import { buildEvidence, findProject, prefillPayload } from '../lib/v2-demo/release-lifecycle/vault-projects.ts'
 import { demoCover } from '../lib/v2-demo/release-lifecycle/demo-files.ts'
-import { releaseActions } from '../lib/v2-demo/release-lifecycle/actions.ts'
-import { publicListings, releaseView, tabCounts, toPublicView } from '../lib/v2-demo/release-lifecycle/selectors.ts'
+import { publicHrefFor, releaseActions } from '../lib/v2-demo/release-lifecycle/actions.ts'
+import { demoEarnings } from '../lib/v2-demo/release-lifecycle/earnings.ts'
+import { publicListings, releaseView, sellerTimeline, tabCounts, toPublicView } from '../lib/v2-demo/release-lifecycle/selectors.ts'
+import { getItem } from '../lib/v2-demo/market/items.ts'
 import { addDays, DEMO_NOW, toIso } from '../lib/v2-demo/clock.ts'
 
 const SELLER = { kind: 'seller', userId: 'demo-maya' }
@@ -628,6 +630,7 @@ test('diffRevision reports the §4.7 change kinds and the §4.8 depth', () => {
 /* ------------------------------------------------------------------ */
 
 const actionsOf = (state, n) => releaseActions(state, releaseView(state, state.releases[id(n)], DEMO_NOW), DEMO_NOW)
+const revisionsFor = (state, n) => state.releases[id(n)].revisionIds.map((r) => state.revisions[r])
 
 test('§7.5 step 2: approving Tidewater Drums puts version 3 and its new cover on the Market', () => {
   const before = toPublicView(SEED_STATE, id(2), DEMO_NOW)
@@ -693,6 +696,140 @@ test('founder script step 10: a sample pack from Saltmarsh Kit is published and 
   assert.ok(listing, 'usePublicReleases lists it as "Your demo release"')
   assert.equal(listing.type, 'sample_pack')
   assert.equal(listing.sellerHandle, 'nightjar')
+})
+
+/* ------------------------------------------------------------------ */
+/* Appeals against a restriction that changed meanwhile (§4.6 T24)     */
+/* ------------------------------------------------------------------ */
+
+const SUSPEND = (n) => ({ type: 'suspend', releaseId: id(n), statement: statement('suspended', 'copyright_claim'), disableDownloads: false })
+
+/** The seller can still edit afterwards: start an update and discard it. */
+function sellerCanStillEdit(state, n) {
+  const started = ok(state, { type: 'start_update', releaseId: id(n) })
+  ok(started, { type: 'discard_update', releaseId: id(n) })
+}
+
+/** Kitchen Percussion's update, rejected and appealed (§7.5 steps 3–4 up to the appeal). */
+function appealedR13(state) {
+  state = submitR13Update(state)
+  const rejected = lastCaseOf(state, open(state, id(13)))
+  state = ok(state, { type: 'reject', caseId: rejected, statement: statement('update_not_published', 'duplicate_content') }, REVIEWER)
+  return ok(state, { type: 'file_appeal', releaseId: id(13), appealedCaseId: rejected, message: 'I published these on my own site first.' })
+}
+
+test('an update-rejection appeal waits while the release is on hold, and the hold stays', () => {
+  let state = ok(appealedR13(SEED_STATE), SUSPEND(13), REVIEWER)
+  const appealId = openAppeal(state, id(13)).id
+
+  // Neither outcome may lift the hold or promote the update meanwhile (T18).
+  refused(state, { type: 'decide_appeal', appealId, outcome: 'overturned' }, APPEAL_REVIEWER, 'release_suspended')
+  refused(state, { type: 'decide_appeal', appealId, outcome: 'upheld', statement: statement('update_not_published', 'other') }, APPEAL_REVIEWER, 'release_suspended')
+  // Removing the release would make the open appeal moot, so the appeal is decided first.
+  refused(state, { type: 'remove', releaseId: id(13), statement: statement('removed', 'other') }, REVIEWER, 'invalid_state')
+  assert.equal(state.releases[id(13)].status, 'suspended')
+
+  // Once the hold is lifted, the appeal decides the update as T24b.
+  state = ok(state, { type: 'reinstate', releaseId: id(13) }, REVIEWER)
+  assert.equal(openAppeal(state, id(13)).id, appealId, 'reinstating a hold leaves a rejection appeal open')
+  state = viaRule('T24b', state, { type: 'decide_appeal', appealId, outcome: 'overturned' }, APPEAL_REVIEWER, { releaseId: id(13), revisionId: 'demo-r13-rev2' })
+  assert.equal(current(state, id(13)).version, 2)
+  assert.equal(state.releases[id(13)].openRevisionId, null)
+  sellerCanStillEdit(state, 13)
+})
+
+test('a suspension appeal cannot undo a later removal', () => {
+  let state = ok(SEED_STATE, { type: 'file_appeal', releaseId: id(10), appealedCaseId: 'case-r10-2', message: 'These snares were recorded in my kitchen.' })
+  // The removal waits for the open appeal; uphold it, then remove.
+  refused(state, { type: 'remove', releaseId: id(10), statement: statement('removed', 'copyright_claim') }, REVIEWER, 'invalid_state')
+  const appealId = openAppeal(state, id(10)).id
+  state = ok(state, { type: 'decide_appeal', appealId, outcome: 'upheld', statement: statement('suspended', 'copyright_claim') }, APPEAL_REVIEWER)
+  state = ok(state, { type: 'remove', releaseId: id(10), statement: statement('removed', 'copyright_claim') }, REVIEWER)
+  refused(state, { type: 'decide_appeal', appealId, outcome: 'overturned' }, APPEAL_REVIEWER, 'invalid_state')
+  assert.equal(state.releases[id(10)].unpublished.by, 'platform', 'the removal stays')
+  assert.equal(isPublic(state.releases[id(10)], DEMO_NOW), false)
+})
+
+test('reinstating a hold settles the open appeal against it', () => {
+  let state = ok(SEED_STATE, { type: 'file_appeal', releaseId: id(10), appealedCaseId: 'case-r10-2', message: 'These snares were recorded in my kitchen.' })
+  const appeal = openAppeal(state, id(10))
+  state = ok(state, { type: 'reinstate', releaseId: id(10) }, REVIEWER)
+  assert.equal(openAppeal(state, id(10)), undefined)
+  assert.equal(state.appeals[appeal.id].status, 'overturned')
+  assert.equal(state.cases[appeal.appealCaseId].status, 'dismissed')
+  const view = releaseView(state, state.releases[id(10)], DEMO_NOW)
+  assert.equal(view.chips.primary, 'live')
+  assert.notEqual(view.chips.secondary, 'appeal_in_progress')
+  refused(state, { type: 'decide_appeal', appealId: appeal.id, outcome: 'upheld', statement: statement('suspended', 'other') }, APPEAL_REVIEWER, 'invalid_state')
+  sellerCanStillEdit(state, 10)
+})
+
+test('one open appeal per release', () => {
+  const state = ok(appealedR13(SEED_STATE), SUSPEND(13), REVIEWER)
+  const hold = state.releases[id(13)].suspension.caseId
+  refused(state, { type: 'file_appeal', releaseId: id(13), appealedCaseId: hold, message: 'The kitchen recordings are all mine.' }, SELLER, 'appeal_exists')
+})
+
+/* ------------------------------------------------------------------ */
+/* Timeline order, Market links and the buyers panel                   */
+/* ------------------------------------------------------------------ */
+
+test('the timeline puts a decision above the "Review started" emitted with it', () => {
+  let state = ok(SEED_STATE, { type: 'approve', caseId: 'case-r02-3' }, REVIEWER)
+  let timeline = sellerTimeline(state, id(2))
+  assert.equal(timeline[0].at, timeline[1].at, 'one action, one time')
+  assert.deepEqual(timeline.slice(0, 2).map((e) => e.type), ['update_went_live', 'review_started'])
+
+  state = appealedR13(SEED_STATE)
+  state = ok(state, { type: 'decide_appeal', appealId: openAppeal(state, id(13)).id, outcome: 'overturned' }, APPEAL_REVIEWER)
+  timeline = sellerTimeline(state, id(13))
+  assert.deepEqual(timeline.slice(0, 2).map((e) => e.type), ['update_went_live', 'appeal_overturned'])
+})
+
+test('"View on Market" appears only for releases the Market has a page for', () => {
+  // Linked seed releases open their item page; songs open Stream.
+  assert.equal(publicHrefFor(SEED_STATE.releases[id(2)]), '/market/tidewater-drums')
+  assert.equal(publicHrefFor(SEED_STATE.releases[id(1)]), '/stream')
+  const tidewater = ok(SEED_STATE, { type: 'approve', caseId: 'case-r02-3' }, REVIEWER)
+  assert.ok(actionsOf(tidewater, 2).some((a) => a.id === 'view_public'))
+
+  // Moth Glow (R3) has no Market row, so approving it adds no link that would 404.
+  const approved = ok(SEED_STATE, { type: 'approve', caseId: lastCaseOf(SEED_STATE, open(SEED_STATE, id(3))) }, REVIEWER)
+  assert.equal(approved.releases[id(3)].status, 'live')
+  assert.equal(getItem(approved.releases[id(3)].slug), null)
+  assert.equal(publicHrefFor(approved.releases[id(3)]), null)
+  assert.ok(!actionsOf(approved, 3).some((a) => a.id === 'view_public'))
+})
+
+test('a new release never takes a category key or a seed listing slug', () => {
+  const slugFor = (title) => {
+    const { state, releaseId } = newSamplePack(SEED_STATE)
+    const payload = { ...open(state, releaseId).payload, title }
+    return ok(state, { type: 'save_draft', releaseId, payload }).releases[releaseId].slug
+  }
+  assert.equal(slugFor('Samples'), 'samples-2')
+  assert.equal(getItem('velvet-pads').source, 'seed')
+  assert.equal(slugFor('Velvet Pads'), 'velvet-pads-2')
+  assert.equal(slugFor('Saltmarsh Kit'), 'saltmarsh-kit')
+})
+
+test('earnings count each version at its own price (L6) and include an exclusive sale', () => {
+  const earned = (state, n) => demoEarnings(state.releases[id(n)], revisionsFor(state, n))
+  const before = earned(SEED_STATE, 2)
+  const approved = ok(SEED_STATE, { type: 'approve', caseId: 'case-r02-3' }, REVIEWER)
+  assert.deepEqual(current(approved, id(2)).payload.price, { kind: 'credits', credits: 70 })
+  assert.equal(earned(approved, 2), before, 'approving a new price rewrites no past earnings')
+
+  const r13Before = earned(SEED_STATE, 13)
+  let r13 = appealedR13(SEED_STATE)
+  r13 = ok(r13, { type: 'decide_appeal', appealId: openAppeal(r13, id(13)).id, outcome: 'overturned' }, APPEAL_REVIEWER)
+  assert.equal(earned(r13, 13), r13Before)
+
+  // Night Bus: 15 leases plus the exclusive sale that took it off sale.
+  const nightBus = SEED_STATE.releases[id(15)]
+  assert.equal(nightBus.unpublished.cause, 'exclusive_sold')
+  const leasesOnly = demoEarnings({ ...nightBus, unpublished: null }, revisionsFor(SEED_STATE, 15))
+  assert.ok(earned(SEED_STATE, 15) > leasesOnly)
 })
 
 test('every rule in TRANSITIONS was exercised', () => {

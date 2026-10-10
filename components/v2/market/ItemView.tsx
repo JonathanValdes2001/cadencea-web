@@ -9,6 +9,8 @@ import Container from '@/components/ui/Container';
 import CoverArt from '@/components/ui/CoverArt';
 import PreviewPlayer from '@/components/ui/PreviewPlayer';
 import { CATEGORY_BY_KEY, RELEASE_TYPE_LABEL } from '@/lib/v2-demo/categories';
+import { ownedEntry } from '@/lib/v2-demo/credits/library-seed';
+import { useMarketLibrary } from '@/lib/v2-demo/credits/store';
 import { fill } from '@/lib/v2-demo/format';
 import { ITEM_COPY, MARKET_HOME_COPY } from '@/lib/v2-demo/market/copy';
 import { playerTuning, sellerName } from '@/lib/v2-demo/market/display';
@@ -16,6 +18,7 @@ import { listingFiles } from '@/lib/v2-demo/market/files';
 import { itemsBySeller, similarItems } from '@/lib/v2-demo/market/queries';
 import type { MarketListing } from '@/lib/v2-demo/market/types';
 import { PUBLIC_COPY, SPLITS_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
+import { useLifecycle } from '@/lib/v2-demo/release-lifecycle/store';
 import Breadcrumb from './Breadcrumb';
 import FileList from './FileList';
 import HumanMadePanel from './HumanMadePanel';
@@ -23,6 +26,7 @@ import ItemBuyBox from './ItemBuyBox';
 import ItemMeta from './ItemMeta';
 import LicenseSummary from './LicenseSummary';
 import MobileBuyBar from './MobileBuyBar';
+import OwnedPanel from './OwnedPanel';
 import Rail from './Rail';
 import ReportDialog from './ReportDialog';
 import WhatsNew from './WhatsNew';
@@ -33,9 +37,18 @@ const BUY_BOX_ID = 'buy';
 /** "Sample packs" → "sample packs" mid-sentence; "MIDI packs" keeps its capitals. */
 const inSentence = (label: string) => (/^[A-Z]{2}/.test(label) ? label : label.charAt(0).toLowerCase() + label.slice(1));
 
-/** A linked release that isn't public: suspended, unpublished or not released yet (WEB-V2-SPEC §4.4). */
+/**
+ * A linked release that isn't public: suspended, unpublished or not released yet
+ * (WEB-V2-SPEC §4.4). Past buyers keep access (RL §4.2), so an owner still gets
+ * the download panel, unless a hold has disabled downloads.
+ */
 function OffSale({ listing }: { listing: MarketListing }) {
   const category = CATEGORY_BY_KEY[listing.category];
+  const library = useMarketLibrary();
+  const lifecycle = useLifecycle();
+  const owned = ownedEntry(library, listing.slug);
+  const release = listing.releaseId ? lifecycle.releases[listing.releaseId] : undefined;
+  const downloadsPaused = release?.status === 'suspended' && release.suspension?.downloadsDisabled === true;
   return (
     <Container className="py-16 lg:py-24">
       <Breadcrumb
@@ -47,7 +60,15 @@ function OffSale({ listing }: { listing: MarketListing }) {
       />
       <div className="mt-6 max-w-2xl">
         <h1 className="text-3xl font-bold tracking-tight text-ink md:text-4xl">{listing.title}</h1>
-        <p className="mt-4 text-base leading-relaxed text-ink-muted">{PUBLIC_COPY.marketUnavailable}</p>
+        <p className="mt-4 text-base leading-relaxed text-ink-muted">
+          {PUBLIC_COPY.marketUnavailable}
+          {owned && ` ${downloadsPaused ? ITEM_COPY.offSaleDownloadsPaused : ITEM_COPY.offSaleOwned}`}
+        </p>
+        {owned && !downloadsPaused && (
+          <Card padding="md" className="mt-8">
+            <OwnedPanel listing={listing} entry={owned} />
+          </Card>
+        )}
         <Button href={`/market/${category.key}`} variant="secondary" className="mt-8">
           {fill(ITEM_COPY.offSaleBack, { category: inSentence(category.label) })}
         </Button>

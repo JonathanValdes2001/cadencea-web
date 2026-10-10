@@ -87,6 +87,16 @@ export function atCap(wallet: Wallet, now: string = DEMO_NOW): boolean {
   return balances(wallet, now).monthly >= wallet.buckets.included.cap;
 }
 
+/**
+ * Credits the next monthly grant actually adds (§3): a grant only tops the
+ * monthly lots up to the rollover cap, so credits above the cap are not added.
+ */
+export function nextGrantAmount(wallet: Wallet, now: string = DEMO_NOW): number {
+  const monthly = wallet.plan.monthly_credits;
+  const room = wallet.buckets.included.cap - balances(wallet, now).monthly;
+  return Math.max(0, Math.min(monthly, room));
+}
+
 /** The active welcome lot, if any (for the "{n} welcome credits … until {date}" hint). */
 export function welcomeLot(wallet: Wallet, now: string = DEMO_NOW): IncludedLot | null {
   return (

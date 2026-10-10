@@ -4,13 +4,27 @@
  * tooltip (L1, L19, one appeal per decision). Studio rows, the detail page and
  * the state banner all render from this one table.
  */
-import type { IsoDateTime, LifecycleState } from './types.ts';
+import type { IsoDateTime, LifecycleState, Release } from './types.ts';
 import { isPublic } from './types.ts';
 import { NOTICE_COPY } from './copy.ts';
 import { DETAIL_UI } from './ui-copy.ts';
 import { appealOption } from './selectors.ts';
 import type { ReleaseView } from './selectors.ts';
 import { fill, formatDate } from '../format.ts';
+import { getItem } from '../market/items.ts';
+
+/**
+ * Where "View on Market" / "View on Stream" goes, or null when there's no public
+ * page to open. Songs are on Stream. Other types have an item page only when the
+ * Market seed has a row linked to this release (WEB-V2-SPEC §4.7): the server
+ * can't see the browser's demo store, so a release made or approved in the demo
+ * would 404 there; its Market card links back to Studio instead.
+ */
+export function publicHrefFor(release: Pick<Release, 'id' | 'type' | 'slug'>): string | null {
+  if (release.type === 'song') return '/stream';
+  const item = getItem(release.slug);
+  return item?.source === 'lifecycle' && item.releaseId === release.id ? `/market/${release.slug}` : null;
+}
 
 export type ReleaseActionId =
   | 'continue_editing'
@@ -116,7 +130,7 @@ export function releaseActions(state: LifecycleState, view: ReleaseView, now: Is
         return [item('view_appeal'), item('unpublish'), item('edit_release', NOTICE_COPY.disabled.finishUpdate)];
       }
       const items = [item('edit_release'), item('unpublish')];
-      if (isPublic(release, now)) {
+      if (isPublic(release, now) && publicHrefFor(release)) {
         items.push({ id: 'view_public', label: release.type === 'song' ? DETAIL_UI.viewOnStream : DETAIL_UI.viewOnMarket });
       }
       if (option?.isUpdate && !option.appeal && !option.windowClosed) items.push(...appealItem('appeal_update'));

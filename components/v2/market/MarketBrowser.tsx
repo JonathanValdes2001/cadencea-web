@@ -64,14 +64,32 @@ export default function MarketBrowser({ category }: { category: CategoryKey | nu
 
   useEffect(() => () => clearTimeout(searchTimer.current), []);
 
+  // A navigation that changes ?q from outside the box (a category tab, a chip,
+  // the back button) keeps this component mounted, so the box follows the URL.
+  // While a typed search is still waiting to be written, the box leads instead.
+  const searchPending = useRef(false);
+  useEffect(() => {
+    if (searchPending.current) return;
+    setQuery((current) => (current.trim() === filters.q ? current : filters.q));
+  }, [filters.q]);
+
+  const cancelPendingSearch = () => {
+    clearTimeout(searchTimer.current);
+    searchPending.current = false;
+  };
+
   const onQueryChange = (value: string) => {
     setQuery(value);
     clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => update({ q: value.trim() }), SEARCH_DELAY_MS);
+    searchPending.current = true;
+    searchTimer.current = setTimeout(() => {
+      searchPending.current = false;
+      update({ q: value.trim() });
+    }, SEARCH_DELAY_MS);
   };
 
   const clearFilters = () => {
-    clearTimeout(searchTimer.current);
+    cancelPendingSearch();
     setQuery('');
     update({ ...EMPTY_FILTERS, sort: filters.sort });
   };
@@ -106,7 +124,7 @@ export default function MarketBrowser({ category }: { category: CategoryKey | nu
             role="search"
             onSubmit={(e) => {
               e.preventDefault();
-              clearTimeout(searchTimer.current);
+              cancelPendingSearch();
               update({ q: query.trim() });
             }}
             className="flex flex-col gap-4 sm:flex-row sm:items-end"
@@ -150,7 +168,10 @@ export default function MarketBrowser({ category }: { category: CategoryKey | nu
           <ActiveFilters
             filters={filters}
             onChange={(patch) => {
-              if (patch.q === '') setQuery('');
+              if (patch.q === '') {
+                cancelPendingSearch();
+                setQuery('');
+              }
               update(patch);
             }}
             onClear={clearFilters}

@@ -86,6 +86,7 @@ export const WALLET_COPY = {
   refundHint: '{n} bought credits refundable until {date}',
   welcomeHint: '{n} welcome credits for Cadencea Originals · until {date}',
   atCap: "You're at your rollover limit ({cap}). Spend some before {date} so your next {monthly} aren't capped.",
+  nearCap: "You're near your rollover limit ({cap}), so only {n} of your next {monthly} would be added. Spend some before {date} to get them all.",
   freePlan: 'No included credits on Free. Paid plans include 10–50 a month, or top up from €10.',
   detectLine: 'Detect key, BPM and tags: free on every plan',
   primaryButton: 'Top up on cadencea.app',

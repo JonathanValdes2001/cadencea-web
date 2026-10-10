@@ -147,7 +147,7 @@ export default function ReleaseDetail({ releaseId, demo }: { releaseId: string; 
               </section>
             )}
             <EvidencePanel evidence={evidenceRevision?.evidence ?? null} type={release.type} reviewedAt={view.current?.decidedAt ?? null} />
-            <BuyersPanel release={release} payload={view.current?.payload ?? null} />
+            <BuyersPanel release={release} revisions={revisions} />
           </aside>
         </div>
       </Container>

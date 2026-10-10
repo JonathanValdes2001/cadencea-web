@@ -9,6 +9,7 @@ import StatusChip from '@/components/ui/StatusChip';
 import { useToast } from '@/components/ui/Toast';
 import { DEMO_NOW } from '@/lib/v2-demo/clock';
 import { fill, formatDate } from '@/lib/v2-demo/format';
+import { publicHrefFor } from '@/lib/v2-demo/release-lifecycle/actions';
 import { VERSION_COPY, WIZARD_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
 import { channelLabel, chipText, versionLine, type ReleaseView } from '@/lib/v2-demo/release-lifecycle/selectors';
 import { isPublic } from '@/lib/v2-demo/release-lifecycle/types';
@@ -18,13 +19,14 @@ import { coverSeedOf } from './ReleaseRow';
 /**
  * The release detail header (RL §6.3): breadcrumb, cover (56 px on mobile, 96 px
  * on desktop), title, type, chips, channel, version line and, for public
- * releases, "View on Market" or "View on Stream", plus "Copy link".
+ * releases with a public page, "View on Market" or "View on Stream", plus "Copy link".
  */
 export default function ReleaseHeader({ view }: { view: ReleaseView }) {
   const { release, chips, current } = view;
   const title = view.shown.payload.title;
   const toast = useToast();
   const isLivePublic = isPublic(release, DEMO_NOW);
+  const publicHref = isLivePublic ? publicHrefFor(release) : null;
   const version =
     isLivePublic && current?.version && current.decidedAt && view.open === null
       ? fill(VERSION_COPY.liveSince, { date: formatDate(current.decidedAt), n: current.version })
@@ -72,11 +74,11 @@ export default function ReleaseHeader({ view }: { view: ReleaseView }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 sm:justify-end">
-          {isLivePublic && (
+          {publicHref && (
             <Button
               variant="secondary"
               size="sm"
-              href={release.type === 'song' ? '/stream' : `/market/${release.slug}`}
+              href={publicHref}
               iconRight={<External size={16} />}
             >
               {release.type === 'song' ? DETAIL_UI.viewOnStream : DETAIL_UI.viewOnMarket}

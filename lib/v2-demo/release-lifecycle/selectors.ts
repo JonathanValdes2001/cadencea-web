@@ -244,11 +244,17 @@ export function lastActivity(state: LifecycleState, release: Release): Activity 
 /* Timeline                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Seller-visible events, newest first (§6.3). Internal events are never shown. */
+/**
+ * Seller-visible events, newest first (§6.3). Internal events are never shown.
+ * One action can emit several events with the same time ("Review started", then
+ * the decision); the event log's order breaks the tie, so the outcome is on top.
+ */
 export function sellerTimeline(state: LifecycleState, releaseId: string): ReviewEvent[] {
   return state.events
-    .filter((e) => e.releaseId === releaseId && e.visibility === 'seller' && e.type !== 'deleted')
-    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+    .map((event, index) => [event, index] as const)
+    .filter(([e]) => e.releaseId === releaseId && e.visibility === 'seller' && e.type !== 'deleted')
+    .sort(([a, ia], [b, ib]) => Date.parse(b.at) - Date.parse(a.at) || ib - ia)
+    .map(([e]) => e);
 }
 
 /** §9.5 timeline titles, picking the variant for first releases, updates and unpublish causes. */

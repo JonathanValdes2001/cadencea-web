@@ -6,7 +6,9 @@ import assert from 'node:assert/strict'
 // (WEB-V2-SPEC §9.4) and how the /credits history reads each ledger entry.
 import { WALLET_SEED } from '../lib/v2-demo/credits/wallet-seed.ts'
 import {
+  atCap,
   balances,
+  nextGrantAmount,
   previewSpend,
   refundError,
   refundTopUp,
@@ -213,4 +215,23 @@ test('history: tabs, the wallet column and signed changes read the ledger as CRE
   assert.equal(signedCredits(-120), '−120')
   assert.equal(signedCredits(1240), '+1,240')
   assert.equal(signedCredits(0), '0')
+})
+
+// CREDITS-MODEL §3: a grant only tops the monthly lots up to the rollover cap.
+test('the next grant shows only what the rollover cap lets in', () => {
+  // Maya's seed: 29 monthly credits, cap 60, Standard's 30 a month.
+  assert.equal(balances(WALLET_SEED).monthly, 29)
+  assert.equal(nextGrantAmount(WALLET_SEED), 30)
+
+  // Returning Velvet Pads puts 29 back on inc_2026_09: 59 of 60, so 1 would arrive.
+  const back = returnItem(WALLET_SEED, { purchaseId: 'led_013', downloaded: false, at: at(1) })
+  assert.ok(back.ok, back.error)
+  assert.equal(balances(back.wallet).monthly, 59)
+  assert.equal(nextGrantAmount(back.wallet), 1)
+  assert.equal(atCap(back.wallet), false)
+
+  const full = structuredClone(back.wallet)
+  full.buckets.included.lots.find((lot) => lot.lot_id === 'inc_2026_10').remaining += 1
+  assert.equal(nextGrantAmount(full), 0)
+  assert.equal(atCap(full), true)
 })

@@ -35,6 +35,8 @@ import { APPEAL_WINDOW_DAYS, RELEASE_TYPE_INFO, TRANSITIONS, isPublic } from './
 import { diffRevision, emptyChangeSummary } from './diff.ts';
 import { validateSubmission } from './validation.ts';
 import { addDays } from '../clock.ts';
+import { CATEGORY_KEYS } from '../categories.ts';
+import { MARKET_ITEMS } from '../market/items.ts';
 
 /** The Demo reviewer (§7.3). Appeals are decided by the second id, so "a different reviewer" holds. */
 export const DEMO_REVIEWER_ID = 'demo-reviewer';
@@ -262,9 +264,22 @@ function slugify(title: string): string {
   return base || 'untitled';
 }
 
+/**
+ * Market URLs a release slug must never take: category pages, the seller path
+ * and the static seed listings (`/market/{slug}` serves those first).
+ */
+const RESERVED_SLUGS: ReadonlySet<string> = new Set([
+  ...CATEGORY_KEYS,
+  'u',
+  ...MARKET_ITEMS.filter((item) => item.source === 'seed').map((item) => item.slug),
+]);
+
 function uniqueSlug(state: LifecycleState, title: string, exceptId: Id | null): string {
   const base = slugify(title);
-  const taken = new Set(Object.values(state.releases).filter((r) => r.id !== exceptId).map((r) => r.slug));
+  const taken = new Set([
+    ...RESERVED_SLUGS,
+    ...Object.values(state.releases).filter((r) => r.id !== exceptId).map((r) => r.slug),
+  ]);
   if (!taken.has(base)) return base;
   let n = 2;
   while (taken.has(`${base}-${n}`)) n += 1;
@@ -676,6 +691,8 @@ function fileAppeal(state: LifecycleState, a: ActionOf<'file_appeal'>, actor: Ac
   }
 
   if (Object.values(state.appeals).some((ap) => ap.appealedCaseId === decided.id)) return fail('appeal_exists');
+  // One open appeal per release: Studio shows one appeal at a time (`openAppeal`).
+  if (openAppealOn(state, release.id)) return fail('appeal_exists');
   if (Date.parse(now) > Date.parse(addDays(decision.at, APPEAL_WINDOW_DAYS))) return fail('appeal_window_closed');
   if (decision.target === 'rejection' && release.currentRevisionId !== null && release.openRevisionId !== null) {
     return fail('open_revision_exists');
@@ -938,9 +955,21 @@ function reinstate(state: LifecycleState, a: ActionOf<'reinstate'>, actor: Actor
   if (typeof rule === 'string') return fail(rule);
 
   const tx = begin(state, actor, now);
+  // Lifting the hold gives an open appeal against it what it asked for, so the
+  // appeal is settled as overturned and its review case closes as moot.
+  const suspensionCaseId = release.suspension?.caseId;
+  for (const appeal of Object.values(state.appeals)) {
+    if (appeal.status !== 'open' || appeal.target !== 'suspension' || appeal.appealedCaseId !== suspensionCaseId) continue;
+    tx.state.appeals[appeal.id] = { ...appeal, status: 'overturned', decidedAt: now };
+    if (tx.state.cases[appeal.appealCaseId]) patchCase(tx, appeal.appealCaseId, { status: 'dismissed', decidedAt: now });
+  }
   patchRelease(tx, release.id, { status: release.suspension?.restoreTo ?? 'live', suspension: null });
-  emit(tx, release.id, 'reinstated', { caseId: release.suspension?.caseId, note: a.note });
+  emit(tx, release.id, 'reinstated', { caseId: suspensionCaseId, note: a.note });
   return commit(tx);
+}
+
+function openAppealOn(state: LifecycleState, releaseId: Id): Appeal | null {
+  return Object.values(state.appeals).find((ap) => ap.releaseId === releaseId && ap.status === 'open') ?? null;
 }
 
 function remove(state: LifecycleState, a: ActionOf<'remove'>, actor: Actor, now: IsoDateTime): ApplyResult {
@@ -948,6 +977,9 @@ function remove(state: LifecycleState, a: ActionOf<'remove'>, actor: Actor, now:
   if (!release) return fail('not_found');
   const rule = releaseRule(state, release, 'remove', actor);
   if (typeof rule === 'string') return fail(rule);
+  // A removal would replace the decision an open appeal is about (or withdraw the
+  // appealed update), so the appeal is decided first.
+  if (openAppealOn(state, release.id)) return fail('invalid_state');
   if (!statementComplete(a.statement)) return fail('validation_failed');
 
   const tx = begin(state, actor, now);
@@ -990,7 +1022,20 @@ function decideAppeal(state: LifecycleState, a: ActionOf<'decide_appeal'>, actor
   if (appealed?.decidedBy && reviewerId(actor) === appealed.decidedBy) return fail('same_reviewer');
 
   const revision = appeal.revisionId ? state.revisions[appeal.revisionId] ?? null : null;
-  const ids = a.outcome === 'upheld' ? ['T23'] : ['T24a', 'T24b', 'T24c', 'T24d'];
+  // An update rejection's appeal waits while the release is on hold (T18: review
+  // of the open revision pauses until T19 or T24c decides the hold).
+  if (appeal.target === 'rejection' && release.status === 'suspended') return fail('release_suspended');
+  // §4.6: the rule follows the appeal's target and scope, never whichever rule the
+  // current state happens to match. A suspension or removal appeal is decided only
+  // while that same restriction is still in place.
+  if (appeal.target === 'suspension' && (release.status !== 'suspended' || release.suspension?.caseId !== appeal.appealedCaseId)) {
+    return fail('invalid_state');
+  }
+  if (appeal.target === 'removal' && (release.unpublished?.by !== 'platform' || release.unpublished.caseId !== appeal.appealedCaseId)) {
+    return fail('invalid_state');
+  }
+  const overturnRule = { rejection: scopeOf(release) === 'first' ? 'T24a' : 'T24b', suspension: 'T24c', removal: 'T24d' }[appeal.target];
+  const ids = a.outcome === 'upheld' ? ['T23'] : [overturnRule];
   const rule = matchRule('decide_appeal', actor.kind, scopeOf(release), release.status, revision?.status ?? 'none', ids);
   if (typeof rule === 'string') return fail(rule);
   if (a.outcome === 'upheld' && !statementComplete(a.statement)) return fail('validation_failed');

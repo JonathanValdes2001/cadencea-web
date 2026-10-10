@@ -114,6 +114,7 @@ export const DETAIL_UI = {
   sales: 'Sales',
   earnings: 'Earnings',
   ownersByVersion: 'Owners by version',
+  plusExclusive: 'leases, plus the exclusive sale',
   playsThisMonth: 'Plays this month',
   noNumbers: 'No buyers or listeners yet.',
   evidence: 'Evidence',

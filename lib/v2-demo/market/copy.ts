@@ -206,6 +206,8 @@ export const ITEM_COPY = {
   moreFrom: 'More from {seller}',
   similar: 'Similar sounds',
   offSaleBack: 'Browse {category}',
+  offSaleOwned: 'You bought it, so your downloads are below.',
+  offSaleDownloadsPaused: "Downloads are paused while the Cadencea review team looks at a report. You'll keep your purchase.",
   barBuy: 'Buy',
   barGet: 'Get this pack',
   barChoose: 'Choose a license',

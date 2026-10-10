@@ -1,44 +1,41 @@
 import React from 'react';
-import { cardSellerEarnsEurCents, sellerEarnsEurCents } from '@/lib/v2-demo/credits/config';
 import { formatEurCents } from '@/lib/v2-demo/format';
-import type { Release, ReleasePayload } from '@/lib/v2-demo/release-lifecycle/types';
+import { demoEarnings } from '@/lib/v2-demo/release-lifecycle/earnings';
+import type { Release, Revision } from '@/lib/v2-demo/release-lifecycle/types';
 import { DETAIL_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
 
-/** Seller earnings for one sale of the live version (CREDITS-MODEL §6.2, §7), in euro cents. */
-function earningsPerSale(payload: ReleasePayload): number {
-  if (payload.kind === 'beat') {
-    // Leases are priced per tier; the demo counts every sale at the first enabled tier.
-    const tier = payload.tiers.find((t) => t.enabled);
-    return tier ? cardSellerEarnsEurCents(tier.price.amountMinor) : 0;
-  }
-  const price = payload.price;
-  if (price.kind === 'credits') return sellerEarnsEurCents(price.credits);
-  if (price.kind === 'card') return cardSellerEarnsEurCents(price.amount.amountMinor);
-  return 0;
-}
-
 /** Demo numbers for the buyers and listeners panel (RL §6.3), labelled as fictional. */
-export default function BuyersPanel({ release, payload }: { release: Release; payload: ReleasePayload | null }) {
+export default function BuyersPanel({ release, revisions }: { release: Release; revisions: readonly Revision[] }) {
   const stats = release.demoStats;
-  const owners = stats?.ownersByVersion ? Object.entries(stats.ownersByVersion) : [];
+  const approved = revisions.filter((r) => r.version !== null);
+  // A song that was never sold for download has listeners, not buyers.
+  const streamOnly =
+    release.type === 'song' && approved.every((r) => r.payload.kind === 'song' && r.payload.price.kind === 'stream_only');
+  const owners = !streamOnly && stats?.ownersByVersion ? Object.entries(stats.ownersByVersion) : [];
+  const showSales = !streamOnly && stats?.sales !== undefined;
+  const soldExclusive = release.unpublished?.cause === 'exclusive_sold';
+  const hasNumbers = Boolean(stats && approved.length > 0 && (showSales || stats.playsThisMonth !== undefined));
   return (
     <section aria-labelledby="buyers-heading" className="rounded-md border border-line p-4">
       <h2 id="buyers-heading" className="text-base font-semibold text-ink">
         {DETAIL_UI.buyers}
       </h2>
       <p className="mt-0.5 text-xs text-ink-subtle">{DETAIL_UI.fictional}</p>
-      {stats && payload ? (
+      {stats && hasNumbers ? (
         <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-          {stats.sales !== undefined && (
+          {showSales && (
             <div>
               <dt className="text-ink-subtle">{DETAIL_UI.sales}</dt>
-              <dd className="text-lg font-semibold tabular-nums text-ink">{stats.sales}</dd>
+              <dd className="text-lg font-semibold tabular-nums text-ink">
+                {stats.sales}
+                {soldExclusive && <span className="block text-xs font-normal text-ink-muted">{DETAIL_UI.plusExclusive}</span>}
+              </dd>
             </div>
           )}
-          {stats.sales !== undefined && (
+          {showSales && (
             <div>
               <dt className="text-ink-subtle">{DETAIL_UI.earnings}</dt>
-              <dd className="text-lg font-semibold tabular-nums text-ink">{formatEurCents(stats.sales * earningsPerSale(payload))}</dd>
+              <dd className="text-lg font-semibold tabular-nums text-ink">{formatEurCents(demoEarnings(release, revisions))}</dd>
             </div>
           )}
           {owners.length > 0 && (

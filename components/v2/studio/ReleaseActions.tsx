@@ -8,7 +8,7 @@ import { useToast } from '@/components/ui/Toast';
 import DemoConfirm from '@/components/v2/common/DemoConfirm';
 import { DEMO_NOW } from '@/lib/v2-demo/clock';
 import { fill, formatDate } from '@/lib/v2-demo/format';
-import type { ReleaseActionId, ReleaseActionItem } from '@/lib/v2-demo/release-lifecycle/actions';
+import { publicHrefFor, type ReleaseActionId, type ReleaseActionItem } from '@/lib/v2-demo/release-lifecycle/actions';
 import { CONFIRM_COPY, EVENT_COPY, type ConfirmCopy } from '@/lib/v2-demo/release-lifecycle/copy';
 import { APPEAL_MESSAGE_MIN } from '@/lib/v2-demo/release-lifecycle/machine';
 import { appealOption, releaseView, type ReleaseView } from '@/lib/v2-demo/release-lifecycle/selectors';
@@ -41,7 +41,7 @@ function actionHref(view: ReleaseView, id: ReleaseActionId): string | null {
     case 'read_reasons':
       return `${base}#reasons`;
     case 'view_public':
-      return view.release.type === 'song' ? '/stream' : `/market/${view.release.slug}`;
+      return publicHrefFor(view.release);
     case 'free_up_space':
       return '/pricing';
     default:
