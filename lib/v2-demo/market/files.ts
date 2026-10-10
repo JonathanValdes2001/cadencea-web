@@ -5,10 +5,10 @@
  * into names, lengths, tempos, keys and sizes. The output is seeded by the
  * listing's slug, so the server and the browser list the same files.
  */
-import type { KeyValue, Synth } from '../release-lifecycle/types.ts';
+import type { FileRef, KeyValue, ReleaseType, Synth } from '../release-lifecycle/types.ts';
 import { rngFor } from '../cover.ts';
 import { decodeKey, encodeKey, fill } from '../format.ts';
-import type { FileSpec, MarketFile, MarketFileKind, PackBpm, PackKey } from './types.ts';
+import type { FileSpec, MarketFile, MarketFileKind, MarketListing, PackBpm, PackKey } from './types.ts';
 
 /** 24-bit, 44.1 kHz stereo WAV. */
 const WAV_BYTES_PER_SECOND = 44_100 * 2 * 3;
@@ -104,6 +104,45 @@ export function generateFiles(
     }
   });
   return files;
+}
+
+/**
+ * A Studio revision's pack contents as Market rows (WEB-V2-SPEC §4.4), for a
+ * version approved in the Studio demo. Sample packs count audio under 2 s as
+ * one-shots, as RELEASE-LIFECYCLE §5.5 does; the only audio in a preset or MIDI
+ * pack is its demo. Loops without their own tempo or key take the pack's.
+ */
+export function filesFromRevision(
+  type: ReleaseType,
+  refs: readonly FileRef[],
+  pack: { bpm: PackBpm; key: PackKey },
+): MarketFile[] {
+  const packBpm = typeof pack.bpm === 'number' ? pack.bpm : null;
+  const packKey: KeyValue = pack.key === 'various' || pack.key === undefined ? null : pack.key;
+  return refs.map((ref) => {
+    let kind: MarketFileKind;
+    if (ref.kind === 'preset' || ref.kind === 'midi') kind = ref.kind;
+    else if (type === 'preset_pack' || type === 'midi_pack') kind = 'demo';
+    else if (type === 'sample_pack' && (ref.durationMs ?? 0) < 2000) kind = 'one_shot';
+    else kind = 'loop';
+    const name = ref.path.slice(ref.path.lastIndexOf('/') + 1);
+    const ownBpm = ref.bpm ? Number(ref.bpm.value) : NaN;
+    return {
+      id: fileId(name),
+      name,
+      kind,
+      bytes: ref.bytes,
+      durationMs: ref.durationMs ?? null,
+      bpm: Number.isFinite(ownBpm) ? ownBpm : kind === 'loop' || kind === 'midi' ? packBpm : null,
+      key: kind === 'preset' ? undefined : ref.key ? ref.key.value : kind === 'one_shot' ? null : packKey,
+    };
+  });
+}
+
+/** A listing's files: a newer version's from the Studio demo, otherwise the generated seed contents. */
+export function listingFiles(listing: MarketListing): readonly MarketFile[] {
+  if (listing.revisionFiles) return listing.revisionFiles;
+  return listing.files ? generateFiles(listing.slug, listing.files, listing) : [];
 }
 
 /** How many files of the given kinds a spec lists (all kinds when omitted). */

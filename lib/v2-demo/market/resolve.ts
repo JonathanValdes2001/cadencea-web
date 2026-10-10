@@ -17,6 +17,7 @@ import type { BpmString, LeaseTier } from '../release-lifecycle/types.ts';
 import { categoryForType } from '../categories.ts';
 import { ITEM_COPY } from './copy.ts';
 import { splitTermsFor } from './display.ts';
+import { filesFromRevision } from './files.ts';
 import { MARKET_ITEMS } from './items.ts';
 import { LINKED_DETAILS, linkedSeedView } from './linked.ts';
 import type { LinkedItem, MarketLeaseTier, MarketListing, PackBpm, SeedItem, VersionEntry } from './types.ts';
@@ -76,6 +77,7 @@ export function resolveSeedItem(item: SeedItem): MarketListing {
     coverSeed: item.slug,
     cover: item.cover ?? {},
     files: item.files ?? null,
+    revisionFiles: null,
   };
 }
 
@@ -90,6 +92,9 @@ type MusicFields = Pick<MarketListing, 'bpm' | 'key' | 'tags'>;
  */
 export function resolveLinkedItem(item: LinkedItem, view: PublicReleaseView, fields: MusicFields): MarketListing {
   const detail = LINKED_DETAILS[item.releaseId];
+  // The details mirror the seed version; a newer version approved in the Studio
+  // demo brings its own description and contents.
+  const newer = view.version > (detail?.history[detail.history.length - 1].version ?? 0);
   return {
     slug: item.slug,
     href: `/market/${item.slug}`,
@@ -112,7 +117,7 @@ export function resolveLinkedItem(item: LinkedItem, view: PublicReleaseView, fie
     synth: detail?.synth ?? null,
     minSynthVersion: detail?.minSynthVersion ?? null,
     song: detail?.song ?? null,
-    description: detail?.description ?? '',
+    description: newer ? view.description : (detail?.description ?? ''),
     publishedAt: detail?.publishedAt ?? view.updatedAt,
     updatedAt: view.updatedAt,
     version: view.version,
@@ -121,6 +126,7 @@ export function resolveLinkedItem(item: LinkedItem, view: PublicReleaseView, fie
     coverSeed: view.coverSeed,
     cover: {},
     files: detail?.files ?? null,
+    revisionFiles: newer && view.files ? filesFromRevision(item.type, view.files, fields) : null,
   };
 }
 
@@ -157,6 +163,7 @@ export function demoReleaseListing(release: PublicReleaseListing): MarketListing
     coverSeed: release.coverSeed,
     cover: {},
     files: null,
+    revisionFiles: null,
   };
 }
 

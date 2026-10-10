@@ -9,6 +9,7 @@
 import { useMemo } from 'react';
 import type {
   BpmString,
+  FileRef,
   Id,
   IsoDateTime,
   KeyValue,
@@ -32,10 +33,13 @@ export interface PublicReleaseView {
   /** The change note of the current version; null for version 1. */
   whatsNew: string | null;
   title: string;
+  description: string;
   coverSeed: string;
   price: Price;
   leaseTiers?: LeaseTier[];
   splitTerms?: SplitTerms;
+  /** A pack's contents (its items, plus the audio demo of preset and MIDI packs); absent for songs, beats and themes. */
+  files?: FileRef[];
 }
 
 /** A public release as a Market grid row, including ones with no seed listing. */
@@ -53,6 +57,19 @@ export interface PublicReleaseListing extends PublicReleaseView {
 export function useCurrentRelease(releaseId: Id): PublicReleaseView | null {
   const state = useLifecycle();
   return useMemo(() => toPublicView(state, releaseId, DEMO_NOW), [state, releaseId]);
+}
+
+/**
+ * `useCurrentRelease` for several releases at once, keyed by id. `releaseIds`
+ * should be a module-level constant: the result is recomputed when it or the
+ * state changes.
+ */
+export function useCurrentReleases(releaseIds: readonly Id[]): Readonly<Record<Id, PublicReleaseView | null>> {
+  const state = useLifecycle();
+  return useMemo(
+    () => Object.fromEntries(releaseIds.map((id) => [id, toPublicView(state, id, DEMO_NOW)])),
+    [state, releaseIds],
+  );
 }
 
 // One list per state object, so every caller gets the same reference until the state changes.

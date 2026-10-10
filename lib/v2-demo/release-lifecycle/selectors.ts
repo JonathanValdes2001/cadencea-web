@@ -6,9 +6,11 @@
  */
 import type {
   Appeal,
+  FileRef,
   IsoDateTime,
   LifecycleState,
   PrimaryChipId,
+  ReleasePayload,
   Release,
   ReviewCase,
   ReviewEvent,
@@ -290,6 +292,25 @@ export function timelineLabel(event: ReviewEvent): string | null {
 /* The Market's view (WEB-V2-SPEC §6.1)                                */
 /* ------------------------------------------------------------------ */
 
+/**
+ * A pack's contents as buyers get them: the items it is priced by, plus the
+ * audio demo of preset and MIDI packs. Songs, beats and themes have none.
+ */
+function packFiles(payload: ReleasePayload): FileRef[] | undefined {
+  switch (payload.kind) {
+    case 'sample_pack':
+      return payload.samples;
+    case 'splits_pack':
+      return payload.loops;
+    case 'preset_pack':
+      return payload.demo ? [...payload.presets, payload.demo] : payload.presets;
+    case 'midi_pack':
+      return payload.demo ? [...payload.midiFiles, payload.demo] : payload.midiFiles;
+    default:
+      return undefined;
+  }
+}
+
 /** What buyers see: only the current approved revision, never a pending one (§6.7). */
 export function toPublicView(state: LifecycleState, releaseId: string, now: IsoDateTime): PublicReleaseView | null {
   const release = state.releases[releaseId];
@@ -297,6 +318,7 @@ export function toPublicView(state: LifecycleState, releaseId: string, now: IsoD
   const current = state.revisions[release.currentRevisionId];
   if (!current?.version) return null;
   const payload = current.payload;
+  const files = packFiles(payload);
   return {
     isPublic: isPublic(release, now),
     status: release.status,
@@ -304,10 +326,12 @@ export function toPublicView(state: LifecycleState, releaseId: string, now: IsoD
     updatedAt: current.decidedAt ?? release.updatedAt,
     whatsNew: current.version > 1 ? current.changeNote : null,
     title: payload.title,
+    description: payload.description,
     coverSeed: payload.cover?.file.demoAssetKey ?? release.id,
     price: payload.price,
     ...(payload.kind === 'beat' ? { leaseTiers: payload.tiers } : {}),
     ...(payload.kind === 'splits_pack' ? { splitTerms: payload.terms } : {}),
+    ...(files ? { files } : {}),
   };
 }
 

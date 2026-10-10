@@ -166,5 +166,8 @@ export interface MarketListing {
   versions: readonly VersionEntry[];
   coverSeed: string;
   cover: { palette?: PaletteName; motif?: Motif };
+  /** The contents as generated groups (the seed version). */
   files: FileSpec | null;
+  /** The contents of a newer version approved in this browser's Studio demo; they replace `files`. */
+  revisionFiles: readonly MarketFile[] | null;
 }

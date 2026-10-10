@@ -91,12 +91,19 @@ export function itemCount(type: ReleaseType, files: FileSpec | null): number | n
   return kinds && files ? countFiles(files, kinds) : null;
 }
 
+/** The items a listing's live version is priced by: a newer Studio-demo version's files, else the seed contents. */
+function listingItemCount(listing: MarketListing): number | null {
+  const kinds = PRICED_KINDS[listing.type];
+  if (!kinds || !listing.revisionFiles) return itemCount(listing.type, listing.files);
+  return listing.revisionFiles.filter((f) => kinds.includes(f.kind)).length;
+}
+
 /** "76 files", "12 loops", "64 presets", "60 MIDI files". */
-export function countLabel(type: ReleaseType, files: FileSpec | null): string | null {
-  const n = itemCount(type, files);
+export function countLabel(listing: MarketListing): string | null {
+  const n = listingItemCount(listing);
   if (n === null) return null;
   const unit = { sample_pack: 'files', splits_pack: 'loops', preset_pack: 'presets', midi_pack: 'MIDI files' }[
-    type as 'sample_pack' | 'splits_pack' | 'preset_pack' | 'midi_pack'
+    listing.type as 'sample_pack' | 'splits_pack' | 'preset_pack' | 'midi_pack'
   ];
   return `${n} ${unit}`;
 }
@@ -109,7 +116,7 @@ export function cardMeta(listing: MarketListing): string[] {
   if (listing.synth) parts.push(SYNTH_LABEL[listing.synth]);
   if (typeof listing.bpm === 'number') parts.push(`${listing.bpm} BPM`);
   if (listing.key && listing.key !== 'various') parts.push(formatKey(listing.key));
-  const count = countLabel(listing.type, listing.files);
+  const count = countLabel(listing);
   if (count) parts.push(count);
   return parts;
 }
@@ -123,10 +130,10 @@ const KIND_LABEL: Readonly<Record<MarketFileKind, [string, string]>> = {
 };
 
 /** "64 one-shots · 12 loops", "40 presets · 1 audio demo". */
-export function contentsSummary(spec: FileSpec): string {
+export function contentsSummary(files: readonly MarketFile[]): string {
   const order: MarketFileKind[] = ['one_shot', 'loop', 'preset', 'midi', 'demo'];
   return order
-    .map((kind) => [kind, countFiles(spec, [kind])] as const)
+    .map((kind) => [kind, files.filter((f) => f.kind === kind).length] as const)
     .filter(([, n]) => n > 0)
     .map(([kind, n]) => `${n} ${KIND_LABEL[kind][n === 1 ? 0 : 1]}`)
     .join(' · ');

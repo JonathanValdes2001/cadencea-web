@@ -23,8 +23,9 @@ export default function ItemMeta({ listing, files }: { listing: MarketListing; f
   if (listing.type !== 'theme') {
     rows.push([ITEM_COPY.metaBpm, bpmLabel(listing.bpm)], [ITEM_COPY.metaKey, keyLabel(listing.key)]);
   }
-  if (listing.files) rows.push([ITEM_COPY.metaFiles, contentsSummary(listing.files)]);
-  if (files.length) rows.push([ITEM_COPY.metaSize, sizeAndFormat(files, listing.synth)]);
+  if (files.length) {
+    rows.push([ITEM_COPY.metaFiles, contentsSummary(files)], [ITEM_COPY.metaSize, sizeAndFormat(files, listing.synth)]);
+  }
   if (listing.synth) rows.push([ITEM_COPY.metaSynth, synthVersionLabel(listing.synth, listing.minSynthVersion)]);
 
   return (

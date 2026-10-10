@@ -12,7 +12,7 @@ import { CATEGORY_BY_KEY, RELEASE_TYPE_LABEL } from '@/lib/v2-demo/categories';
 import { fill } from '@/lib/v2-demo/format';
 import { ITEM_COPY, MARKET_HOME_COPY } from '@/lib/v2-demo/market/copy';
 import { playerTuning, sellerName } from '@/lib/v2-demo/market/display';
-import { generateFiles } from '@/lib/v2-demo/market/files';
+import { listingFiles } from '@/lib/v2-demo/market/files';
 import { itemsBySeller, similarItems } from '@/lib/v2-demo/market/queries';
 import type { MarketListing } from '@/lib/v2-demo/market/types';
 import { PUBLIC_COPY, SPLITS_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
@@ -64,10 +64,7 @@ function OffSale({ listing }: { listing: MarketListing }) {
 export default function ItemView({ slug }: { slug: string }) {
   const listings = useMarketListings();
   const listing = listings.find((l) => l.slug === slug) ?? null;
-  const files = useMemo(
-    () => (listing?.files ? generateFiles(listing.slug, listing.files, listing) : []),
-    [listing],
-  );
+  const files = useMemo(() => (listing ? listingFiles(listing) : []), [listing]);
   if (!listing) return null;
   if (!listing.isPublic) return <OffSale listing={listing} />;
 
