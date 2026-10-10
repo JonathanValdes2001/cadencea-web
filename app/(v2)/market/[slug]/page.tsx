@@ -1,22 +1,47 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
-import Container from '@/components/ui/Container';
-import EmptyState from '@/components/ui/EmptyState';
+import { CATEGORY_BY_KEY, isCategoryKey } from '@/lib/v2-demo/categories';
+import { getItem } from '@/lib/v2-demo/market/items';
+import { seedListing } from '@/lib/v2-demo/market/resolve';
+import CategoryHeader from '@/components/v2/market/CategoryHeader';
+import CategoryNav from '@/components/v2/market/CategoryNav';
+import ItemView from '@/components/v2/market/ItemView';
+import MarketBrowser from '@/components/v2/market/MarketBrowser';
 
-export async function generateMetadata(): Promise<Metadata> {
+type Props = { params: Promise<{ slug: string }> };
+
+// One dynamic segment serves both kinds of page (WEB-V2-SPEC §1.1): a category
+// key first, then an item slug, then a 404. No item slug equals a category key.
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isPreviewSite()) notFound();
-  return { title: 'Market (preview)' };
+  const { slug } = await params;
+  if (isCategoryKey(slug)) return { title: `${CATEGORY_BY_KEY[slug].label} · Market (preview)` };
+  const listing = seedListing(slug);
+  if (!listing) notFound();
+  return { title: listing.title, description: listing.description || undefined };
 }
 
-// Foundation stub. Package B replaces this page (docs/V2-WORK-PACKAGES.md).
-export default function MarketSlugPage() {
+export default async function MarketSlugPage({ params }: Props) {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
   if (!isPreviewSite()) notFound();
-  return (
-    <Container className="py-10 lg:py-14">
-      <EmptyState headingLevel="h1" title="Market" body="Being built in this preview." />
-    </Container>
-  );
+  const { slug } = await params;
+
+  if (isCategoryKey(slug)) {
+    const category = CATEGORY_BY_KEY[slug];
+    return (
+      <>
+        <CategoryHeader title={category.label} lead={category.description} />
+        <CategoryNav current={category.key} />
+        <Suspense>
+          <MarketBrowser category={category.key} />
+        </Suspense>
+      </>
+    );
+  }
+
+  if (!getItem(slug)) notFound();
+  return <ItemView slug={slug} />;
 }
