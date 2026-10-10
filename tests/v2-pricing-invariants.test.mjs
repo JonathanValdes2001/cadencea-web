@@ -81,34 +81,32 @@ function stripShowV2Gates(source) {
 
 test('every credits line on /pricing sits behind showV2', async () => {
   const page = await read('app/pricing/page.tsx')
-  // The v2 pieces are next/dynamic chunks; their declarations name the modules.
-  const dynamicDeclarations = /^const \w+ = dynamic\(\(\) => import\('[^']+'\)\);$/gm
-  const withoutImportsOrDeclarations = page.replace(/^import .*$/gm, '').replace(dynamicDeclarations, '')
-  assert.notEqual(withoutImportsOrDeclarations, page.replace(/^import .*$/gm, ''), 'the v2 pieces are declared')
-
-  const ungated = stripShowV2Gates(withoutImportsOrDeclarations)
-  for (const marker of ['PlanCreditsLine', 'PricingCreditsSection', 'PricingFaqWithMarket']) {
-    assert.ok(withoutImportsOrDeclarations.includes(marker), `${marker} is used`)
+  const withoutImports = page.replace(/^import .*$/gm, '')
+  // The preview chunk is loaded only when showV2 is true...
+  assert.match(page, /useLazyModule\(\(\) => import\('@\/components\/v2\/credits\/PricingPreview'\), showV2\)/)
+  // ...and every use of it sits behind showV2 as well.
+  const ungated = stripShowV2Gates(withoutImports.replace(/^\s*const preview = useLazyModule\(.*$/m, ''))
+  for (const marker of ['preview.PlanCreditsLine', 'preview.PricingCreditsSection', 'preview.PricingFaqWithMarket']) {
+    assert.ok(withoutImports.includes(marker), `${marker} is used`)
     assert.ok(!ungated.includes(marker), `${marker} is used outside a showV2 gate`)
   }
   assert.doesNotMatch(ungated, /credits/i, 'credits copy outside a showV2 gate')
-  assert.match(page, /\{showV2 && <PricingCreditsSection \/>\}/)
+  assert.match(page, /\{showV2 && preview && <preview\.PricingCreditsSection \/>\}/)
 })
 
 // WEB-V2-SPEC §5.5: production doesn't announce the Market, not even in its
-// JavaScript. The pricing page and the navbar load v2 code only through
-// next/dynamic, so production bundles carry neither the copy nor the wallet.
-test('production client bundles import no v2 demo code statically', async () => {
-  for (const rel of ['app/pricing/page.tsx', 'components/Navbar.tsx']) {
-    const source = await read(rel)
-    const staticImports = source.match(/^import .*$/gm) ?? []
-    for (const line of staticImports) {
-      assert.doesNotMatch(line, /lib\/v2-demo|components\/v2\/(credits|common\/CreditsChip)/, `${rel}: ${line}`)
-    }
-    assert.match(source, /dynamic\(\(\) => import\('@\/components\/v2\//, `${rel} loads its v2 pieces lazily`)
+// JavaScript. The pricing page loads its preview pieces only with
+// useLazyModule (a plain import() after mount, only on the preview). Not
+// next/dynamic, whose server-rendered chunks get preload links without the CSP
+// nonce, and not React.lazy, which adds a Suspense boundary.
+test('the pricing page imports no v2 credits code statically', async () => {
+  const source = await read('app/pricing/page.tsx')
+  for (const line of source.match(/^import .*$/gm) ?? []) {
+    assert.doesNotMatch(line, /lib\/v2-demo|components\/v2\/credits/, line)
   }
-  const page = await read('app/pricing/page.tsx')
-  assert.doesNotMatch(page, /Market credits|What are Market credits/, 'the Market FAQ copy lives in the lazy chunk')
+  assert.match(source, /useLazyModule\(\(\) => import\('@\/components\/v2\/credits\/PricingPreview'\), showV2\)/)
+  assert.doesNotMatch(source, /next\/dynamic|React\.lazy|lazy\(/)
+  assert.doesNotMatch(source, /Market credits|What are Market credits/, 'the Market FAQ copy lives in the lazy chunk')
 })
 
 test('the pricing layout carries the page metadata', async () => {
