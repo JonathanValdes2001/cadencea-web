@@ -3,6 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import Badge from '@/components/ui/Badge';
+import Faq from '@/components/ui/Faq';
+import PricingCreditsSection from '@/components/v2/credits/PricingCreditsSection';
+import { useShowV2 } from '@/components/v2/common/V2Flag';
+import { PRICING_CREDITS } from '@/lib/v2-demo/credits/copy';
 import {
   api,
   ApiError,
@@ -28,7 +33,7 @@ const plans: Plan[] = [
     yearlyPrice: 0,
     yearlyDiscount: '',
     storage: '5 GB cloud storage',
-    features: ['Cloud sync', 'Basic support'],
+    features: ['Project sharing', 'All your computers', 'Email support'],
     cta: 'Start free',
     popular: false,
   },
@@ -38,8 +43,8 @@ const plans: Plan[] = [
     yearlyPrice: 49.99,
     yearlyDiscount: 'Save €9.89',
     storage: '50 GB cloud storage',
-    features: ['Cloud sync', 'Basic support'],
-    cta: 'Choose plan',
+    features: ['Everything in Free', 'Email support'],
+    cta: 'Choose Basic',
     popular: false,
   },
   {
@@ -48,9 +53,9 @@ const plans: Plan[] = [
     yearlyPrice: 149.99,
     yearlyDiscount: 'Save €29.89',
     storage: '250 GB cloud storage',
-    features: ['Cloud sync', 'Priority support'],
-    cta: 'Choose plan',
-    popular: true,
+    features: ['Everything in Basic', 'Priority email support'],
+    cta: 'Choose Standard',
+    popular: false,
   },
   {
     name: 'Pro',
@@ -58,30 +63,68 @@ const plans: Plan[] = [
     yearlyPrice: 249.99,
     yearlyDiscount: 'Save €49.89',
     storage: '500 GB cloud storage',
-    features: ['Cloud sync', 'Priority support'],
-    cta: 'Choose plan',
+    features: ['Everything in Standard', 'Priority email support'],
+    cta: 'Choose Pro',
     popular: false,
   },
 ];
 
 const includedFeatures = [
   {
-    title: 'Secure & private',
-    desc: 'End-to-end encryption for all your music projects and data.',
+    title: 'Lossless',
+    desc: 'Files are stored byte for byte. No transcoding or normalizing, on any plan.',
   },
   {
-    title: 'Easy migration',
-    desc: 'Seamlessly import projects from any DAW or existing setup.',
+    title: 'Private by default',
+    desc: 'Encrypted in transit. Only you and the collaborators you invite can open your projects.',
   },
   {
-    title: 'Human support',
-    desc: 'Help when you need it from a music-savvy support team.',
+    title: 'Bring your library',
+    desc: 'Point Cadencea Vault at the folders you already have. Nothing is moved or converted.',
+  },
+  {
+    title: 'Every computer, plus sharing',
+    desc: 'Use the app on all your computers and share projects with roles.',
+  },
+  {
+    title: 'Downgrade safely',
+    desc: "Downgrading never deletes files. If you're over the new limit, uploads pause until you're back under it.",
+  },
+  {
+    title: 'Real support',
+    desc: 'Email support from the people who build Cadencea.',
   },
 ];
+
+const pricingFaq = [
+  {
+    q: 'Do collaborators need a paid plan?',
+    a: 'No. People you invite join with a free account.',
+  },
+  {
+    q: 'What counts toward my storage?',
+    a: 'The cloud copies of your projects. Your local folders never count.',
+  },
+  {
+    q: 'Can I change plans later?',
+    a: "Yes, anytime from your account's Subscription page. Downgrading never deletes files.",
+  },
+  {
+    q: 'Which currency do you charge in?',
+    a: 'Euros. Prices include VAT.',
+  },
+];
+
+// Preview only (WEB-V2-SPEC §5.5): production doesn't announce the Market yet.
+const marketCreditsFaq = {
+  q: 'What are Market credits?',
+  a: 'Credits for sounds, presets, MIDI and themes on Cadencea Market, planned for Cadencea 2.0. Paid plans are planned to include some every month. See the credits section above.',
+};
 
 export default function PricingPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const showV2 = useShowV2();
   const [isYearly, setIsYearly] = useState(false);
   const [backendPlans, setBackendPlans] =
     useState<BillingPlansResponse | null>(null);
@@ -161,12 +204,11 @@ export default function PricingPage() {
             Pricing
           </p>
           <h1 className="mx-auto mt-3 max-w-3xl text-5xl font-bold tracking-tight md:text-6xl">
-            Choose your plan.
+            Free app. Pay only for cloud space.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted">
-            Unlock the full potential of Cadencea Vault with flexible pricing
-            designed for every artist, from bedroom producers to professional
-            studios.
+            Cadencea Vault and your local library are free. Choose how much
+            lossless cloud storage you need, and change or cancel anytime.
           </p>
 
           {/* Monthly / Yearly toggle */}
@@ -222,12 +264,6 @@ export default function PricingPage() {
                       : 'border-line'
                   }`}
                 >
-                  {plan.popular && (
-                    <span className="absolute -top-3 left-6 inline-flex items-center rounded-sm bg-accent px-2 py-1 text-[11px] font-semibold uppercase tracking-widest text-white">
-                      Most popular
-                    </span>
-                  )}
-
                   <div>
                     <h3 className="text-lg font-semibold tracking-tight text-ink">
                       {plan.name}
@@ -266,6 +302,19 @@ export default function PricingPage() {
                         <span>{f}</span>
                       </li>
                     ))}
+                    {showV2 && (
+                      <li className="flex items-start gap-2">
+                        <Check />
+                        <span className="flex-1">
+                          {
+                            PRICING_CREDITS.planLines[
+                              plan.name.toLowerCase() as keyof typeof PRICING_CREDITS.planLines
+                            ]
+                          }
+                        </span>
+                        <Badge tone="demo">Preview</Badge>
+                      </li>
+                    )}
                   </ul>
 
                   <button
@@ -274,9 +323,9 @@ export default function PricingPage() {
                     disabled={loadingPlan !== null && loadingPlan !== plan.name}
                     aria-busy={loadingPlan === plan.name}
                     className={`mt-10 inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
-                      plan.popular
-                        ? 'bg-accent text-white hover:bg-accent-hover'
-                        : 'border border-ink text-ink hover:bg-elevated'
+                      isFree
+                        ? 'border border-ink text-ink hover:bg-elevated'
+                        : 'bg-accent text-white hover:bg-accent-hover'
                     }`}
                   >
                     {loadingPlan === plan.name ? 'Redirecting…' : plan.cta}
@@ -288,13 +337,19 @@ export default function PricingPage() {
           {error && (
             <p
               role="alert"
-              className="mx-auto mt-8 max-w-xl text-center text-sm text-red-600"
+              className="mx-auto mt-8 max-w-xl text-center text-sm text-danger"
             >
               {error}
             </p>
           )}
+          <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-ink-muted">
+            Prices in euros, including VAT. Cancel anytime; your plan stays
+            active until the end of the billing period.
+          </p>
         </div>
       </section>
+
+      {showV2 && <PricingCreditsSection />}
 
       {/* Included features */}
       <section>
@@ -304,7 +359,7 @@ export default function PricingPage() {
               Included in every plan
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink md:text-4xl">
-              The fundamentals never cost extra.
+              What every plan includes.
             </h2>
           </div>
           <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-3">
@@ -317,12 +372,25 @@ export default function PricingPage() {
               </div>
             ))}
           </div>
-          <p className="mt-16 max-w-2xl text-sm text-ink-muted">
-            Questions about pricing?{' '}
+        </div>
+      </section>
+
+      {/* Pricing FAQ */}
+      <section className="border-t border-line">
+        <div className="mx-auto max-w-4xl px-6 py-24 lg:px-8 lg:py-32">
+          <h2 className="text-3xl font-bold tracking-tight text-ink md:text-4xl">
+            Pricing questions.
+          </h2>
+          <Faq
+            className="mt-10"
+            items={showV2 ? [...pricingFaq, marketCreditsFaq] : pricingFaq}
+          />
+          <p className="mt-16 text-sm text-ink-muted">
+            Studio or team?{' '}
             <a href="/contact" className="font-medium text-accent hover:text-accent-hover">
-              Contact our sales team
-            </a>{' '}
-            for enterprise solutions.
+              Get in touch
+            </a>
+            .
           </p>
         </div>
       </section>

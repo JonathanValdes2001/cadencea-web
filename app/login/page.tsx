@@ -1,10 +1,24 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+import { TextField } from '@/components/ui/Field';
 import { useAuth } from '@/lib/auth-context';
 import { safePostLoginPath } from '@/lib/auth-route-policy.mjs';
+
+/** Shown instead of the raw Supabase message, which still goes to the console. */
+function signInErrorMessage(message: string): string {
+  if (message === 'Invalid login credentials') {
+    return "That email and password don't match. Check them and try again.";
+  }
+  if (message === 'Email not confirmed') {
+    return 'Confirm your email first. We sent you a link when you signed up.';
+  }
+  return 'Something went wrong. Please try again.';
+}
 
 export default function Login() {
   const router = useRouter();
@@ -25,7 +39,7 @@ export default function Login() {
     setError('');
 
     if (!formData.email.trim() || !formData.password) {
-      setError('Please fill in all fields.');
+      setError('Enter your email and password.');
       setIsSubmitting(false);
       return;
     }
@@ -33,13 +47,14 @@ export default function Login() {
     try {
       const { error } = await signIn(formData.email, formData.password);
       if (error) {
-        setError(error.message);
+        console.warn('[login] Sign-in failed:', error.message);
+        setError(signInErrorMessage(error.message));
       } else {
         const requestedPath = new URLSearchParams(window.location.search).get('redirect');
         router.push(safePostLoginPath(requestedPath));
       }
     } catch {
-      setError('An unexpected error occurred. Please try again.');
+      setError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -49,43 +64,32 @@ export default function Login() {
     <div className="bg-canvas text-ink">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center px-6 py-16 lg:py-24">
         <div className="mb-10 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-ink"
-            aria-label="Cadencea home"
-          >
-            <span className="inline-block h-4 w-4 bg-ink" aria-hidden="true" />
-            <span className="text-base font-bold tracking-tight">
-              CADENCEA
-            </span>
+          <Link href="/" className="inline-flex items-center gap-2 text-ink" aria-label="Cadencea home">
+            <Image src="/logo/cadencea-mark-transparent.svg" alt="" width={32} height={32} />
+            <span className="text-lg font-bold tracking-tight">Cadencea</span>
           </Link>
-          <h1 className="mt-8 text-3xl font-bold tracking-tight md:text-4xl">
-            Sign in to your account.
-          </h1>
+          <h1 className="mt-8 text-3xl font-bold tracking-tight md:text-4xl">Sign in to Cadencea.</h1>
           <p className="mt-3 text-sm text-ink-muted">
-            Don’t have an account?{' '}
-            <Link
-              href="/signup"
-              className="font-medium text-accent hover:text-accent-hover"
-            >
-              Create one
+            New here?{' '}
+            <Link href="/signup" className="font-medium text-accent-ink hover:text-accent-hover">
+              Create a free account
             </Link>
           </p>
         </div>
 
         <div className="rounded-md border border-line bg-canvas p-8">
           {error && (
-            <div className="mb-6 rounded-sm border border-line bg-elevated px-4 py-3 text-sm text-ink">
+            <div role="alert" className="mb-6 rounded-sm border border-line bg-tone-danger-bg px-4 py-3 text-sm text-tone-danger">
               {error}
             </div>
           )}
 
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <Field
+            <TextField
               id="email"
               name="email"
               type="email"
-              label="Email address"
+              label="Email"
               autoComplete="email"
               required
               value={formData.email}
@@ -93,7 +97,7 @@ export default function Login() {
               placeholder="you@example.com"
             />
 
-            <Field
+            <TextField
               id="password"
               name="password"
               type="password"
@@ -102,64 +106,17 @@ export default function Login() {
               required
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
+              placeholder="Your password"
             />
 
-            <button
-              type="submit"
-              disabled={isSubmitting || loading}
-              className="inline-flex h-12 w-full items-center justify-center rounded-sm bg-accent text-sm font-semibold tracking-wide text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            <Button type="submit" size="lg" fullWidth disabled={isSubmitting || loading}>
               {isSubmitting ? 'Signing in…' : 'Sign in'}
-            </button>
+            </Button>
           </form>
-
         </div>
-      </div>
-    </div>
-  );
-}
 
-function Field({
-  id,
-  name,
-  type,
-  label,
-  autoComplete,
-  required,
-  value,
-  onChange,
-  placeholder,
-}: {
-  id: string;
-  name: string;
-  type: string;
-  label: string;
-  autoComplete?: string;
-  required?: boolean;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-2 block text-xs font-semibold uppercase tracking-widest text-ink"
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        autoComplete={autoComplete}
-        required={required}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="block h-11 w-full rounded-sm border border-line bg-elevated px-3.5 text-base text-ink placeholder-ink-subtle focus:border-accent focus:bg-canvas focus:outline-none focus:ring-2 focus:ring-accent/30"
-      />
+        <p className="mt-6 text-center text-sm text-ink-muted">Use the same account as the Cadencea Vault app.</p>
+      </div>
     </div>
   );
 }

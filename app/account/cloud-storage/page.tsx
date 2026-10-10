@@ -1,24 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-
-const devices = [
-  {
-    name: 'MacBook Pro (Main Studio)',
-    type: 'macOS',
-    lastSync: '2 hours ago',
-    status: 'online' as const,
-  },
-  {
-    name: 'Windows Desktop (Home)',
-    type: 'Windows',
-    lastSync: '1 day ago',
-    status: 'offline' as const,
-  },
-];
+import Button from '@/components/ui/Button';
 
 /**
  * Cloud Storage Overview — ACCOUNT page, not a vault/project manager.
- * Project management lives in the Cadencea Vault desktop app.
+ * Usage lives in the Vault app and on the Subscription page; this page points
+ * there instead of showing numbers it can't verify.
  */
 export default function CloudStorageOverview() {
   return (
@@ -32,66 +19,19 @@ export default function CloudStorageOverview() {
             Cloud storage.
           </h1>
           <p className="mt-4 max-w-xl text-base text-ink-muted">
-            Monitor your cloud storage usage and connected devices. To manage
-            vault projects, open the Cadencea Vault desktop app.
+            To manage vault projects, open the Cadencea Vault desktop app.
           </p>
         </header>
 
         {/* Usage */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-          <UsageCard
-            label="Cloud storage used"
-            headline="847 GB of 1 TB"
-            percent={84.7}
-            sub="84.7% used"
-          />
-          <UsageCard
-            label="Connected devices"
-            headline="2 devices"
-            percent={0}
-            sub="Unlimited on all plans"
-          />
-        </div>
-
-        {/* Device management */}
-        <section className="mb-8 rounded-md border border-line bg-canvas">
-          <header className="border-b border-line px-6 py-4">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-ink">
-              Device management
-            </h2>
-          </header>
-          <ul className="divide-y divide-line">
-            {devices.map((d) => (
-              <li
-                key={d.name}
-                className="flex flex-wrap items-center justify-between gap-4 px-6 py-4"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-ink">{d.name}</p>
-                  <p className="mt-1 text-xs uppercase tracking-widest text-ink-subtle">
-                    {d.type} · last synced {d.lastSync}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span
-                    className={`inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-semibold uppercase tracking-widest ${
-                      d.status === 'online'
-                        ? 'bg-elevated text-price'
-                        : 'bg-elevated text-ink-muted'
-                    }`}
-                  >
-                    {d.status}
-                  </span>
-                  <button
-                    type="button"
-                    className="text-sm font-medium text-ink-muted hover:text-ink"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+        <section className="mb-8 rounded-md border border-line bg-canvas p-6">
+          <h2 className="text-lg font-semibold tracking-tight text-ink">See your storage</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
+            Your cloud storage usage is shown in Cadencea Vault and on your Subscription page.
+          </p>
+          <Button href="/account/subscription" className="mt-6">
+            Go to Subscription
+          </Button>
         </section>
 
         {/* Info banner */}
@@ -101,8 +41,7 @@ export default function CloudStorageOverview() {
           </p>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
             Project management (creating, editing, and organizing vaults) is
-            done exclusively in the Cadencea Vault desktop application. This
-            page only shows your cloud storage usage and connected devices.
+            done exclusively in the Cadencea Vault desktop application.
           </p>
           <Link
             href="/cadenceavault"
@@ -114,6 +53,7 @@ export default function CloudStorageOverview() {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -126,41 +66,5 @@ export default function CloudStorageOverview() {
         </section>
       </div>
     </div>
-  );
-}
-
-function UsageCard({
-  label,
-  headline,
-  percent,
-  sub,
-}: {
-  label: string;
-  headline: string;
-  percent: number;
-  sub: string;
-}) {
-  return (
-    <section className="rounded-md border border-line bg-canvas p-6">
-      <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
-        {label}
-      </p>
-      <p className="mt-2 text-2xl font-bold tracking-tight text-ink">
-        {headline}
-      </p>
-      <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-inset">
-        <div
-          className="h-full bg-accent"
-          style={{ width: `${percent}%` }}
-          aria-valuenow={percent}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          role="progressbar"
-        />
-      </div>
-      <p className="mt-2 text-xs uppercase tracking-widest text-ink-subtle">
-        {sub}
-      </p>
-    </section>
   );
 }

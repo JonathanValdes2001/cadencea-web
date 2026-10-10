@@ -229,41 +229,36 @@ export default function AccountSettings() {
           {/* Security */}
           <Section title="Security">
             <ul className="divide-y divide-line">
+              {/* Not wired up yet, so these rows are labels, not buttons. */}
               {[
                 {
                   title: 'Change email',
-                  desc: 'Update your email address.',
+                  desc: 'Update the email you sign in with.',
+                  status: 'Coming soon',
                 },
                 {
                   title: 'Change password',
-                  desc: 'Update your account password.',
+                  desc: 'Change your password.',
+                  status: 'Coming soon',
                 },
                 {
                   title: 'Two-factor authentication',
-                  desc: 'Add extra security to your account.',
-                  status: 'Enabled',
+                  desc: 'An extra step at sign-in. Not available yet.',
+                  status: 'Not available yet',
                 },
               ].map((row) => (
                 <li key={row.title}>
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between gap-4 py-4 text-left hover:bg-elevated"
-                  >
+                  <div className="flex w-full items-center justify-between gap-4 py-4">
                     <div>
                       <p className="text-sm font-semibold text-ink">
                         {row.title}
                       </p>
                       <p className="mt-1 text-sm text-ink-muted">{row.desc}</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      {row.status && (
-                        <span className="text-xs font-semibold uppercase tracking-widest text-price">
-                          {row.status}
-                        </span>
-                      )}
-                      <Chevron />
-                    </div>
-                  </button>
+                    <span className="shrink-0 text-xs font-semibold uppercase tracking-widest text-ink-subtle">
+                      {row.status}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
