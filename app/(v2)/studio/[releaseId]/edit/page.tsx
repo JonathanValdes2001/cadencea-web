@@ -1,22 +1,33 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
-import Container from '@/components/ui/Container';
-import EmptyState from '@/components/ui/EmptyState';
+import PublishWizard from '@/components/v2/publish/PublishWizard';
+import { fill } from '@/lib/v2-demo/format';
+import { WIZARD_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
+import { SEED_STATE } from '@/lib/v2-demo/release-lifecycle/seeds';
+import type { WizardStepId } from '@/lib/v2-demo/release-lifecycle/types';
 
-export async function generateMetadata(): Promise<Metadata> {
+type Params = Promise<{ releaseId: string }>;
+type SearchParams = Promise<{ step?: string | string[] }>;
+
+const STEPS: readonly WizardStepId[] = ['source', 'details', 'contents', 'cover_preview', 'license_price', 'review_submit'];
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   if (!isPreviewSite()) notFound();
-  return { title: 'Studio (preview)' };
+  const release = SEED_STATE.releases[(await params).releaseId];
+  const current = release?.currentRevisionId ? SEED_STATE.revisions[release.currentRevisionId] : null;
+  return { title: current ? `${fill(WIZARD_COPY.h1Edit, { title: current.payload.title })} (preview)` : 'Edit release (preview)' };
 }
 
-// Foundation stub. Package C replaces this page (docs/V2-WORK-PACKAGES.md).
-export default function StudioEditPage() {
+// The update wizard (RL §5.6; route owned by WEB-V2-SPEC §1.1). "Edit release"
+// continues an open update or draft, and only the first change starts a pending
+// revision, so the live version stays up. `?step=` opens a step directly.
+export default async function EditReleasePage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
   if (!isPreviewSite()) notFound();
-  return (
-    <Container className="py-10 lg:py-14">
-      <EmptyState headingLevel="h1" title="Update release" body="Being built in this preview." />
-    </Container>
-  );
+  const { releaseId } = await params;
+  const { step } = await searchParams;
+  const startStep = typeof step === 'string' && (STEPS as readonly string[]).includes(step) ? (step as WizardStepId) : null;
+  return <PublishWizard mode="edit" releaseId={releaseId} step={startStep} />;
 }
