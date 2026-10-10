@@ -35,15 +35,18 @@ function Change({ entry }: { entry: LedgerEntry }) {
   );
 }
 
+/** Both buckets, labelled and keyed to the Total card's bar colors (WalletBar). */
 function BalanceAfter({ entry }: { entry: LedgerEntry }) {
   const { included, bought } = entry.balance_after;
   return (
-    <span className="tabular-nums">
-      <span aria-hidden="true">
-        {included} · {bought}
+    <span className="inline-flex flex-wrap justify-end gap-x-3 gap-y-0.5 tabular-nums">
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true" className="h-2 w-2 rounded-sm bg-brand-700" />
+        {included} included
       </span>
-      <span className="sr-only">
-        {included} included, {bought} bought
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true" className="h-2 w-2 rounded-sm bg-brand-400" />
+        {bought} bought
       </span>
     </span>
   );

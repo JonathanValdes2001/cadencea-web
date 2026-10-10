@@ -129,6 +129,7 @@ export const ITEM_COPY = {
   contents: 'Contents',
   showAllFiles: 'Show all {n} files',
   buyFile: 'Buy this file · {price}',
+  buyFileShort: 'Buy',
   fileOwned: 'In your library',
   buyFileTitle: 'Buy {title}?',
   metaTitle: 'Details',

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Badge from '@/components/ui/Badge';
+import { chipClass } from '@/components/ui/Chip';
 import CoverArt from '@/components/ui/CoverArt';
 import PreviewPlayer from '@/components/ui/PreviewPlayer';
 import Price from '@/components/ui/Price';
@@ -80,7 +81,7 @@ export default function MarketCard({
         {listing.tags.length > 0 && (
           <ul aria-label="Tags" className="order-6 hidden flex-wrap gap-1.5 @min-[200px]:order-5 @min-[200px]:flex">
             {listing.tags.slice(0, 3).map((tag) => (
-              <li key={tag} className="rounded-sm bg-elevated px-2 py-0.5 text-xs text-ink-muted">
+              <li key={tag} className={chipClass('tag')}>
                 {tag}
               </li>
             ))}

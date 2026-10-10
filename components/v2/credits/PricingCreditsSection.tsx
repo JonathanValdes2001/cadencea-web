@@ -19,7 +19,7 @@ const PRICE_ROWS = PRICING_CREDITS.priceStrip.split(' · ').map((part) => {
 export default function PricingCreditsSection() {
   return (
     <section id="credits" className="scroll-mt-24 border-b border-line bg-elevated">
-      <Container className="py-20 lg:py-28">
+      <Container className="py-14 sm:py-20 lg:py-24">
         <SectionHeader
           eyebrow={PRICING_CREDITS.eyebrow}
           title={PRICING_CREDITS.heading}

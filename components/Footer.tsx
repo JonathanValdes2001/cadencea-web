@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Logo from './ui/Logo';
 
 type Col = { title: string; links: { href: string; label: string }[] };
 
@@ -64,25 +64,8 @@ const Footer = ({ showV2 }: { showV2: boolean }) => {
         >
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2"
-              aria-label="Cadencea home"
-            >
-              <Image
-                src="/logo/cadencea-mark-grayscale.svg"
-                alt=""
-                width={32}
-                height={32}
-                className="h-7 w-7"
-              />
-              <Image
-                src="/logo/cadencea-text-only.svg"
-                alt="Cadencea"
-                width={460}
-                height={80}
-                className="h-4 w-auto"
-              />
+            <Link href="/" className="inline-flex items-center" aria-label="Cadencea home">
+              <Logo tone="onDark" />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed">
               Lossless project vault for music producers.

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Button from '@/components/ui/Button';
+import Logo from '@/components/ui/Logo';
 import CreditsChip, { CreditsTotal } from '@/components/v2/common/CreditsChip';
 import { Chevron, Close, Menu } from '@/components/ui/Icons';
 
@@ -104,27 +104,8 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Wordmark */}
-          <Link
-            href="/"
-            className="flex items-center gap-2"
-            aria-label="Cadencea home"
-          >
-            <Image
-              src="/logo/cadencea-mark-grayscale.svg"
-              alt=""
-              width={32}
-              height={32}
-              priority
-              className="h-7 w-7"
-            />
-            <Image
-              src="/logo/cadencea-text-only.svg"
-              alt="Cadencea"
-              width={460}
-              height={80}
-              priority
-              className="h-4 w-auto"
-            />
+          <Link href="/" className="flex min-h-11 items-center" aria-label="Cadencea home">
+            <Logo tone="onDark" priority />
           </Link>
 
           {/* Desktop nav */}
@@ -149,12 +130,13 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
           {/* Desktop auth */}
           <div className="hidden md:flex md:items-center md:gap-4">
             {showV2 && (
-              <>
+              // The demo group, set apart from sign-in so "Publish" doesn't read as an account button.
+              <div className="flex items-center gap-3 border-r border-white/10 pr-4">
                 <CreditsChip />
                 <Button href="/publish" variant="onDarkOutline" size="sm">
                   Publish
                 </Button>
-              </>
+              </div>
             )}
             {loading ? (
               <div className="flex items-center gap-2 text-sm text-dark-muted">
@@ -219,7 +201,7 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                 >
                   Sign in
                 </Link>
-                <Button href="/signup" size="sm" className="h-10">
+                <Button href="/signup" size="sm">
                   Sign up free
                 </Button>
               </>

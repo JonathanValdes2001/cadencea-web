@@ -1,4 +1,5 @@
 import React from 'react';
+import { StepNumber } from '@/components/ui/Chip';
 import Container from '@/components/ui/Container';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { MARKET_HOME_COPY } from '@/lib/v2-demo/market/copy';
@@ -11,9 +12,9 @@ export default function HowItWorks() {
         <SectionHeader title={MARKET_HOME_COPY.howTitle} />
         <ol className="mt-10 grid gap-8 md:grid-cols-3">
           {MARKET_HOME_COPY.howSteps.map((step, index) => (
-            <li key={step} className="border-t border-line pt-5">
-              <span className="text-sm font-semibold tabular-nums text-accent-ink">{index + 1}.</span>
-              <p className="mt-2 text-base leading-relaxed text-ink-muted">{step}</p>
+            <li key={step} className="flex gap-4">
+              <StepNumber n={index + 1} />
+              <p className="text-base leading-relaxed text-ink-muted">{step}</p>
             </li>
           ))}
         </ol>

@@ -19,7 +19,7 @@ const PRINCIPLES = [
 /** The three Stream principles on /stream (WEB-V2-SPEC §4.9). */
 export default function StreamPrinciples() {
   return (
-    <section aria-labelledby="stream-principles" className="border-b border-line py-20 lg:py-28">
+    <section aria-labelledby="stream-principles" className="border-b border-line py-14 sm:py-20 lg:py-24">
       <Container>
         <h2 id="stream-principles" className="sr-only">
           Three principles

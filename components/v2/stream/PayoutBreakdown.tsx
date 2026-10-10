@@ -60,7 +60,7 @@ export function PayoutBar({ onDark = false, className = '' }: { onDark?: boolean
 /** "Where your NOK 49 goes" on /stream (WEB-V2-SPEC §4.9): the bar, then the full table. */
 export default function PayoutBreakdown() {
   return (
-    <section id="payouts" className="scroll-mt-24 border-b border-line py-20 lg:py-28">
+    <section id="payouts" className="scroll-mt-24 border-b border-line py-14 sm:py-20 lg:py-24">
       <Container>
         <SectionHeader title={`Where your NOK ${PRICE.ore / 100} goes`} />
         <div className="mt-10 max-w-3xl">

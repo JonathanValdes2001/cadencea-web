@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import { chipClass } from '@/components/ui/Chip';
 import Container from '@/components/ui/Container';
 import CoverArt from '@/components/ui/CoverArt';
 import PreviewPlayer from '@/components/ui/PreviewPlayer';
@@ -169,7 +170,7 @@ export default function ItemView({ slug }: { slug: string }) {
                   <li key={tag}>
                     <Link
                       href={`/market/${category.key}?tag=${encodeURIComponent(tag)}`}
-                      className="inline-flex min-h-9 items-center rounded-sm border border-line px-3 text-sm text-ink-muted hover:border-line-strong hover:text-ink pointer-coarse:min-h-11"
+                      className={chipClass('tagLink')}
                     >
                       {tag}
                     </Link>

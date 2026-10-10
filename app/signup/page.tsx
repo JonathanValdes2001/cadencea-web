@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
+import Logo from '@/components/ui/Logo';
 import { CheckboxField, TextField } from '@/components/ui/Field';
 import { useAuth } from '@/lib/auth-context';
 import { AUTH_MESSAGES, looksLikeEmail, signUpErrorMessage } from '@/lib/auth-messages.mjs';
@@ -94,9 +94,8 @@ export default function Signup() {
     <div className="bg-canvas text-ink">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center px-6 py-16 lg:py-24">
         <div className="mb-10 text-center">
-          <Link href="/" className="inline-flex items-center gap-2 text-ink" aria-label="Cadencea home">
-            <Image src="/logo/cadencea-mark-transparent.svg" alt="" width={32} height={32} />
-            <span className="text-lg font-bold tracking-tight">Cadencea</span>
+          <Link href="/" className="inline-flex items-center" aria-label="Cadencea home">
+            <Logo tone="onLight" size="lg" />
           </Link>
           <h1 className="mt-8 text-3xl font-bold tracking-tight md:text-4xl">Create your free account.</h1>
           <p className="mt-3 text-sm text-ink-muted">

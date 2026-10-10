@@ -199,7 +199,8 @@ const DIALOG_ACTIONS: ReadonlySet<ReleaseActionId> = new Set<ReleaseActionId>([
   'appeal_update',
 ]);
 
-const DANGER: ReadonlySet<ReleaseActionId> = new Set<ReleaseActionId>(['delete_draft', 'delete', 'withdraw_update', 'unpublish']);
+/** Actions that remove something; menus and the actions card set them apart in the danger color. */
+export const DANGER: ReadonlySet<ReleaseActionId> = new Set<ReleaseActionId>(['delete_draft', 'delete', 'withdraw_update', 'unpublish']);
 
 /** One action as a button: a link for navigation, a dialog for §9.4 confirmations. */
 export function ActionButton({
@@ -208,31 +209,39 @@ export function ActionButton({
   variant = 'secondary',
   size = 'sm',
   fullWidth = false,
+  className,
 }: {
   view: ReleaseView;
   item: ReleaseActionItem;
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
+  className?: string;
 }) {
   const run = useContext(RunContext);
   const href = actionHref(view, item.id);
   if (item.disabledReason) {
     return (
-      <Button variant={variant} size={size} disabled disabledReason={item.disabledReason} fullWidth={fullWidth}>
+      <Button variant={variant} size={size} disabled disabledReason={item.disabledReason} fullWidth={fullWidth} className={className}>
         {item.label}
       </Button>
     );
   }
   if (href) {
     return (
-      <Button variant={variant} size={size} href={href} fullWidth={fullWidth}>
+      <Button variant={variant} size={size} href={href} fullWidth={fullWidth} className={className}>
         {item.label}
       </Button>
     );
   }
   return (
-    <Button variant={variant} size={size} fullWidth={fullWidth} onClick={() => DIALOG_ACTIONS.has(item.id) && run(view.release.id, item.id as DialogAction)}>
+    <Button
+      variant={variant}
+      size={size}
+      fullWidth={fullWidth}
+      className={className}
+      onClick={() => DIALOG_ACTIONS.has(item.id) && run(view.release.id, item.id as DialogAction)}
+    >
       {item.label}
     </Button>
   );

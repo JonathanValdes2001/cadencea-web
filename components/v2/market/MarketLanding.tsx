@@ -9,7 +9,7 @@ import { MARKET_HOME_COPY } from '@/lib/v2-demo/market/copy';
 import { sortItems } from '@/lib/v2-demo/market/queries';
 import CategoryNav from './CategoryNav';
 import MarketCard from './MarketCard';
-import Rail from './Rail';
+import Rail, { railListClass } from './Rail';
 import { useMarketListings } from './useMarketListings';
 
 /**
@@ -26,13 +26,13 @@ export default function MarketLanding() {
   return (
     <>
       <CategoryNav current="all" />
-      <Container className="space-y-16 py-14 lg:space-y-20 lg:py-20">
+      <Container className="space-y-12 py-12 lg:space-y-16 lg:py-16">
         {featured.length > 0 && (
           <section aria-labelledby="market-featured">
-            <SectionHeader title={<span id="market-featured">{MARKET_HOME_COPY.featuredTitle}</span>} />
-            <ul className="mt-8 grid gap-4 sm:gap-6 md:grid-cols-3">
+            <SectionHeader size="sm" title={<span id="market-featured">{MARKET_HOME_COPY.featuredTitle}</span>} />
+            <ul className={`mt-5 ${railListClass({ featured: true })}`}>
               {featured.map((listing) => (
-                <li key={listing.slug}>
+                <li key={listing.slug} className="snap-start">
                   <MarketCard listing={listing} featured />
                 </li>
               ))}

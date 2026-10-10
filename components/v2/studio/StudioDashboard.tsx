@@ -4,6 +4,7 @@ import React, { useEffect, useId, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Button from '@/components/ui/Button';
+import { FilterChip } from '@/components/ui/Chip';
 import Container from '@/components/ui/Container';
 import EmptyState from '@/components/ui/EmptyState';
 import { SelectField, TextField } from '@/components/ui/Field';
@@ -162,17 +163,13 @@ export default function StudioDashboard({ demo }: { demo: boolean }) {
               {TYPE_CHIPS.map((type) => {
                 const on = types.includes(type);
                 return (
-                  <button
+                  <FilterChip
                     key={type}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => setTypes((list) => (on ? list.filter((t) => t !== type) : [...list, type]))}
-                    className={`h-11 rounded-sm border px-3 text-sm font-medium ${
-                      on ? 'border-ink bg-ink text-canvas' : 'border-line bg-canvas text-ink-muted hover:border-line-strong hover:text-ink'
-                    }`}
+                    selected={on}
+                    onToggle={() => setTypes((list) => (on ? list.filter((t) => t !== type) : [...list, type]))}
                   >
                     {STUDIO_UI.typeChips[type]}
-                  </button>
+                  </FilterChip>
                 );
               })}
             </div>

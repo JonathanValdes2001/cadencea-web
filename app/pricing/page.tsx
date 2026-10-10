@@ -395,7 +395,7 @@ export default function PricingPage() {
 
       {/* Included features */}
       <section>
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:py-20 lg:py-24 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
               Included in every plan
@@ -419,7 +419,7 @@ export default function PricingPage() {
 
       {/* Pricing FAQ */}
       <section className="border-t border-line">
-        <div className="mx-auto max-w-4xl px-6 py-24 lg:px-8 lg:py-32">
+        <div className="mx-auto max-w-4xl px-6 py-14 sm:py-20 lg:py-24 lg:px-8">
           <h2 className="text-3xl font-bold tracking-tight text-ink md:text-4xl">
             Pricing questions.
           </h2>

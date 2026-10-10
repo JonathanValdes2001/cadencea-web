@@ -1,5 +1,6 @@
 import React from 'react';
 import Badge from '@/components/ui/Badge';
+import { chipClass } from '@/components/ui/Chip';
 import Container, { ShowroomGlow } from '@/components/ui/Container';
 import CoverArt from '@/components/ui/CoverArt';
 import { fill, formatMonthYear } from '@/lib/v2-demo/format';
@@ -38,7 +39,7 @@ export default function SellerHeader({ seller }: { seller: Seller }) {
           {seller.genres.length > 0 && (
             <ul aria-label={SELLER_COPY.genresLabel} className="mt-5 flex flex-wrap gap-2">
               {seller.genres.map((genre) => (
-                <li key={genre} className="rounded-sm border border-white/20 px-2.5 py-1 text-xs text-dark-text">
+                <li key={genre} className={chipClass('onDark')}>
                   {genreLabel(genre.toLowerCase())}
                 </li>
               ))}

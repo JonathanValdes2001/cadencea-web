@@ -1,4 +1,5 @@
 import React from 'react';
+import { StepNumber } from '@/components/ui/Chip';
 import Faq from '@/components/ui/Faq';
 import { CREDITS_EXPLAINER, CREDITS_FAQ } from '@/lib/v2-demo/credits/copy';
 
@@ -12,12 +13,7 @@ export default function CreditsExplainer() {
       <ol className="mt-8 grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-2">
         {CREDITS_EXPLAINER.map((step, i) => (
           <li key={step.title} className="flex gap-4">
-            <span
-              aria-hidden="true"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-semibold tabular-nums text-brand-700"
-            >
-              {i + 1}
-            </span>
+            <StepNumber n={i + 1} />
             <p className="text-sm leading-relaxed text-ink-muted">
               <strong className="font-semibold text-ink">{step.title}</strong> {step.body}
             </p>

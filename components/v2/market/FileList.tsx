@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '@/components/ui/Button';
-import { Check } from '@/components/ui/Icons';
+import { Check, Plus } from '@/components/ui/Icons';
 import PreviewPlayer from '@/components/ui/PreviewPlayer';
 import { useToast } from '@/components/ui/Toast';
 import DemoConfirm from '@/components/v2/common/DemoConfirm';
@@ -123,14 +123,20 @@ export default function FileList({ listing, files }: { listing: MarketListing; f
                       {ITEM_COPY.topUp}
                     </Button>
                   ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setBuying(file)}
-                      aria-label={`${fill(ITEM_COPY.buyFile, { price: formatCreditPrice(credits) })}: ${file.name}`}
-                    >
-                      {fill(ITEM_COPY.buyFile, { price: formatCreditPrice(credits) })}
-                    </Button>
+                    // A quiet price and a short "Buy", so a column of rows doesn't outweigh the pack's own buy box.
+                    <span className="inline-flex items-center gap-2">
+                      <span className="text-sm text-ink-muted tabular-nums">{formatCreditPrice(credits)}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconLeft={<Plus size={16} />}
+                        onClick={() => setBuying(file)}
+                        aria-label={`${fill(ITEM_COPY.buyFile, { price: formatCreditPrice(credits) })}: ${file.name}`}
+                        className="px-3! text-accent-ink!"
+                      >
+                        {ITEM_COPY.buyFileShort}
+                      </Button>
+                    </span>
                   )}
                 </div>
               )}

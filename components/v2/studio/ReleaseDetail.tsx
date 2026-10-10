@@ -22,7 +22,7 @@ import BuyersPanel from './BuyersPanel';
 import DemoReviewer, { AutoApprover } from './DemoReviewer';
 import EvidencePanel from './EvidencePanel';
 import LiveVsPending, { WhatReviewersSee } from './LiveVsPending';
-import { ActionButton, ReleaseActionsProvider } from './ReleaseActions';
+import { ActionButton, DANGER, ReleaseActionsProvider } from './ReleaseActions';
 import ReleaseHeader from './ReleaseHeader';
 import ReviewTimeline from './ReviewTimeline';
 import StateBanner from './StateBanner';
@@ -139,11 +139,31 @@ export default function ReleaseDetail({ releaseId, demo }: { releaseId: string; 
                 <h2 id="actions-heading" className="text-base font-semibold text-ink">
                   {DETAIL_UI.actions}
                 </h2>
-                <div className="mt-3 flex flex-col gap-2">
-                  {actions.map((item, i) => (
-                    <ActionButton key={item.id} view={view} item={item} variant={i === 0 ? 'primary' : 'secondary'} fullWidth />
-                  ))}
+                {/* The state banner carries the one primary button; here the actions are a quiet list,
+                    with the ones that remove something set apart at the bottom. */}
+                <div className="mt-2 flex flex-col">
+                  {actions
+                    .filter((item) => !DANGER.has(item.id))
+                    .map((item) => (
+                      <ActionButton key={item.id} view={view} item={item} variant="ghost" fullWidth className="justify-start! px-2!" />
+                    ))}
                 </div>
+                {actions.some((item) => DANGER.has(item.id)) && (
+                  <div className="mt-2 flex flex-col border-t border-line pt-2">
+                    {actions
+                      .filter((item) => DANGER.has(item.id))
+                      .map((item) => (
+                        <ActionButton
+                          key={item.id}
+                          view={view}
+                          item={item}
+                          variant="ghost"
+                          fullWidth
+                          className="justify-start! px-2! text-danger!"
+                        />
+                      ))}
+                  </div>
+                )}
               </section>
             )}
             <EvidencePanel evidence={evidenceRevision?.evidence ?? null} type={release.type} reviewedAt={view.current?.decidedAt ?? null} />

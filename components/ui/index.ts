@@ -7,6 +7,7 @@
 export { default as Badge, type BadgeTone } from './Badge';
 export { default as Button, type ButtonSize, type ButtonVariant } from './Button';
 export { default as Card, CardBody, CardFooter, CardMedia } from './Card';
+export { chipClass, FilterChip, StepNumber, type ChipVariant } from './Chip';
 export { default as Container, ShowroomGlow } from './Container';
 export { default as CoverArt } from './CoverArt';
 export { default as Dialog } from './Dialog';
@@ -23,6 +24,7 @@ export {
   type SourceChipKind,
 } from './Field';
 export * as Icons from './Icons';
+export { default as Logo } from './Logo';
 export { default as PreviewPlayer } from './PreviewPlayer';
 export { default as Price } from './Price';
 export { default as SectionHeader } from './SectionHeader';

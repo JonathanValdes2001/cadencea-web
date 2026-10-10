@@ -47,7 +47,7 @@ export default function StreamPage() {
       {/* Hero */}
       <section className="on-dark relative isolate overflow-hidden bg-showroom text-dark-text">
         <ShowroomGlow />
-        <Container className="py-20 lg:py-28">
+        <Container className="py-14 sm:py-20 lg:py-24">
           <div className="max-w-3xl">
             <p className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand-300">
               Cadencea Stream · Concept preview
@@ -88,7 +88,7 @@ export default function StreamPage() {
       <PayoutBreakdown />
 
       {/* The Human-Made Standard */}
-      <section id="human-made" className="scroll-mt-24 border-b border-line py-20 lg:py-28">
+      <section id="human-made" className="scroll-mt-24 border-b border-line py-14 sm:py-20 lg:py-24">
         <Container>
           <div className="max-w-4xl">
             <HumanMadeStandard />
@@ -102,7 +102,7 @@ export default function StreamPage() {
       </section>
 
       {/* Support artists directly */}
-      <section className="border-b border-line py-20 lg:py-28">
+      <section className="py-14 sm:py-20 lg:py-24">
         <Container>
           <SectionHeader
             title="Support artists directly"
@@ -112,7 +112,7 @@ export default function StreamPage() {
       </section>
 
       {/* Honest status */}
-      <section className="bg-elevated py-20 lg:py-28">
+      <section className="bg-elevated py-14 sm:py-20 lg:py-24">
         <Container>
           <SectionHeader
             title="Not launching yet."
