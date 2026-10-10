@@ -6,12 +6,20 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import CookieBanner from "../components/CookieBanner";
 import PreviewBanner from "../components/PreviewBanner";
+import { ToastProvider } from "../components/ui/Toast";
+import { V2FlagProvider } from "../components/v2/common/V2Flag";
 import { AuthProvider } from "../lib/auth-context";
 import { isPreviewSite } from "../lib/site-channel.mjs";
 
 // Preview deployments (the v2 site, branch previews, local runs) are never
-// indexed and carry a banner; production is unaffected.
+// indexed and carry a banner; production is unaffected. The same flag turns on
+// the v2 navigation (showV2); client components get it as a prop or through
+// V2FlagProvider and never call isPreviewSite() themselves.
 const isPreview = isPreviewSite();
+
+const description =
+  "Cadencea Vault organizes your DAW projects, shows BPM, key and tags, and backs up every session bit for bit. Free app for Windows and macOS. Pay only for cloud space.";
+const socialTitle = "Cadencea Vault — every project, every DAW, one lossless vault";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,13 +29,14 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://cadencea.app"),
-  title: "Cadencea | Innovative Software for Music Creators",
-  description:
-    "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
+  title: {
+    default: "Cadencea — Lossless project vault for music producers",
+    template: "%s | Cadencea",
+  },
+  description,
   openGraph: {
-    title: "Cadencea | Innovative Software for Music Creators",
-    description:
-      "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
+    title: socialTitle,
+    description,
     url: "/",
     siteName: "Cadencea",
     images: [
@@ -35,16 +44,15 @@ export const metadata: Metadata = {
         url: "/logo/og-social-card.png",
         width: 1200,
         height: 630,
-        alt: "Cadencea",
+        alt: "Cadencea Vault",
       },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cadencea | Innovative Software for Music Creators",
-    description:
-      "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
+    title: socialTitle,
+    description,
     images: ["/logo/og-social-card.png"],
   },
   ...(isPreview
@@ -63,12 +71,22 @@ export default async function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="bg-canvas text-ink antialiased">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-sm focus:bg-canvas focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-ink focus:shadow-dropdown"
+        >
+          Skip to content
+        </a>
         {isPreview && <PreviewBanner />}
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-          <CookieBanner />
+          <V2FlagProvider showV2={isPreview}>
+            <ToastProvider>
+              <Navbar showV2={isPreview} />
+              <main id="main">{children}</main>
+              <Footer showV2={isPreview} />
+              <CookieBanner />
+            </ToastProvider>
+          </V2FlagProvider>
         </AuthProvider>
       </body>
     </html>

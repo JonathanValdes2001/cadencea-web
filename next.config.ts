@@ -1,6 +1,7 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import { STATIC_SECURITY_HEADERS } from "./lib/security-headers.mjs";
+import { isPreviewSite } from "./lib/site-channel.mjs";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -10,6 +11,16 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: STATIC_SECURITY_HEADERS,
       },
+    ];
+  },
+  async redirects() {
+    // v2 preview only: the placeholder plugin catalog and the $0 cart give way
+    // to the Market. Production keeps serving both pages until the v2 launch.
+    // Evaluated at build time, so SITE_CHANNEL/VERCEL_ENV must be set for the build.
+    if (!isPreviewSite()) return [];
+    return [
+      { source: "/vst-plugins", destination: "/market", permanent: false },
+      { source: "/cart", destination: "/market", permanent: false },
     ];
   },
 };
