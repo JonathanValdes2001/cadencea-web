@@ -52,15 +52,15 @@ export default function Cart() {
           <dl className="divide-y divide-line">
             <div className="flex items-center justify-between px-6 py-3 text-sm">
               <dt className="text-ink-muted">Subtotal</dt>
-              <dd className="font-medium text-ink">$0.00</dd>
+              <dd className="font-medium text-ink">€0.00</dd>
             </div>
             <div className="flex items-center justify-between px-6 py-3 text-sm">
               <dt className="text-ink-muted">Tax</dt>
-              <dd className="font-medium text-ink">$0.00</dd>
+              <dd className="font-medium text-ink">€0.00</dd>
             </div>
             <div className="flex items-center justify-between px-6 py-4 text-base">
               <dt className="font-semibold text-ink">Total</dt>
-              <dd className="text-lg font-bold text-ink">$0.00</dd>
+              <dd className="text-lg font-bold text-ink">€0.00</dd>
             </div>
           </dl>
         </section>

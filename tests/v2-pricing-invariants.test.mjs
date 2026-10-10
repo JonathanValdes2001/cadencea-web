@@ -98,6 +98,6 @@ test('every credits line on /pricing sits behind showV2', async () => {
 test('the pricing layout carries the page metadata', async () => {
   const layout = await read('app/pricing/layout.tsx')
   assert.match(layout, /title: 'Pricing'/)
-  assert.match(layout, /Prices in euros, including VAT\./)
+  assert.match(layout, /Prices in euros\./)
   assert.doesNotMatch(layout, /['"]use client['"]/)
 })

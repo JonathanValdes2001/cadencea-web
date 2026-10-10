@@ -13,6 +13,7 @@ import {
   ApiError,
   type BillingPlansResponse,
   type CheckoutSessionResponse,
+  type SubscriptionStatusResponse,
 } from '@/lib/api-client';
 
 type Plan = {
@@ -43,7 +44,7 @@ const plans: Plan[] = [
     yearlyPrice: 49.99,
     yearlyDiscount: 'Save €9.89',
     storage: '50 GB cloud storage',
-    features: ['Everything in Free', 'Email support'],
+    features: ['Everything in Free'],
     cta: 'Choose Basic',
     popular: false,
   },
@@ -107,13 +108,26 @@ const pricingFaq = [
   },
   {
     q: 'Can I change plans later?',
-    a: "Yes, anytime from your account's Subscription page. Downgrading never deletes files.",
+    a: "Yes. Email support@cadencea.app and we'll switch your plan. Downgrading never deletes files.",
   },
   {
     q: 'Which currency do you charge in?',
-    a: 'Euros. Prices include VAT.',
+    a: 'Euros.',
   },
 ];
+
+const SWITCH_PLAN_HREF = 'mailto:support@cadencea.app?subject=Switch%20my%20Cadencea%20plan';
+
+/**
+ * The paid plan a signed-in user is still billed for, or null. Checkout always
+ * starts a new subscription, so a subscriber who picked another plan here would
+ * pay for both; until plans can be switched in place, support switches them.
+ */
+function activePaidPlan(status: SubscriptionStatusResponse): string | null {
+  const plan = status.plan?.toLowerCase();
+  if (!plan || plan === 'free') return null;
+  return /^(canceled|incomplete_expired)/.test(status.status ?? '') ? null : plan;
+}
 
 // Preview only (WEB-V2-SPEC §5.5): production doesn't announce the Market yet.
 const marketCreditsFaq = {
@@ -130,6 +144,26 @@ export default function PricingPage() {
     useState<BillingPlansResponse | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paidPlan, setPaidPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setPaidPlan(null);
+      return;
+    }
+    let cancelled = false;
+    api
+      .get<SubscriptionStatusResponse>('/billing/subscription-status')
+      .then((res) => {
+        if (!cancelled) setPaidPlan(activePaidPlan(res));
+      })
+      .catch(() => {
+        // Unknown status: the plan buttons behave as before.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,7 +242,7 @@ export default function PricingPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted">
             Cadencea Vault and your local library are free. Choose how much
-            lossless cloud storage you need, and change or cancel anytime.
+            lossless cloud storage you need, and cancel anytime.
           </p>
 
           {/* Monthly / Yearly toggle */}
@@ -319,19 +353,34 @@ export default function PricingPage() {
                     )}
                   </ul>
 
-                  <button
-                    type="button"
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={loadingPlan !== null && loadingPlan !== plan.name}
-                    aria-busy={loadingPlan === plan.name}
-                    className={`mt-10 inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
-                      isFree
-                        ? 'border border-ink text-ink hover:bg-elevated'
-                        : 'bg-accent text-white hover:bg-accent-hover'
-                    }`}
-                  >
-                    {loadingPlan === plan.name ? 'Redirecting…' : plan.cta}
-                  </button>
+                  {paidPlan && !isFree ? (
+                    plan.name.toLowerCase() === paidPlan ? (
+                      <p className="mt-10 inline-flex h-11 items-center justify-center rounded-sm border border-line text-sm font-semibold tracking-wide text-ink-muted">
+                        Current plan
+                      </p>
+                    ) : (
+                      <a
+                        href={SWITCH_PLAN_HREF}
+                        className="mt-10 inline-flex h-11 items-center justify-center rounded-sm border border-ink text-sm font-semibold tracking-wide text-ink hover:bg-elevated"
+                      >
+                        Email us to switch
+                      </a>
+                    )
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={loadingPlan !== null && loadingPlan !== plan.name}
+                      aria-busy={loadingPlan === plan.name}
+                      className={`mt-10 inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isFree
+                          ? 'border border-ink text-ink hover:bg-elevated'
+                          : 'bg-accent text-white hover:bg-accent-hover'
+                      }`}
+                    >
+                      {loadingPlan === plan.name ? 'Redirecting…' : plan.cta}
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -344,9 +393,18 @@ export default function PricingPage() {
               {error}
             </p>
           )}
+          {paidPlan && (
+            <p className="mx-auto mt-8 max-w-xl text-center text-sm text-ink">
+              To switch plans, email{' '}
+              <a href={SWITCH_PLAN_HREF} className="font-medium text-accent-ink hover:text-accent-hover">
+                support@cadencea.app
+              </a>{' '}
+              and we&rsquo;ll move your subscription over, so you&rsquo;re never billed twice.
+            </p>
+          )}
           <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-ink-muted">
-            Prices in euros, including VAT. Cancel anytime; your plan stays
-            active until the end of the billing period.
+            Prices in euros. Cancel anytime; your plan stays active until the
+            end of the billing period.
           </p>
         </div>
       </section>

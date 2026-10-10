@@ -4,22 +4,29 @@ import SectionHeader from '@/components/ui/SectionHeader';
 
 const ROWS = [
   { aspect: 'What it sees', folder: 'Files', vault: 'Projects: folder, artwork, BPM, key, tags, notes' },
-  { aspect: 'When it uploads', folder: 'Continuously, even mid-save', vault: 'When you push' },
+  { aspect: 'When it uploads', folder: 'Whenever a file changes', vault: 'When you push' },
   { aspect: 'Conflicts', folder: '"Conflicted copy" files', vault: 'Per-file status before you push or pull' },
-  { aspect: 'Sharing', folder: 'Links to files', vault: 'Project invites with roles' },
-  { aspect: 'Listening', folder: 'Generic preview', vault: 'In-app player with waveform' },
+  {
+    aspect: 'Sharing',
+    folder: 'Shared folders with edit or view access',
+    vault: "Project invites with roles, plus a per-file view of a collaborator's changes before you pull",
+  },
+  { aspect: 'Listening', folder: 'A preview of one file at a time', vault: 'An in-app player with waveforms, next to each project' },
 ];
 
 const FOLDER = 'A cloud folder';
 const VAULT = 'Cadencea Vault';
 
-/** Home "Why not just Dropbox?": a table from md, one card per row below it. */
+/**
+ * Home "Why not just a cloud folder?": a table from md, one card per row below
+ * it. Every cloud-folder cell must hold for Dropbox, Google Drive and OneDrive.
+ */
 export default function CompareTable() {
   return (
     <section className="border-b border-line py-20 lg:py-28">
       <Container>
         <SectionHeader
-          title="Why not just Dropbox?"
+          title="Why not just a cloud folder?"
           subtitle="Cloud folders sync files. Cadencea Vault understands projects."
         />
 

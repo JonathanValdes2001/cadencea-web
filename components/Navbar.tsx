@@ -67,10 +67,15 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
     };
   }, []);
 
+  // Closing on navigation is the backstop; a link to the current page doesn't
+  // change the pathname, so every menu link also closes its menu on click.
   useEffect(() => {
     setIsMenuOpen(false);
     setUserMenuOpen(false);
   }, [pathname]);
+
+  const closeMobileMenu = () => setIsMenuOpen(false);
+  const closeUserMenu = () => setUserMenuOpen(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -178,19 +183,19 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                     id="account-menu"
                     className="absolute right-0 mt-2 w-56 rounded-md border border-white/10 bg-dark py-1 shadow-dropdown"
                   >
-                    <Link href="/account/settings" className={menuItem}>
+                    <Link href="/account/settings" className={menuItem} onClick={closeUserMenu}>
                       Account settings
                     </Link>
-                    <Link href="/account/subscription" className={menuItem}>
+                    <Link href="/account/subscription" className={menuItem} onClick={closeUserMenu}>
                       Subscription
                     </Link>
                     {showV2 && (
                       <>
                         <div className="my-1 border-t border-white/10" />
-                        <Link href="/studio" className={menuItem}>
+                        <Link href="/studio" className={menuItem} onClick={closeUserMenu}>
                           Studio (demo)
                         </Link>
-                        <Link href="/credits" className={menuItem}>
+                        <Link href="/credits" className={menuItem} onClick={closeUserMenu}>
                           Credits (demo)
                         </Link>
                       </>
@@ -245,6 +250,7 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                     key={link.href}
                     href={link.href}
                     aria-current={active ? 'page' : undefined}
+                    onClick={closeMobileMenu}
                     className={`${mobileItem} font-medium ${active ? 'bg-white/10' : ''}`}
                   >
                     {link.label}
@@ -255,13 +261,13 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
 
             {showV2 && (
               <div className="mt-4 flex flex-col gap-1 border-t border-white/10 pt-4">
-                <Link href="/studio" className={mobileItem}>
+                <Link href="/studio" className={mobileItem} onClick={closeMobileMenu}>
                   Studio (demo)
                 </Link>
-                <Link href="/credits" className={`${mobileItem} tabular-nums`}>
+                <Link href="/credits" className={`${mobileItem} tabular-nums`} onClick={closeMobileMenu}>
                   Credits · <CreditsTotal /> (demo)
                 </Link>
-                <Link href="/publish" className={mobileItem}>
+                <Link href="/publish" className={mobileItem} onClick={closeMobileMenu}>
                   Publish
                 </Link>
               </div>
@@ -275,10 +281,10 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                   <div className="px-3 py-2 text-xs uppercase tracking-wider text-dark-muted">
                     {displayName}
                   </div>
-                  <Link href="/account/settings" className={mobileItem}>
+                  <Link href="/account/settings" className={mobileItem} onClick={closeMobileMenu}>
                     Account settings
                   </Link>
-                  <Link href="/account/subscription" className={mobileItem}>
+                  <Link href="/account/subscription" className={mobileItem} onClick={closeMobileMenu}>
                     Subscription
                   </Link>
                   <button
@@ -293,12 +299,14 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                 <div className="flex flex-col gap-2">
                   <Link
                     href="/login"
+                    onClick={closeMobileMenu}
                     className="rounded-sm border border-white/30 px-3 py-3 text-center text-sm font-semibold text-dark-text hover:bg-white/10"
                   >
                     Sign in
                   </Link>
                   <Link
                     href="/signup"
+                    onClick={closeMobileMenu}
                     className="rounded-sm bg-accent px-3 py-3 text-center text-sm font-semibold text-white hover:bg-accent-hover"
                   >
                     Sign up free

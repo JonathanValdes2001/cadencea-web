@@ -105,6 +105,40 @@ test('the Vault page never calls a shipped platform coming soon', async () => {
   assert.match(vault, /Temporarily unavailable/)
 })
 
+// Nothing yet confirms that the prices include VAT (WEB-V2-SPEC §9.3), so no
+// page production can show says they do. The Terms' hedged line waits for legal.
+test('production copy makes no VAT claim', async () => {
+  for (const rel of ['components/Footer.tsx', 'app/pricing/page.tsx', 'app/pricing/layout.tsx', 'app/page.tsx']) {
+    const source = await readFile(path.join(root, rel), 'utf8')
+    assert.doesNotMatch(source, /VAT/, `${rel} mentions VAT`)
+  }
+})
+
+// The pricing page must not send a subscriber to checkout for a second plan.
+test('plan changes go through support, never a second checkout', async () => {
+  const pricing = await readFile(path.join(root, 'app/pricing/page.tsx'), 'utf8')
+  assert.doesNotMatch(pricing, /anytime from your account's Subscription page/)
+  assert.doesNotMatch(pricing, /change or cancel anytime/)
+  assert.match(pricing, /'\/billing\/subscription-status'/)
+  assert.match(pricing, /Email us to switch/)
+})
+
+// The shipped Vault doesn't recognize Studio One (.song) or Bitwig (.bwproject)
+// project files yet, so the site doesn't name them (WEB-V2-SPEC §5.3 [verify]).
+test('the DAW list names only DAWs the shipped Vault recognizes', async () => {
+  const home = await readFile(path.join(root, 'app/page.tsx'), 'utf8')
+  assert.doesNotMatch(home, /Studio One|Bitwig/)
+})
+
+test('a slow or failing release feed falls back instead of stalling the page', async () => {
+  const never = new Promise(() => {})
+  const started = Date.now()
+  assert.deepEqual(await withTimeout(never, 20, {}), {})
+  assert.ok(Date.now() - started < 1000)
+  assert.deepEqual(await withTimeout(Promise.reject(new Error('B2 down')), 1000, {}), {})
+  assert.equal(await withTimeout(Promise.resolve('feed'), 1000, 'fallback'), 'feed')
+})
+
 // The /stream teaser mirrors STREAM-SPEC §2.7's golden case, so the website and
 // the Stream demo's Money screen show the same NOK 49.
 test('the /stream payout example adds up to STREAM-SPEC’s golden case', () => {

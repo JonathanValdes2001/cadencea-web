@@ -116,7 +116,7 @@ const Footer = ({ showV2 }: { showV2: boolean }) => {
           <p className="text-xs text-dark-muted">
             &copy; {new Date().getFullYear()} Cadencea. All rights reserved.
           </p>
-          <p className="text-xs text-dark-muted">Prices in euros, including VAT.</p>
+          <p className="text-xs text-dark-muted">Prices in euros.</p>
         </div>
       </div>
     </footer>

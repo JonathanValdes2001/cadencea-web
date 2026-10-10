@@ -7,18 +7,8 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import { TextField } from '@/components/ui/Field';
 import { useAuth } from '@/lib/auth-context';
+import { signInErrorMessage } from '@/lib/auth-messages.mjs';
 import { safePostLoginPath } from '@/lib/auth-route-policy.mjs';
-
-/** Shown instead of the raw Supabase message, which still goes to the console. */
-function signInErrorMessage(message: string): string {
-  if (message === 'Invalid login credentials') {
-    return "That email and password don't match. Check them and try again.";
-  }
-  if (message === 'Email not confirmed') {
-    return 'Confirm your email first. We sent you a link when you signed up.';
-  }
-  return 'Something went wrong. Please try again.';
-}
 
 export default function Login() {
   const router = useRouter();
@@ -48,13 +38,14 @@ export default function Login() {
       const { error } = await signIn(formData.email, formData.password);
       if (error) {
         console.warn('[login] Sign-in failed:', error.message);
-        setError(signInErrorMessage(error.message));
+        // Shown instead of the raw Supabase message, which still goes to the console.
+        setError(signInErrorMessage(error));
       } else {
         const requestedPath = new URLSearchParams(window.location.search).get('redirect');
         router.push(safePostLoginPath(requestedPath));
       }
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err) {
+      setError(signInErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }

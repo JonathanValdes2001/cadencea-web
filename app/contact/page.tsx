@@ -113,7 +113,7 @@ export default function ContactPage() {
                 </div>
                 <div className="border-t border-line pt-4">
                   <dt className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
-                    Organisation number
+                    Organization number
                   </dt>
                   <dd className="mt-2 font-mono text-sm text-ink">930343870</dd>
                 </div>

@@ -47,7 +47,7 @@ const faqs = [
   },
   {
     q: 'Which DAWs does it work with?',
-    a: 'All of them. Cadencea Vault manages project folders, so it works with Ableton Live, FL Studio, Logic Pro, Pro Tools, Cubase, Studio One, Reaper, Bitwig Studio and others.',
+    a: 'All of them. Cadencea Vault manages project folders, so it works with Ableton Live, FL Studio, Logic Pro, Pro Tools, Cubase, Reaper, Reason and others.',
   },
   {
     q: 'Will my audio be converted or compressed?',
@@ -147,7 +147,7 @@ export default async function Home() {
         <Container>
           <SectionHeader
             title="Works with the DAW you already use."
-            subtitle="Ableton Live, FL Studio, Logic Pro, Pro Tools, Cubase, Studio One, Reaper, Bitwig Studio, and anything else that saves projects to a folder. Cadencea Vault never changes how your DAW opens a project."
+            subtitle="Ableton Live, FL Studio, Logic Pro, Pro Tools, Cubase, Reaper, Reason, and anything else that saves projects to a folder. Cadencea Vault never changes how your DAW opens a project."
           />
         </Container>
       </section>

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import { CheckboxField, TextField } from '@/components/ui/Field';
 import { useAuth } from '@/lib/auth-context';
+import { AUTH_MESSAGES, looksLikeEmail, signUpErrorMessage } from '@/lib/auth-messages.mjs';
 
 type FieldName = 'firstName' | 'lastName' | 'username' | 'email' | 'password' | 'confirmPassword' | 'agreeTerms';
 
@@ -45,6 +46,7 @@ export default function Signup() {
     if (username.length < 3) errors.username = 'Choose a username of at least 3 characters.';
     else if (!/^[a-zA-Z0-9_-]+$/.test(username)) errors.username = 'Usernames can only use letters, numbers, - and _.';
     if (!formData.email.trim()) errors.email = 'Enter your email.';
+    else if (!looksLikeEmail(formData.email)) errors.email = AUTH_MESSAGES.invalidEmail;
     if (formData.password.length < 8) errors.password = 'Choose a password of at least 8 characters.';
     if (formData.password !== formData.confirmPassword) errors.confirmPassword = "The passwords don't match.";
     if (!agreeTerms) errors.agreeTerms = 'Agree to the Terms of Service and Privacy Policy to continue.';
@@ -74,14 +76,15 @@ export default function Signup() {
       );
 
       if (error) {
-        setFormError(error.message);
+        console.warn('[signup] Sign-up failed:', error.message);
+        setFormError(signUpErrorMessage(error));
       } else if (session) {
         router.push('/');
       } else {
         setSentTo(formData.email.trim());
       }
-    } catch {
-      setFormError('Something went wrong. Please try again.');
+    } catch (err) {
+      setFormError(signUpErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
