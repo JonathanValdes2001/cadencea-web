@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import {
   loadCadenceaVaultReleases,
   parseUpdaterManifest,
+  releaseFeedRoot,
 } from '../lib/cadencea-vault-releases.mjs';
 
 const manifest = (version, artifactNames) => `version: ${version}
@@ -55,7 +56,7 @@ test('loads platform feeds server-side without caching and isolates failures', a
     return { ok: true, status: 200, text: async () => manifest('1.2.0', artifacts) };
   };
 
-  const releases = await loadCadenceaVaultReleases(fakeFetch);
+  const releases = await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'production' } });
 
   assert.equal(
     releases.windows.downloadUrl,
@@ -66,4 +67,29 @@ test('loads platform feeds server-side without caching and isolates failures', a
   assert.equal(releases.macX64, null);
   assert.equal(requests.length, 3);
   assert.ok(requests.every(({ options }) => options.cache === 'no-store'));
+});
+
+test('the live site offers the released app and previews offer the v2 beta builds', async () => {
+  const requested = [];
+  const fakeFetch = async (url) => {
+    requested.push(url);
+    const artifacts = url.includes('/win/')
+      ? ['CadenceaVault Beta Setup 2.0.0-beta.1.exe']
+      : ['CadenceaVault Beta-2.0.0-beta.1-arm64.dmg'];
+    return { ok: true, status: 200, text: async () => manifest('2.0.0-beta.1', artifacts) };
+  };
+
+  assert.equal(
+    releaseFeedRoot({ VERCEL_ENV: 'production' }),
+    'https://s3.eu-central-003.backblazeb2.com/cadencea-products/updates/cadencea-vault/',
+  );
+  assert.equal(
+    releaseFeedRoot({ VERCEL_ENV: 'preview' }),
+    'https://s3.eu-central-003.backblazeb2.com/cadencea-products/updates/cadencea-vault-beta/',
+  );
+
+  const releases = await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'preview' } });
+  assert.ok(requested.every((url) => url.includes('/updates/cadencea-vault-beta/')));
+  assert.equal(releases.windows.version, '2.0.0-beta.1');
+  assert.match(releases.windows.downloadUrl, /\/cadencea-vault-beta\/win\/CadenceaVault%20Beta%20Setup/);
 });

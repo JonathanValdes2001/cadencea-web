@@ -42,6 +42,13 @@ preview and gets:
 - an `X-Robots-Tag: noindex, nofollow, noarchive` header from the middleware;
 - a `robots.txt` that disallows everything.
 
+The download buttons follow the same rule (`lib/cadencea-vault-releases.mjs`):
+the live site reads the released app's update feed (`updates/cadencea-vault/`),
+while previews read the v2 beta feed (`updates/cadencea-vault-beta/`), where
+"CadenceaVault Beta" builds are published. Until the first beta build is
+uploaded there, the preview's download buttons show as unavailable instead of
+offering the v1 installers.
+
 None of this needs to be removed at launch. When `cadencea-v2-beta` is merged
 into `main` and deployed to production, the banner and the noindex rules switch
 off by themselves and `robots.txt` allows crawling.
@@ -57,7 +64,6 @@ Development. Preview deployments use the **Preview** values. Check them in
 | `NEXT_PUBLIC_API_URL` | The staging API once it exists. Until then it may point at the production API: sign in only with a test account and don't buy anything. |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The staging Supabase project once it exists. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Never the production key once staging exists: server routes in a v2 draft run with it. |
-| `NEXT_PUBLIC_*_DOWNLOAD_URL` | The beta installers (CadenceaVault Beta) when they exist, never the v1 installers under a v2 page. |
 | `SMTP_*`, `NEWSLETTER_*` | A test inbox, or leave unset so previews can't email real subscribers. |
 
 If a variable is set for Production only, preview builds won't have it and the
