@@ -39,11 +39,14 @@ export default function Price({
     case 'free': {
       const credits = price.kind === 'credits' ? price.credits : 0;
       const eur = formatEurCents(creditsToEurCents(credits));
+      // In a narrow card the euros wrap under the credits; "120 credits" itself never breaks.
       visual = (
-        <span className="inline-flex items-center gap-1">
-          <Diamond size={s.icon} className="text-credit" />
-          <span className="font-semibold text-credit">{formatCredits(credits)}</span>
-          {credits > 0 && <span className="text-ink-muted">({eur})</span>}
+        <span className="inline-flex flex-wrap items-center gap-x-1">
+          <span className="inline-flex items-center gap-1 whitespace-nowrap">
+            <Diamond size={s.icon} className="text-credit" />
+            <span className="font-semibold text-credit">{formatCredits(credits)}</span>
+          </span>
+          {credits > 0 && <span className="whitespace-nowrap text-ink-muted">({eur})</span>}
         </span>
       );
       spoken = credits > 0 ? `${formatCredits(credits)}, ${eur}` : PRICE_COPY.zeroCredits;

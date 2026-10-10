@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { More } from '@/components/ui/Icons';
 
@@ -13,6 +13,9 @@ export interface ActionMenuItem {
   disabledReason?: string;
   danger?: boolean;
 }
+
+/** The page gutter on phones (WEB-V2-SPEC §3.6); the open menu never crosses it. */
+const VIEWPORT_GUTTER = 16;
 
 /**
  * The overflow menu on Studio rows and the Studio header: a menu button with
@@ -32,7 +35,21 @@ export default function ActionMenu({
   const menuId = useId();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
+  const [shift, setShift] = useState(0);
+
+  // The menu opens right-aligned to its button, then moves just enough to stay on
+  // screen: on phones a row's button sits mid-card, where a right-aligned menu
+  // would run off the left edge.
+  useLayoutEffect(() => {
+    if (!open || !wrapperRef.current || !menuRef.current) return;
+    const wrapper = wrapperRef.current.getBoundingClientRect();
+    const width = menuRef.current.offsetWidth;
+    const preferred = wrapper.right - width;
+    const left = Math.min(Math.max(preferred, VIEWPORT_GUTTER), window.innerWidth - VIEWPORT_GUTTER - width);
+    setShift(left - preferred);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -99,10 +116,12 @@ export default function ActionMenu({
       </button>
       {open && (
         <div
+          ref={menuRef}
           id={menuId}
           role="menu"
           aria-label={label}
           onKeyDown={onMenuKeyDown}
+          style={shift ? { transform: `translateX(${shift}px)` } : undefined}
           className="absolute right-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-md border border-line bg-canvas py-1 shadow-dropdown"
         >
           {items.map((item, i) => {

@@ -103,7 +103,7 @@ export default function TopUpPanel() {
 
       <p className="mt-6 max-w-3xl text-sm leading-relaxed text-ink-muted">
         Anyone can top up, Free accounts included. You&rsquo;ll need a verified email, to be 18 or over, and a card
-        that passes 3-D Secure. Prices include VAT.
+        that passes 3&#8209;D Secure. Prices include VAT.
       </p>
 
       {refundable.length > 0 && (
@@ -113,7 +113,7 @@ export default function TopUpPanel() {
               <span className="text-sm text-ink">
                 {fill(WALLET_COPY.refundHint, { n: lot.remaining, date: formatDate(lot.refundable_until) })}
               </span>
-              <Button variant="ghost" size="sm" onClick={() => setRefundLot(lot)} className="self-start sm:self-auto">
+              <Button variant="ghost" size="sm" onClick={() => setRefundLot(lot)} className="-ml-4 self-start sm:ml-0 sm:self-auto">
                 Refund unspent credits (demo)
               </Button>
             </li>

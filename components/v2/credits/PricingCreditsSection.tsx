@@ -39,7 +39,7 @@ export default function PricingCreditsSection() {
           {PRICE_ROWS.map((row) => (
             <div key={row.item} className="flex items-center justify-between gap-4 px-6 py-4 md:flex-col md:items-start md:gap-1">
               <dt className="text-sm text-ink-muted">{row.item}</dt>
-              <dd className="inline-flex items-center gap-1.5 text-sm font-semibold tabular-nums text-credit">
+              <dd className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-semibold tabular-nums text-credit">
                 <Diamond size={16} />
                 {row.price}
               </dd>

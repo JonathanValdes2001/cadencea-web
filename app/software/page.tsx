@@ -51,6 +51,7 @@ export default async function SoftwarePage() {
           fill
           sizes="(min-width: 1024px) 400px, (min-width: 768px) 50vw, 100vw"
           className="object-cover"
+          priority
         />
       ),
     },

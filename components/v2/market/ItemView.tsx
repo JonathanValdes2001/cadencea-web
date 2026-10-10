@@ -87,7 +87,10 @@ export default function ItemView({ slug }: { slug: string }) {
         />
 
         <div className="mt-6 grid gap-10 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:gap-y-0">
-          <div className="lg:col-span-5 lg:row-start-1">
+          {/* Without a contents list, the cover and player stay in view beside the long right column. */}
+          <div
+            className={`lg:col-span-5 lg:row-start-1 ${files.length ? '' : 'lg:sticky lg:top-24 lg:row-span-2 lg:self-start'}`}
+          >
             <CoverArt
               seed={listing.coverSeed}
               kind={listing.type}

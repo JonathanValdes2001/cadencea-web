@@ -90,7 +90,7 @@ export default function PayoutBreakdown() {
                         {row.label}
                       </span>
                     </th>
-                    <td className={`py-3 pr-4 text-right tabular-nums ${strong ? 'font-semibold text-ink' : 'text-ink'}`}>
+                    <td className={`whitespace-nowrap py-3 pr-4 text-right tabular-nums ${strong ? 'font-semibold text-ink' : 'text-ink'}`}>
                       {nok(row.ore)}
                       <span className="block text-xs font-normal text-ink-muted sm:hidden">{aboutEur(row.ore)}</span>
                     </td>

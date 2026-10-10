@@ -427,9 +427,10 @@ function DownloadButton({
   href?: string;
 }) {
   if (!href) {
+    // The longest label is wider than a phone; it wraps inside the button instead of overflowing.
     return (
-      <Button variant="onDarkOutline" size="lg" disabled>
-        {platform} download unavailable
+      <Button variant="onDarkOutline" size="lg" disabled className="max-w-full">
+        <span className="whitespace-normal text-center leading-tight">{platform} download unavailable</span>
       </Button>
     );
   }

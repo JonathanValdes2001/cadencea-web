@@ -56,6 +56,12 @@ export const DAW_LABEL: Readonly<Record<DawKind, string>> = {
   other: 'DAW',
 };
 
+/** "an Ableton Live", "a Logic Pro": RL §9.7's evidence line hardcodes "a {daw} session". */
+export function dawWithArticle(daw: DawKind): string {
+  const label = DAW_LABEL[daw];
+  return `${daw === 'ableton' || daw === 'fl_studio' ? 'an' : 'a'} ${label}`;
+}
+
 /** Songs: "Available in Norway first" (§3.2); the seller can add territories. ISO 3166-1 alpha-2. */
 export const TERRITORIES: readonly { code: string; label: string }[] = [
   { code: 'NO', label: 'Norway' },

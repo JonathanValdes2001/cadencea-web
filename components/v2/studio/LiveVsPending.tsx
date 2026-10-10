@@ -126,7 +126,7 @@ export default function LiveVsPending({ view }: { view: ReleaseView }) {
     <div className="space-y-6">
       <ReviewDepthChip depth={summary.reviewDepth} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-4">
         {[
           { seed: liveCover, label: fill(DETAIL_UI.liveLabel, { n }) },
           { seed: pendingCover, label: fill(DETAIL_UI.pendingLabel, { next }) },
@@ -160,11 +160,11 @@ export default function LiveVsPending({ view }: { view: ReleaseView }) {
             ),
           )}
           {unchanged.length > 0 && (
-            <details className="px-4 py-3">
-              <summary className="min-h-11 cursor-pointer text-sm font-medium text-ink">
+            <details className="px-4">
+              <summary className="cursor-pointer py-3 text-sm font-medium text-ink">
                 {unchanged.length === 1 ? DETAIL_UI.fieldUnchanged : fill(DETAIL_UI.fieldsUnchanged, { n: unchanged.length })}
               </summary>
-              <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[11rem_minmax(0,1fr)]">
+              <dl className="grid gap-x-4 gap-y-1 pb-3 text-sm sm:grid-cols-[11rem_minmax(0,1fr)]">
                 {unchanged.map((spec) => (
                   <React.Fragment key={spec.field}>
                     <dt className="text-ink-subtle">{fieldLabel(spec.field, live)}</dt>

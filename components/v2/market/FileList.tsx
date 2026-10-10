@@ -112,7 +112,7 @@ export default function FileList({ listing, files }: { listing: MarketListing; f
                 <p className="text-xs text-ink-subtle tabular-nums">{fileMeta(file)}</p>
               </div>
               {sellsFiles && credits !== null && (
-                <div className="w-full pl-14 sm:w-auto sm:pl-0">
+                <div className="w-full pl-10 sm:w-auto sm:pl-0">
                   {fileOwned ? (
                     <span className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
                       <Check size={16} className="text-tone-success" />

@@ -14,7 +14,8 @@
   /* Color — ink (text) */
   --color-ink: #000000;
   --color-ink-muted: #555555;
-  --color-ink-subtle: #888888;
+  /* AA for small text on canvas, elevated and brand-50 (4.6:1 or more); #888888 was 3.5:1 */
+  --color-ink-subtle: #6E6E6E;
 
   /* Color — line (borders, dividers) */
   --color-line: #E0E0E0;
@@ -178,6 +179,21 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* Headings balance their lines and paragraphs avoid a one-word last line.
+   Only the wrap style is set, so `truncate` and `whitespace-nowrap` still win. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    text-wrap-style: balance;
+  }
+  p,
+  li,
+  dd {
+    text-wrap-style: pretty;
+  }
 }
 
 /* Scrollbar — quiet, matches the light surface model */

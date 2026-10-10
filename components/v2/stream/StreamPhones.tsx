@@ -44,8 +44,8 @@ function DiscoverScreen() {
       <p className="mt-1 self-start rounded-sm bg-brand-950 px-2 py-0.5 text-[10px] text-brand-200">
         Listening as Supporter · demo
       </p>
-      <div className="mt-3 overflow-hidden rounded-md border border-white/10 bg-white/5">
-        <div className="relative aspect-[16/10] overflow-hidden">
+      <div className="mt-3 shrink-0 overflow-hidden rounded-md border border-white/10 bg-white/5">
+        <div className="relative aspect-[2/1] overflow-hidden">
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
             <Cover release={hero} rounded="none" />
           </div>
@@ -59,7 +59,6 @@ function DiscoverScreen() {
           <p className="mt-1 text-[10px] leading-snug text-dark-muted">
             {reviewedOn(hero)} · {madeIn(hero)}
           </p>
-          <p className="mt-1 line-clamp-2 text-[10px] italic leading-snug text-dark-muted">{hero.linerNote}</p>
         </div>
       </div>
       <p className="mt-3 text-[11px] font-semibold">New verified releases</p>

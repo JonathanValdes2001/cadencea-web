@@ -110,10 +110,11 @@ export default async function Home() {
               </Button>
             </div>
             <ul aria-label="At a glance" className="mt-8 flex flex-wrap gap-x-2 gap-y-1 text-sm text-ink-subtle">
+              {/* The dot trails each item, so a wrapped line never starts with one. */}
               {trust.map((item, i) => (
                 <li key={item} className="flex items-center gap-2">
-                  {i > 0 && <span aria-hidden="true">·</span>}
                   {item}
+                  {i < trust.length - 1 && <span aria-hidden="true">·</span>}
                 </li>
               ))}
             </ul>

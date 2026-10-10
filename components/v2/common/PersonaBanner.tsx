@@ -18,7 +18,7 @@ export default function PersonaBanner({ className = '' }: { className?: string }
     : user?.email ?? '';
 
   return (
-    <div className={`flex items-start gap-3 rounded-md border border-line bg-elevated px-4 py-3 ${className}`}>
+    <div className={`flex items-center gap-3 rounded-md border border-line bg-elevated px-4 py-3 ${className}`}>
       <div className="w-9 shrink-0">
         <CoverArt seed={PERSONA.sellerHandle} kind="avatar" title={PERSONA.personName} decorative rounded="full" />
       </div>

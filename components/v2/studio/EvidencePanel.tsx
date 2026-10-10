@@ -2,7 +2,7 @@ import React from 'react';
 import { Shield } from '@/components/ui/Icons';
 import { fill, formatDate } from '@/lib/v2-demo/format';
 import { EVIDENCE_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
-import { DAW_LABEL } from '@/lib/v2-demo/release-lifecycle/options';
+import { dawWithArticle } from '@/lib/v2-demo/release-lifecycle/options';
 import type { ProvenanceEvidence, ReleaseType } from '@/lib/v2-demo/release-lifecycle/types';
 import { DETAIL_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
 
@@ -22,9 +22,9 @@ export function EvidenceSummary({
     <div className="text-sm leading-relaxed text-ink-muted">
       {session ? (
         <p>
-          {fill(EVIDENCE_COPY.body, {
+          {fill(EVIDENCE_COPY.body.replace('a {daw}', '{daw}'), {
             count: evidence.manifest.length,
-            daw: DAW_LABEL[session.daw],
+            daw: dawWithArticle(session.daw),
             stems: evidence.stemCount,
             date: evidence.projectCreatedAt ? formatDate(evidence.projectCreatedAt) : '',
           })}

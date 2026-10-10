@@ -62,7 +62,12 @@ export default function ReleaseRow({ view, state }: { view: ReleaseView; state: 
       <Meta label={STUDIO_UI.columns.activity}>{lastActivity(state, release).text}</Meta>
       <div className="flex items-center gap-2 md:justify-end">
         {primary && <ActionButton view={view} item={primary} variant="secondary" />}
-        {more.length > 0 && <ReleaseActionMenu view={view} items={more} label={fill(STUDIO_UI.rowMenu, { title })} />}
+        {more.length > 0 ? (
+          <ReleaseActionMenu view={view} items={more} label={fill(STUDIO_UI.rowMenu, { title })} />
+        ) : (
+          // Keeps the primary buttons of the table lined up when a row has no menu.
+          <span aria-hidden="true" className="hidden w-11 shrink-0 md:block" />
+        )}
       </div>
     </li>
   );

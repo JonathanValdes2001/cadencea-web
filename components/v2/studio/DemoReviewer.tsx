@@ -107,6 +107,21 @@ export function AutoApprover() {
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
+/** From `lg` the panel docks over the page (WEB-V2-SPEC §3.6); below it sits in the page flow. */
+const DOCKED_QUERY = '(min-width: 1024px)';
+
+function useDocked(): boolean {
+  return useSyncExternalStore(
+    (listener) => {
+      const query = window.matchMedia(DOCKED_QUERY);
+      query.addEventListener('change', listener);
+      return () => query.removeEventListener('change', listener);
+    },
+    () => window.matchMedia(DOCKED_QUERY).matches,
+    () => false,
+  );
+}
+
 function openReviewCase(state: LifecycleState, view: ReleaseView): ReviewCase | null {
   const revision = view.open;
   if (!revision) return null;
@@ -339,7 +354,10 @@ export default function DemoReviewer({ releaseId }: { releaseId: string }) {
   const auto = useAutoApprove();
   const titleId = useId();
   const bodyId = useId();
-  const [collapsed, setCollapsed] = useState(false);
+  // Docked, it starts collapsed so it doesn't cover the release's own actions; in the flow it starts open.
+  const docked = useDocked();
+  const [collapsedChoice, setCollapsedChoice] = useState<boolean | null>(null);
+  const collapsed = collapsedChoice ?? docked;
   const [form, setForm] = useState<FormKind | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -421,7 +439,9 @@ export default function DemoReviewer({ releaseId }: { releaseId: string }) {
   return (
     <aside
       aria-labelledby={titleId}
-      className="mt-10 rounded-md border-2 border-dashed border-brand-300 bg-canvas p-4 lg:fixed lg:bottom-6 lg:right-6 lg:z-40 lg:mt-0 lg:max-h-[calc(100vh-7rem)] lg:w-[400px] lg:overflow-y-auto lg:shadow-dropdown"
+      className={`mt-10 rounded-md border-2 border-dashed border-brand-300 bg-canvas p-4 lg:fixed lg:bottom-6 lg:right-6 lg:z-40 lg:mt-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:shadow-dropdown ${
+        collapsed ? 'lg:w-auto' : 'lg:w-[400px]'
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -435,7 +455,7 @@ export default function DemoReviewer({ releaseId }: { releaseId: string }) {
           aria-expanded={!collapsed}
           aria-controls={bodyId}
           aria-label={collapsed ? DEMO_REVIEWER_UI.expand : DEMO_REVIEWER_UI.collapse}
-          onClick={() => setCollapsed((c) => !c)}
+          onClick={() => setCollapsedChoice(!collapsed)}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm text-ink-muted hover:bg-elevated hover:text-ink"
         >
           <Chevron size={20} className={collapsed ? 'rotate-180' : ''} />

@@ -305,14 +305,16 @@ export default function PricingPage() {
                     {showV2 && (
                       <li className="flex items-start gap-2">
                         <Check />
-                        <span className="flex-1">
+                        <span>
                           {
                             PRICING_CREDITS.planLines[
                               plan.name.toLowerCase() as keyof typeof PRICING_CREDITS.planLines
                             ]
-                          }
+                          }{' '}
+                          <Badge tone="demo" className="align-text-bottom">
+                            Preview
+                          </Badge>
                         </span>
-                        <Badge tone="demo">Preview</Badge>
                       </li>
                     )}
                   </ul>
