@@ -75,10 +75,13 @@ const promises: { label: string; href?: string }[] = [
   { label: 'Export your account data anytime', href: '/account/settings' },
 ];
 
+/** How long this page waits for each platform's updater manifest (fetched fresh, never cached). */
+const FEED_TIMEOUT_MS = 3000;
+
 const systemRequirements = [
   {
     name: 'Windows',
-    available: true,
+    available: false,
     items: [
       'Windows 10 or later',
       '64-bit processor',
@@ -105,26 +108,39 @@ const systemRequirements = [
 
 export default async function CadenceaVault() {
   const preview = isPreviewSite();
-  const releases = await loadCadenceaVaultReleases();
+  const releases = await loadCadenceaVaultReleases(fetch, { timeoutMs: FEED_TIMEOUT_MS });
   const windowsDownloadUrl = releases.windows?.downloadUrl;
   const macArm64DownloadUrl = releases.macArm64?.downloadUrl;
   const macX64DownloadUrl = releases.macX64?.downloadUrl;
   const macAvailable = Boolean(macArm64DownloadUrl || macX64DownloadUrl);
-  const anyMissing = !windowsDownloadUrl || !macArm64DownloadUrl || !macX64DownloadUrl;
-  const systems = systemRequirements.map((system) =>
-    system.name === 'macOS' ? { ...system, available: macAvailable } : system,
-  );
+  const noneAvailable = !windowsDownloadUrl && !macAvailable;
+  const someMissing = !noneAvailable && (!windowsDownloadUrl || !macArm64DownloadUrl || !macX64DownloadUrl);
+  // Windows and macOS have both shipped, so a missing build is an outage (or,
+  // on the preview, a beta that isn't published yet), never a planned platform.
+  const unavailableLabel = preview && noneAvailable ? 'Not published yet' : 'Temporarily unavailable';
+  const systems = systemRequirements.map((system) => {
+    if (system.name === 'Windows') return { ...system, available: Boolean(windowsDownloadUrl) };
+    if (system.name === 'macOS') return { ...system, available: macAvailable };
+    return system;
+  });
 
-  let availability: string;
+  // With nothing to download, the status card under the lead says so instead.
+  let availability = '';
   if (windowsDownloadUrl && macAvailable) {
     availability = 'For Windows 10+ and macOS 12+ on Apple Silicon and Intel.';
   } else if (windowsDownloadUrl) {
     availability = 'For Windows 10+. The macOS download is temporarily unavailable.';
   } else if (macAvailable) {
     availability = 'For macOS 12+ on Apple Silicon and Intel. The Windows download is temporarily unavailable.';
-  } else {
-    availability = 'Downloads are temporarily unavailable. Please check back soon.';
   }
+
+  const betaNote = (
+    <>
+      These are CadenceaVault Beta builds. The beta installs next to Cadencea Vault, keeps its own local settings and
+      signs in with your normal Cadencea account. It uses the same cloud, so pushes, shares and deletes are real. Use a
+      separate test vault folder; the beta won&rsquo;t open the folder your main app uses.
+    </>
+  );
 
   return (
     <div className="bg-canvas text-ink">
@@ -148,7 +164,8 @@ export default async function CadenceaVault() {
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
                 Cadencea Vault reads the project folders you already have, shows each one with its BPM, key, tags and
-                artwork, and pushes a lossless copy to the cloud when you&rsquo;re ready. {availability}
+                artwork, and pushes a lossless copy to the cloud when you&rsquo;re ready.
+                {availability && ` ${availability}`}
               </p>
 
               <ul className="mt-8 flex flex-wrap items-center gap-2.5">
@@ -164,36 +181,62 @@ export default async function CadenceaVault() {
               </ul>
 
               <div id="download" className="scroll-mt-24">
-                {preview && (
-                  <p className="mt-10 max-w-2xl rounded-md border border-brand-400/30 bg-brand-950 px-4 py-3 text-sm leading-relaxed text-brand-100">
-                    These are CadenceaVault Beta builds. The beta installs next to Cadencea Vault, keeps its own local
-                    settings and signs in with your normal Cadencea account. It uses the same cloud, so pushes, shares
-                    and deletes are real. Use a separate test vault folder; the beta won&rsquo;t open the folder your
-                    main app uses.
-                  </p>
-                )}
-                <div className="mt-10 flex flex-wrap gap-3">
-                  <DownloadButton platform="Windows" variant="primary" href={windowsDownloadUrl} />
-                  <DownloadButton platform="Mac (Apple Silicon)" variant="onDark" href={macArm64DownloadUrl} />
-                  <DownloadButton platform="Mac (Intel)" variant="onDark" href={macX64DownloadUrl} />
-                  <Button variant="onDarkOutline" size="lg" disabled>
-                    Linux · planned
-                  </Button>
-                </div>
-                {anyMissing && (
-                  <p className="mt-4 text-sm text-dark-muted">
-                    This download is temporarily unavailable. Try again later or contact{' '}
-                    <a href="mailto:support@cadencea.app" className="font-medium text-brand-300 hover:text-brand-200">
-                      support@cadencea.app
-                    </a>
-                    .
-                  </p>
-                )}
-                {macAvailable && (
-                  <p className="mt-4 text-sm text-dark-muted">
-                    Not sure which Mac you have? Apple menu → About This Mac. &ldquo;Chip: Apple M…&rdquo; means
-                    Apple Silicon; &ldquo;Processor: Intel&rdquo; means Intel.
-                  </p>
+                {noneAvailable ? (
+                  <>
+                    <div className="mt-10 max-w-xl rounded-md border border-white/10 bg-white/5 p-5">
+                      <p className="text-base font-semibold text-dark-text">
+                        {preview ? 'Beta builds are coming' : 'Downloads are temporarily unavailable'}
+                      </p>
+                      <p className="mt-1 text-sm text-dark-muted">
+                        Windows · macOS (Apple Silicon and Intel) · Linux planned
+                      </p>
+                      <p className="mt-3 text-sm leading-relaxed text-dark-muted">
+                        {preview ? 'The beta builds aren’t published yet. Check back soon.' : 'Please check back soon.'}{' '}
+                        Questions? Contact{' '}
+                        <a href="mailto:support@cadencea.app" className="font-medium text-brand-300 hover:text-brand-200">
+                          support@cadencea.app
+                        </a>
+                        .
+                      </p>
+                      {preview && (
+                        <Button href="#detect" variant="onDark" size="md" className="mt-5" prefetch={false}>
+                          See what&rsquo;s in 2.0
+                        </Button>
+                      )}
+                    </div>
+                    {preview && <p className="mt-4 max-w-xl text-xs leading-relaxed text-dark-muted">{betaNote}</p>}
+                  </>
+                ) : (
+                  <>
+                    {preview && (
+                      <p className="mt-10 max-w-2xl rounded-md border border-brand-400/30 bg-brand-950 px-4 py-3 text-sm leading-relaxed text-brand-100">
+                        {betaNote}
+                      </p>
+                    )}
+                    <div className="mt-10 flex flex-wrap gap-3">
+                      <DownloadButton platform="Windows" variant="primary" href={windowsDownloadUrl} />
+                      <DownloadButton platform="Mac (Apple Silicon)" variant="onDark" href={macArm64DownloadUrl} />
+                      <DownloadButton platform="Mac (Intel)" variant="onDark" href={macX64DownloadUrl} />
+                      <Button variant="onDarkOutline" size="lg" disabled>
+                        Linux · planned
+                      </Button>
+                    </div>
+                    {someMissing && (
+                      <p className="mt-4 text-sm text-dark-muted">
+                        Some downloads are temporarily unavailable. Try again later or contact{' '}
+                        <a href="mailto:support@cadencea.app" className="font-medium text-brand-300 hover:text-brand-200">
+                          support@cadencea.app
+                        </a>
+                        .
+                      </p>
+                    )}
+                    {macAvailable && (
+                      <p className="mt-4 text-sm text-dark-muted">
+                        Not sure which Mac you have? Apple menu → About This Mac. &ldquo;Chip: Apple M…&rdquo; means
+                        Apple Silicon; &ldquo;Processor: Intel&rdquo; means Intel.
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -327,7 +370,7 @@ export default async function CadenceaVault() {
                   {sys.name}
                   {!sys.available && sys.items.length > 0 && (
                     <span className="ml-2 text-xs font-normal uppercase tracking-wide text-ink-subtle">
-                      Coming soon
+                      {unavailableLabel}
                     </span>
                   )}
                 </h3>

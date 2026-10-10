@@ -91,17 +91,18 @@ test('availability reads the release feed per platform', () => {
   assert.equal(label({ windows: win, macArm64: null, macX64: mac }), 'Windows and macOS')
   assert.equal(label({ windows: win, macArm64: null, macX64: null }), 'Windows (macOS coming back soon)')
   assert.equal(label({ windows: null, macArm64: mac }), 'macOS (Windows coming back soon)')
-  assert.equal(label({}), 'Downloads temporarily unavailable')
+  // A failing feed on the live site names the platforms; /cadenceavault reports the outage.
+  assert.equal(label({}), 'Windows and macOS')
   assert.equal(label({}, true), 'Beta builds coming soon')
 })
 
-test('a slow or failing release feed falls back instead of stalling the page', async () => {
-  const never = new Promise(() => {})
-  const started = Date.now()
-  assert.deepEqual(await withTimeout(never, 20, {}), {})
-  assert.ok(Date.now() - started < 1000)
-  assert.deepEqual(await withTimeout(Promise.reject(new Error('B2 down')), 1000, {}), {})
-  assert.equal(await withTimeout(Promise.resolve('feed'), 1000, 'fallback'), 'feed')
+// Windows and macOS have shipped: a missing build is "temporarily unavailable"
+// (or, on the preview, "not published yet"), never "coming soon".
+test('the Vault page never calls a shipped platform coming soon', async () => {
+  const vault = await readFile(path.join(root, 'app/cadenceavault/page.tsx'), 'utf8')
+  assert.doesNotMatch(vault, /Coming soon/i)
+  assert.doesNotMatch(vault, /This download is temporarily unavailable/)
+  assert.match(vault, /Temporarily unavailable/)
 })
 
 // The /stream teaser mirrors STREAM-SPEC §2.7's golden case, so the website and

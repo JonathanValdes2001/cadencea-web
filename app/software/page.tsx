@@ -8,6 +8,7 @@ import CoverArt from '@/components/ui/CoverArt';
 import { ArrowRight } from '@/components/ui/Icons';
 import {
   availabilityLabel,
+  RELEASE_FEED_REVALIDATE_S,
   RELEASE_FEED_TIMEOUT_MS,
   withTimeout,
   type VaultReleases,
@@ -31,9 +32,12 @@ type Product = {
 
 export default async function SoftwarePage() {
   const preview = isPreviewSite();
+  // Three B2 manifests, cached for a few minutes and each given up on after
+  // the timeout, so a slow platform drops out alone; the outer timeout is a
+  // last safety net so B2 can never stall the page.
   const releases: VaultReleases = await withTimeout(
-    loadCadenceaVaultReleases(),
-    RELEASE_FEED_TIMEOUT_MS,
+    loadCadenceaVaultReleases(fetch, { revalidate: RELEASE_FEED_REVALIDATE_S, timeoutMs: RELEASE_FEED_TIMEOUT_MS }),
+    RELEASE_FEED_TIMEOUT_MS + 500,
     {},
   );
 

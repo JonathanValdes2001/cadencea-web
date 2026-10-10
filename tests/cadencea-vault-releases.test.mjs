@@ -93,3 +93,42 @@ test('the live site offers the released app and previews offer the v2 beta build
   assert.equal(releases.windows.version, '2.0.0-beta.1');
   assert.match(releases.windows.downloadUrl, /\/cadencea-vault-beta\/win\/CadenceaVault%20Beta%20Setup/);
 });
+
+test('busy pages cache each manifest for a few minutes instead of fetching per visitor', async () => {
+  const requests = [];
+  const fakeFetch = async (url, options) => {
+    requests.push(options);
+    const artifacts = url.includes('/win/') ? ['CadenceaVault Setup 1.2.0.exe'] : ['CadenceaVault-1.2.0-arm64.dmg'];
+    return { ok: true, status: 200, text: async () => manifest('1.2.0', artifacts) };
+  };
+
+  await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'production' }, revalidate: 300 });
+
+  assert.equal(requests.length, 3);
+  for (const options of requests) {
+    assert.deepEqual(options.next, { revalidate: 300 });
+    assert.equal(options.cache, undefined, 'no-store would bypass the Data Cache');
+  }
+});
+
+test('a slow manifest drops only its own platform', async () => {
+  const fakeFetch = (url, options) =>
+    new Promise((resolve, reject) => {
+      const artifacts = url.includes('/win/') ? ['CadenceaVault Setup 1.2.0.exe'] : ['CadenceaVault-1.2.0-arm64.dmg'];
+      const respond = () => resolve({ ok: true, status: 200, text: async () => manifest('1.2.0', artifacts) });
+      if (!url.includes('/mac/x64/')) return respond();
+      // The Intel feed hangs until the request is aborted.
+      options.signal.addEventListener('abort', () => reject(options.signal.reason));
+    });
+
+  // AbortSignal.timeout's timer doesn't hold the event loop open; a server's does.
+  const keepAlive = setTimeout(() => {}, 5000);
+  const started = Date.now();
+  const releases = await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'production' }, timeoutMs: 50 });
+  clearTimeout(keepAlive);
+
+  assert.ok(Date.now() - started < 1000);
+  assert.equal(releases.macX64, null);
+  assert.equal(releases.windows.version, '1.2.0');
+  assert.equal(releases.macArm64.version, '1.2.0');
+});

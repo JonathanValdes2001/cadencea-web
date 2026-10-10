@@ -7,7 +7,9 @@ import BeforeAfter from '@/components/v2/home/BeforeAfter';
 import CompareTable from '@/components/v2/home/CompareTable';
 import WhatsNext from '@/components/v2/home/WhatsNext';
 import {
+  anyDownload,
   availabilityLabel,
+  RELEASE_FEED_REVALIDATE_S,
   RELEASE_FEED_TIMEOUT_MS,
   withTimeout,
   type VaultReleases,
@@ -71,11 +73,12 @@ const faqs = [
 
 export default async function Home() {
   const preview = isPreviewSite();
-  // The feed is three B2 requests per visit; past the timeout the page renders
-  // as if nothing were available rather than waiting on B2.
+  // Three B2 manifests, cached for a few minutes and each given up on after
+  // the timeout, so a slow platform drops out alone; the outer timeout is a
+  // last safety net so B2 can never stall the page.
   const releases: VaultReleases = await withTimeout(
-    loadCadenceaVaultReleases(),
-    RELEASE_FEED_TIMEOUT_MS,
+    loadCadenceaVaultReleases(fetch, { revalidate: RELEASE_FEED_REVALIDATE_S, timeoutMs: RELEASE_FEED_TIMEOUT_MS }),
+    RELEASE_FEED_TIMEOUT_MS + 500,
     {},
   );
   const trust = [
@@ -103,7 +106,7 @@ export default async function Home() {
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <Button href="/cadenceavault#download" size="lg">
-                Download free
+                {anyDownload(releases) ? 'Download free' : 'Get Cadencea Vault'}
               </Button>
               <Button href="/pricing" variant="secondary" size="lg">
                 See pricing
