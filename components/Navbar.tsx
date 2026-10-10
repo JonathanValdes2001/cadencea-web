@@ -1,13 +1,18 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import CreditsChip, { CreditsTotal } from '@/components/v2/common/CreditsChip';
 import Button from '@/components/ui/Button';
 import { Chevron, Close, Menu } from '@/components/ui/Icons';
+
+// The demo wallet (store, seeds and wallet logic) is preview-only: loaded as its
+// own chunk, so production pages never download it.
+const CreditsChip = dynamic(() => import('@/components/v2/common/CreditsChip'));
+const CreditsTotal = dynamic(() => import('@/components/v2/common/CreditsChip').then((m) => m.CreditsTotal));
 
 const productionLinks = [
   { href: '/cadenceavault', label: 'Cadencea Vault' },

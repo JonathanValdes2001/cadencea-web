@@ -37,6 +37,12 @@ export const PRICING_CREDITS = {
   },
 } as const;
 
+/** The preview-only pricing FAQ item (WEB-V2-SPEC §5.5); production doesn't announce the Market yet. */
+export const PRICING_MARKET_FAQ = {
+  q: 'What are Market credits?',
+  a: 'Credits for sounds, presets, MIDI and themes on Cadencea Market, planned for Cadencea 2.0. Paid plans are planned to include some every month. See the credits section above.',
+} as const;
+
 /** §9.2: the seven-step explainer. */
 export const CREDITS_EXPLAINER = [
   {

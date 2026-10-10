@@ -1,13 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import Badge from '@/components/ui/Badge';
 import Faq from '@/components/ui/Faq';
-import PricingCreditsSection from '@/components/v2/credits/PricingCreditsSection';
 import { useShowV2 } from '@/components/v2/common/V2Flag';
-import { PRICING_CREDITS } from '@/lib/v2-demo/credits/copy';
 import {
   api,
   ApiError,
@@ -129,11 +127,11 @@ function activePaidPlan(status: SubscriptionStatusResponse): string | null {
   return /^(canceled|incomplete_expired)/.test(status.status ?? '') ? null : plan;
 }
 
-// Preview only (WEB-V2-SPEC §5.5): production doesn't announce the Market yet.
-const marketCreditsFaq = {
-  q: 'What are Market credits?',
-  a: 'Credits for sounds, presets, MIDI and themes on Cadencea Market, planned for Cadencea 2.0. Paid plans are planned to include some every month. See the credits section above.',
-};
+// Preview only (WEB-V2-SPEC §5.5): production doesn't announce the Market yet,
+// so these load as separate chunks that production never requests.
+const PricingCreditsSection = dynamic(() => import('@/components/v2/credits/PricingCreditsSection'));
+const PlanCreditsLine = dynamic(() => import('@/components/v2/credits/PlanCreditsLine'));
+const PricingFaqWithMarket = dynamic(() => import('@/components/v2/credits/PricingFaqWithMarket'));
 
 export default function PricingPage() {
   const router = useRouter();
@@ -336,21 +334,7 @@ export default function PricingPage() {
                         <span>{f}</span>
                       </li>
                     ))}
-                    {showV2 && (
-                      <li className="flex items-start gap-2">
-                        <Check />
-                        <span>
-                          {
-                            PRICING_CREDITS.planLines[
-                              plan.name.toLowerCase() as keyof typeof PRICING_CREDITS.planLines
-                            ]
-                          }{' '}
-                          <Badge tone="demo" className="align-text-bottom">
-                            Preview
-                          </Badge>
-                        </span>
-                      </li>
-                    )}
+                    {showV2 && <PlanCreditsLine plan={plan.name} check={<Check />} />}
                   </ul>
 
                   {paidPlan && !isFree ? (
@@ -441,10 +425,11 @@ export default function PricingPage() {
           <h2 className="text-3xl font-bold tracking-tight text-ink md:text-4xl">
             Pricing questions.
           </h2>
-          <Faq
-            className="mt-10"
-            items={showV2 ? [...pricingFaq, marketCreditsFaq] : pricingFaq}
-          />
+          {showV2 ? (
+            <PricingFaqWithMarket className="mt-10" items={pricingFaq} />
+          ) : (
+            <Faq className="mt-10" items={pricingFaq} />
+          )}
           <p className="mt-16 text-sm text-ink-muted">
             Studio or team?{' '}
             <a href="/contact" className="font-medium text-accent hover:text-accent-hover">
