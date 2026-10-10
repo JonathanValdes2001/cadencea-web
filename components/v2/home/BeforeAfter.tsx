@@ -29,7 +29,7 @@ const AFTER_PROJECTS: { title: string; meta: string; chip: SyncChip; palette: 'v
 /** Home "Before and after": a messy project folder next to the same work in the vault. */
 export default function BeforeAfter() {
   return (
-    <section className="border-b border-line py-20 lg:py-28">
+    <section className="py-14 sm:py-20 lg:py-24">
       <Container>
         <SectionHeader
           eyebrow="Why Cadencea Vault"

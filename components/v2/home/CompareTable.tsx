@@ -23,7 +23,7 @@ const VAULT = 'Cadencea Vault';
  */
 export default function CompareTable() {
   return (
-    <section className="border-b border-line py-20 lg:py-28">
+    <section className="py-14 sm:py-20 lg:py-24">
       <Container>
         <SectionHeader
           title="Why not just a cloud folder?"

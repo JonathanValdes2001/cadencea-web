@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import Container, { ShowroomGlow } from '@/components/ui/Container';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { Check } from '@/components/ui/Icons';
+import VaultMock from '@/components/v2/home/VaultMock';
 import DetectCard from '@/components/v2/vault/DetectCard';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
@@ -172,7 +173,7 @@ export default async function CadenceaVault() {
                 {heroChips.map((chip) => (
                   <li
                     key={chip}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-brand-400/30 bg-brand-400/10 px-3 py-1 text-xs font-medium text-brand-300"
+                    className="inline-flex items-center gap-1.5 rounded-sm border border-brand-400/30 bg-brand-400/10 px-2.5 py-1 text-xs font-medium text-brand-300"
                   >
                     <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand-400" />
                     {chip}
@@ -241,16 +242,11 @@ export default async function CadenceaVault() {
               </div>
             </div>
 
-            {/* Flagship screenshot */}
-            <div className="relative mx-auto mt-16 max-w-6xl lg:mt-20">
-              <ScreenshotFrame
-                src="/vault/library.png"
-                alt="Cadencea Vault project library with album art, tags and a playback bar"
-                width={2005}
-                height={1357}
-                priority
-                sizes="(min-width: 1024px) 1152px, 100vw"
-              />
+            {/* Flagship visual: a code-built library of fictional projects (the old screenshot showed a real
+                account's name, email and third-party artwork; WEB-V2-SPEC §9.1 tracks clean reshoots). */}
+            <div className="relative isolate mx-auto mt-16 max-w-4xl lg:mt-20">
+              <FrameGlow />
+              <VaultMock />
             </div>
           </Container>
         </section>
@@ -305,7 +301,7 @@ export default async function CadenceaVault() {
       </div>
 
       {/* Features */}
-      <section className="border-b border-line py-20 lg:py-28">
+      <section className="border-b border-line py-14 sm:py-20 lg:py-24">
         <Container>
           <SectionHeader
             eyebrow="What it does"
@@ -324,7 +320,7 @@ export default async function CadenceaVault() {
       </section>
 
       {/* Promises you can check */}
-      <section className="border-b border-line py-20 lg:py-28">
+      <section className="py-14 sm:py-20 lg:py-24">
         <Container>
           <SectionHeader title="Promises you can check" />
           <ul className="mt-10 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -345,7 +341,7 @@ export default async function CadenceaVault() {
       </section>
 
       {/* Pricing CTA */}
-      <section className="border-b border-line bg-elevated py-20 lg:py-28">
+      <section className="bg-elevated py-14 sm:py-20 lg:py-24">
         <Container className="text-center">
           <SectionHeader
             align="center"
@@ -360,7 +356,7 @@ export default async function CadenceaVault() {
       </section>
 
       {/* System requirements */}
-      <section className="py-20 lg:py-28">
+      <section className="py-14 sm:py-20 lg:py-24">
         <Container>
           <SectionHeader eyebrow="Specs" title="System requirements." />
           <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-3">
@@ -432,6 +428,16 @@ function ShowcaseRow({
   );
 }
 
+/** The violet bloom behind a framed product visual. */
+function FrameGlow() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute -inset-8 -z-10 bg-[radial-gradient(55%_55%_at_50%_45%,color-mix(in_srgb,var(--color-brand-500)_40%,transparent),color-mix(in_srgb,var(--color-brand-700)_12%,transparent)_55%,transparent_78%)] blur-2xl"
+    />
+  );
+}
+
 function ScreenshotFrame({
   src,
   alt,
@@ -449,10 +455,7 @@ function ScreenshotFrame({
 }) {
   return (
     <div className="relative isolate">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -inset-8 -z-10 bg-[radial-gradient(55%_55%_at_50%_45%,color-mix(in_srgb,var(--color-brand-500)_40%,transparent),color-mix(in_srgb,var(--color-brand-700)_12%,transparent)_55%,transparent_78%)] blur-2xl"
-      />
+      <FrameGlow />
       <div className="overflow-hidden rounded-lg border border-white/10 bg-showroom-to shadow-brand-glow ring-1 ring-white/5">
         <Image src={src} alt={alt} width={width} height={height} priority={priority} sizes={sizes} className="h-auto w-full" />
       </div>

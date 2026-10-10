@@ -1,11 +1,12 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
 import Badge from '@/components/ui/Badge';
 import Container from '@/components/ui/Container';
-import CoverArt from '@/components/ui/CoverArt';
 import { ArrowRight } from '@/components/ui/Icons';
+import VaultMock from '@/components/v2/home/VaultMock';
+import CoverMosaic from '@/components/v2/market/CoverMosaic';
+import { StreamPhonePreview } from '@/components/v2/stream/StreamPhones';
 import {
   availabilityLabel,
   RELEASE_FEED_REVALIDATE_S,
@@ -47,16 +48,12 @@ export default async function SoftwarePage() {
       description:
         'Organize your DAW projects, see BPM, key and tags, and back up every session bit for bit. Share whole projects with collaborators.',
       href: '/cadenceavault',
-      status: availabilityLabel(releases, { preview }),
+      status: <Badge tone="neutral">{availabilityLabel(releases, { preview })}</Badge>,
+      // The library, cropped into the card: a picture of the app, not a logo.
       media: (
-        <Image
-          src="/logo/og-social-card.svg"
-          alt=""
-          fill
-          sizes="(min-width: 1024px) 400px, (min-width: 768px) 50vw, 100vw"
-          className="object-cover"
-          priority
-        />
+        <div className="absolute inset-x-6 top-6">
+          <VaultMock />
+        </div>
       ),
     },
   ];
@@ -68,14 +65,22 @@ export default async function SoftwarePage() {
         description: 'Sounds, Splits, presets and beats from producers, published from their vault.',
         href: '/market',
         status: <Badge tone="demo">Preview</Badge>,
-        media: <ArcsCover seed="software-market" palette="violet" />,
+        media: (
+          <div className="absolute inset-x-8 top-6">
+            <CoverMosaic label={false} />
+          </div>
+        ),
       },
       {
         name: 'Cadencea Stream',
         description: 'A concept for streaming human-made music, where listeners pay the artists they play.',
         href: '/stream',
         status: <Badge tone="demo">Preview</Badge>,
-        media: <ArcsCover seed="software-stream" palette="tide" />,
+        media: (
+          <div className="absolute left-1/2 top-6 -translate-x-1/2">
+            <StreamPhonePreview />
+          </div>
+        ),
       },
     );
   }
@@ -83,7 +88,7 @@ export default async function SoftwarePage() {
   return (
     <div className="bg-canvas text-ink">
       {/* Hero */}
-      <section className="border-b border-line py-20 lg:py-28">
+      <section className="border-b border-line py-14 sm:py-20 lg:py-24">
         <Container>
           <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">Software</p>
           <h1 className="mt-3 text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
@@ -96,7 +101,7 @@ export default async function SoftwarePage() {
       </section>
 
       {/* Product grid */}
-      <section className="border-b border-line py-16 lg:py-24">
+      <section className="py-14 sm:py-20 lg:py-24">
         <Container>
           <ul className="grid grid-cols-1 gap-x-6 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => (
@@ -105,9 +110,13 @@ export default async function SoftwarePage() {
                   href={p.href}
                   className="hover-lift group flex h-full flex-col overflow-hidden rounded-md border border-line bg-canvas hover:border-line-strong"
                 >
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-dark">{p.media}</div>
+                  {/* One media treatment for every product: its own picture on the showroom surface. Decorative:
+                      the card's title and text already name it. */}
+                  <div aria-hidden="true" className="relative aspect-[16/9] w-full overflow-hidden bg-showroom">
+                    {p.media}
+                  </div>
                   <div className="flex flex-1 flex-col p-6">
-                    <div className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">{p.status}</div>
+                    <div className="flex h-6 items-center">{p.status}</div>
                     <h2 className="mt-2 text-lg font-semibold tracking-tight text-ink">{p.name}</h2>
                     <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">{p.description}</p>
                     <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-ink group-hover:text-accent-ink">
@@ -121,15 +130,6 @@ export default async function SoftwarePage() {
           </ul>
         </Container>
       </section>
-    </div>
-  );
-}
-
-/** A square generated cover, centred and cropped into the card's 16:9 frame. */
-function ArcsCover({ seed, palette }: { seed: string; palette: 'violet' | 'tide' }) {
-  return (
-    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
-      <CoverArt seed={seed} kind="theme" motif="arcs" palette={palette} decorative rounded="none" />
     </div>
   );
 }

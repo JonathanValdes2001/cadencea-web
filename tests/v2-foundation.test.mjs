@@ -29,7 +29,7 @@ import {
   formatRelative,
   PITCH_CLASSES,
 } from '../lib/v2-demo/format.ts'
-import { generateCover, hash, initials, waveformBars } from '../lib/v2-demo/cover.ts'
+import { MOTIFS_BY_KIND, generateCover, hash, initials, waveformBars } from '../lib/v2-demo/cover.ts'
 import { DEMO_NOW, addDays, nextDemoTime } from '../lib/v2-demo/clock.ts'
 import { buildRecipe } from '../lib/v2-demo/audio-recipe.ts'
 import { CATEGORIES, CATEGORY_KEYS, RESERVED_MARKET_SEGMENTS, isCategoryKey } from '../lib/v2-demo/categories.ts'
@@ -166,7 +166,7 @@ test('cover: deterministic per seed, varied across seeds', () => {
   const a = generateCover({ seed: 'kiln-drill-kit', kind: 'sample_pack' })
   assert.deepEqual(generateCover({ seed: 'kiln-drill-kit', kind: 'sample_pack' }), a)
   assert.notDeepEqual(generateCover({ seed: 'tram-line-textures', kind: 'sample_pack' }), a)
-  assert.equal(a.motif, 'bars')
+  assert.ok(['bars', 'slice', 'halftone'].includes(a.motif), a.motif)
   for (const kind of RELEASE_TYPES) {
     for (let i = 0; i < 20; i += 1) {
       const spec = generateCover({ seed: `seed-${i}`, kind })
@@ -176,6 +176,21 @@ test('cover: deterministic per seed, varied across seeds', () => {
     }
   }
   assert.equal(generateCover({ seed: 'x', kind: 'theme', palette: 'violet' }).palette, 'violet')
+  // Each type draws from its own motifs (a theme never looks like a Splits pack, a song never like presets).
+  const owners = new Map()
+  for (const [kind, motifs] of Object.entries(MOTIFS_BY_KIND)) {
+    for (const motif of motifs) {
+      assert.equal(owners.get(motif), undefined, `${motif} is used by ${owners.get(motif)} and ${kind}`)
+      owners.set(motif, kind)
+    }
+  }
+  // A rail of one type mixes its motifs.
+  const sampleMotifs = new Set(Array.from({ length: 12 }, (_, i) => generateCover({ seed: `pack-${i}`, kind: 'sample_pack' }).motif))
+  assert.ok(sampleMotifs.size > 1)
+  // MIDI notes sit below the card's type badge.
+  for (let i = 0; i < 20; i += 1) {
+    for (const note of generateCover({ seed: `midi-${i}`, kind: 'midi_pack' }).shapes) assert.ok(note.y >= 96)
+  }
   const avatar = generateCover({ seed: 'kiln-theory', kind: 'avatar', title: 'Kiln Theory' })
   assert.equal(avatar.motif, 'monogram')
   assert.equal(avatar.monogram, 'KT')

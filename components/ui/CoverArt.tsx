@@ -1,7 +1,13 @@
 import React, { useId } from 'react';
-import { generateCover, type CoverKind, type Motif, type PaletteName } from '@/lib/v2-demo/cover';
+import { generateCover, type CoverKind, type CoverSpec, type Motif, type PaletteName } from '@/lib/v2-demo/cover';
 
 const ROUNDED = { none: '', sm: 'rounded-sm', md: 'rounded-md', full: 'rounded-full' } as const;
+
+/** Scale and turn the motif about the centre, then move it (it may crop at the edge). */
+function frameTransform(frame: CoverSpec['frame']): string | undefined {
+  if (!frame) return undefined;
+  return `translate(${200 + frame.dx} ${200 + frame.dy}) rotate(${frame.rotate}) scale(${frame.scale}) translate(-200 -200)`;
+}
 
 /**
  * Generated cover art and avatars (WEB-V2-SPEC §3.4): inline SVG from a seed, so
@@ -73,48 +79,54 @@ export default function CoverArt({
         )}
       </defs>
       <rect width="400" height="400" fill={`url(#${base}-bg)`} />
-      {spec.shapes.map((shape, i) => {
-        if (shape.type === 'rect') {
+      <g transform={frameTransform(spec.frame)}>
+        {spec.shapes.map((shape, i) => {
+          if (shape.type === 'rect') {
+            return (
+              <rect
+                key={i}
+                x={shape.x}
+                y={shape.y}
+                width={shape.width}
+                height={shape.height}
+                rx={shape.rx}
+                fill={paint(shape.fill)}
+                opacity={shape.opacity}
+                transform={shape.rotate ? `rotate(${shape.rotate} 200 200)` : undefined}
+              />
+            );
+          }
+          if (shape.type === 'circle') {
+            return (
+              <circle
+                key={i}
+                cx={shape.cx}
+                cy={shape.cy}
+                r={shape.r}
+                fill={paint(shape.fill)}
+                stroke={paint(shape.stroke)}
+                strokeWidth={shape.strokeWidth}
+                opacity={shape.opacity}
+              />
+            );
+          }
+          if (shape.type === 'fill') {
+            return <path key={i} d={shape.d} fill={paint(shape.fill)} opacity={shape.opacity} />;
+          }
           return (
-            <rect
+            <path
               key={i}
-              x={shape.x}
-              y={shape.y}
-              width={shape.width}
-              height={shape.height}
-              rx={shape.rx}
-              fill={paint(shape.fill)}
-              opacity={shape.opacity}
-              transform={shape.rotate ? `rotate(${shape.rotate} 200 200)` : undefined}
-            />
-          );
-        }
-        if (shape.type === 'circle') {
-          return (
-            <circle
-              key={i}
-              cx={shape.cx}
-              cy={shape.cy}
-              r={shape.r}
-              fill={paint(shape.fill)}
+              d={shape.d}
+              fill="none"
               stroke={paint(shape.stroke)}
               strokeWidth={shape.strokeWidth}
+              strokeLinecap="round"
+              strokeLinejoin="round"
               opacity={shape.opacity}
             />
           );
-        }
-        return (
-          <path
-            key={i}
-            d={shape.d}
-            fill="none"
-            stroke={paint(shape.stroke)}
-            strokeWidth={shape.strokeWidth}
-            strokeLinecap="round"
-            opacity={shape.opacity}
-          />
-        );
-      })}
+        })}
+      </g>
       {spec.monogram && (
         <text
           x="200"

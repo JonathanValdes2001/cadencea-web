@@ -5,6 +5,7 @@ import Faq from '@/components/ui/Faq';
 import SectionHeader from '@/components/ui/SectionHeader';
 import BeforeAfter from '@/components/v2/home/BeforeAfter';
 import CompareTable from '@/components/v2/home/CompareTable';
+import VaultMock from '@/components/v2/home/VaultMock';
 import WhatsNext from '@/components/v2/home/WhatsNext';
 import {
   anyDownload,
@@ -35,6 +36,10 @@ const features = [
     desc: 'Projects remain normal folders on your computer and open in your DAW as before. Cadencea Vault works offline; the cloud copy is a backup you control.',
   },
 ];
+
+// The DAWs the shipped Vault recognizes project files for (WEB-V2-SPEC §5.3). Add
+// more only once a Vault release reads their project files (.song, .bwproject).
+const DAWS = ['Ableton Live', 'FL Studio', 'Logic Pro', 'Pro Tools', 'Cubase', 'Reaper', 'Reason'];
 
 const faqs = [
   {
@@ -90,17 +95,17 @@ export default async function Home() {
 
   return (
     <div className="bg-canvas text-ink">
-      {/* Hero */}
-      <section className="border-b border-line py-20 lg:py-28">
-        <Container>
+      {/* Hero: the pitch on the left, the library it describes on the right (stacked on phones). */}
+      <section className="border-b border-line py-14 sm:py-20 lg:py-24">
+        <Container className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:gap-14">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
               Cadencea Vault · for music producers
             </p>
-            <h1 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl">
+            <h1 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-[3.5rem] xl:text-6xl">
               Every project. Every DAW. One lossless vault.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted md:text-xl">
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted">
               Cadencea Vault keeps your sessions organized on your own drive and pushes a bit-for-bit copy to the
               cloud when you&rsquo;re ready. Share whole projects with collaborators, not just the bounce.
             </p>
@@ -122,40 +127,49 @@ export default async function Home() {
               ))}
             </ul>
           </div>
+          <VaultMock className="mx-auto w-full max-w-xl lg:max-w-none" />
         </Container>
       </section>
 
       <BeforeAfter />
 
-      {/* What it does */}
-      <section className="border-b border-line py-20 lg:py-28">
+      {/* The 2.0 story comes early on the preview, which exists to show it. */}
+      {preview && <WhatsNext />}
+
+      {/* What it does, and the DAWs it works with */}
+      <section className="bg-elevated py-14 sm:py-20 lg:py-24">
         <Container>
           <SectionHeader eyebrow="What it does" title="Built around how producers actually work." />
           <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-4">
             {features.map((f) => (
-              <div key={f.title} className="border-t border-line pt-6">
+              <div key={f.title} className="border-t border-line-strong pt-6">
                 <h3 className="text-base font-semibold text-ink md:text-lg">{f.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-ink-muted">{f.desc}</p>
               </div>
             ))}
           </div>
-        </Container>
-      </section>
 
-      {/* Works with your DAW */}
-      <section className="border-b border-line py-20 lg:py-28">
-        <Container>
-          <SectionHeader
-            title="Works with the DAW you already use."
-            subtitle="Ableton Live, FL Studio, Logic Pro, Pro Tools, Cubase, Reaper, Reason, and anything else that saves projects to a folder. Cadencea Vault never changes how your DAW opens a project."
-          />
+          <div className="mt-16 rounded-md border border-line bg-canvas p-6 lg:mt-20 lg:p-8">
+            <h2 className="text-xl font-semibold tracking-tight text-ink md:text-2xl">Works with the DAW you already use.</h2>
+            <ul aria-label="DAWs" className="mt-5 flex flex-wrap gap-2">
+              {DAWS.map((daw) => (
+                <li key={daw} className="rounded-sm border border-line px-3 py-1.5 text-sm font-medium text-ink">
+                  {daw}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 max-w-3xl text-base leading-relaxed text-ink-muted">
+              And anything else that saves projects to a folder. Cadencea Vault never changes how your DAW opens a
+              project.
+            </p>
+          </div>
         </Container>
       </section>
 
       <CompareTable />
 
       {/* Pricing teaser */}
-      <section className="border-b border-line bg-elevated py-20 lg:py-28">
+      <section className="bg-elevated py-14 sm:py-20 lg:py-24">
         <Container className="text-center">
           <SectionHeader
             align="center"
@@ -168,10 +182,8 @@ export default async function Home() {
         </Container>
       </section>
 
-      {preview && <WhatsNext />}
-
       {/* FAQ */}
-      <section className="py-20 lg:py-28">
+      <section className="py-14 sm:py-20 lg:py-24">
         <Container>
           <div className="mx-auto max-w-4xl">
             <SectionHeader title="Questions, answered." />

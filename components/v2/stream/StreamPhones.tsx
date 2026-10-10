@@ -193,3 +193,13 @@ export default function StreamPhones() {
     </div>
   );
 }
+
+/** One phone, the Discover screen, for small product cards (/software). */
+export function StreamPhonePreview() {
+  const hero = teaserRelease(DISCOVER_HERO_ID);
+  return (
+    <PhoneFrame description={`Cadencea Stream's Discover screen, featuring ${hero.title} by ${hero.artist}.`}>
+      <DiscoverScreen />
+    </PhoneFrame>
+  );
+}

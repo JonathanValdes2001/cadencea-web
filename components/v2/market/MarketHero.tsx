@@ -1,22 +1,25 @@
 import React from 'react';
 import Form from 'next/form';
+import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Container, { ShowroomGlow } from '@/components/ui/Container';
-import { Check, Search } from '@/components/ui/Icons';
+import { ArrowRight, Check, Search } from '@/components/ui/Icons';
 import { MARKET_HOME_COPY } from '@/lib/v2-demo/market/copy';
+import CoverMosaic from './CoverMosaic';
 
 /**
- * The /market hero on the showroom surface (WEB-V2-SPEC §4.2). The search
- * submits to /market?q=…, which shows the "All results" grid.
+ * The /market hero on the showroom surface (WEB-V2-SPEC §4.2): the pitch and
+ * search on the left, a mosaic of Market covers on the right from lg. The
+ * search submits to /market?q=…, which shows the "All results" grid.
  */
 export default function MarketHero() {
   return (
-    <section className="on-dark relative isolate overflow-hidden bg-showroom py-16 text-dark-text lg:py-24">
+    <section className="on-dark relative isolate overflow-hidden bg-showroom py-12 text-dark-text lg:py-16">
       <ShowroomGlow />
-      <Container>
+      <Container className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-widest text-brand-300">{MARKET_HOME_COPY.eyebrow}</p>
-          <h1 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
             {MARKET_HOME_COPY.title}
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-dark-muted md:text-lg">{MARKET_HOME_COPY.lead}</p>
@@ -48,13 +51,15 @@ export default function MarketHero() {
               </li>
             ))}
           </ul>
-
-          <div className="mt-8">
-            <Button href="/publish" variant="onDarkOutline">
-              {MARKET_HOME_COPY.sell}
-            </Button>
-          </div>
+          <Link
+            href="/publish"
+            className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-brand-300 hover:text-brand-200"
+          >
+            {MARKET_HOME_COPY.sell}
+            <ArrowRight size={16} />
+          </Link>
         </div>
+        <CoverMosaic className="hidden lg:block" />
       </Container>
     </section>
   );
