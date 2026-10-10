@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { randomBytes } from 'node:crypto'
 import { updateSession } from '@/lib/supabase/middleware'
 import { buildContentSecurityPolicy } from '@/lib/security-headers.mjs'
+import { isPreviewSite, PREVIEW_ROBOTS_DIRECTIVE } from '@/lib/site-channel.mjs'
 
 export async function middleware(req: NextRequest) {
   const nonce = randomBytes(16).toString('base64')
@@ -12,6 +13,11 @@ export async function middleware(req: NextRequest) {
     'Content-Security-Policy',
     buildContentSecurityPolicy(nonce),
   )
+  // Preview deployments (the v2 site, branch previews) stay out of search
+  // engines even if a link to them leaks; production is unaffected.
+  if (isPreviewSite()) {
+    response.headers.set('X-Robots-Tag', PREVIEW_ROBOTS_DIRECTIVE)
+  }
   return response
 }
 

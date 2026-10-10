@@ -5,7 +5,13 @@ import "./globals.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import CookieBanner from "../components/CookieBanner";
+import PreviewBanner from "../components/PreviewBanner";
 import { AuthProvider } from "../lib/auth-context";
+import { isPreviewSite } from "../lib/site-channel.mjs";
+
+// Preview deployments (the v2 site, branch previews, local runs) are never
+// indexed and carry a banner; production is unaffected.
+const isPreview = isPreviewSite();
 
 const inter = Inter({
   variable: "--font-inter",
@@ -41,6 +47,9 @@ export const metadata: Metadata = {
       "Building the future of music creation. Innovative software and technology designed for music creators, by music creators.",
     images: ["/logo/og-social-card.png"],
   },
+  ...(isPreview
+    ? { robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } } }
+    : {}),
 };
 
 export default async function RootLayout({
@@ -54,6 +63,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="bg-canvas text-ink antialiased">
+        {isPreview && <PreviewBanner />}
         <AuthProvider>
           <Navbar />
           <main>{children}</main>

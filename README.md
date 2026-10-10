@@ -10,6 +10,16 @@ The official marketing website and account management portal for Cadencea produc
 >
 > **Project management is done exclusively in the Cadencea Vault desktop app.**
 
+## Branches and previews
+
+- `main` is the live site: every push to it deploys to https://cadencea.app.
+- `cadencea-v2-beta` is the v2 website in progress. Pushes create Vercel preview
+  deployments that are labelled "Preview" and kept out of search engines.
+
+See [docs/V2-PREVIEW.md](docs/V2-PREVIEW.md) for how to view and review the v2
+site, which preview environment variables to set, and how to keep `main` and
+v2 in sync.
+
 ## 🚀 Features
 
 ### Authentication & Security
