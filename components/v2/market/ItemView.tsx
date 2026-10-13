@@ -21,6 +21,7 @@ import type { MarketListing } from '@/lib/v2-demo/market/types';
 import { PUBLIC_COPY, SPLITS_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
 import { useLifecycle } from '@/lib/v2-demo/release-lifecycle/store';
 import Breadcrumb from './Breadcrumb';
+import CategoryNav from './CategoryNav';
 import FileList from './FileList';
 import HumanMadePanel from './HumanMadePanel';
 import ItemBuyBox from './ItemBuyBox';
@@ -51,30 +52,33 @@ function OffSale({ listing }: { listing: MarketListing }) {
   const release = listing.releaseId ? lifecycle.releases[listing.releaseId] : undefined;
   const downloadsPaused = release?.status === 'suspended' && release.suspension?.downloadsDisabled === true;
   return (
-    <Container className="py-16 lg:py-24">
-      <Breadcrumb
-        trail={[
-          { label: ITEM_COPY.market, href: '/market' },
-          { label: category.label, href: `/market/${category.key}` },
-          { label: listing.title },
-        ]}
-      />
-      <div className="mt-6 max-w-2xl">
-        <h1 className="text-3xl font-bold tracking-tight text-ink md:text-4xl">{listing.title}</h1>
-        <p className="mt-4 text-base leading-relaxed text-ink-muted">
-          {PUBLIC_COPY.marketUnavailable}
-          {owned && ` ${downloadsPaused ? ITEM_COPY.offSaleDownloadsPaused : ITEM_COPY.offSaleOwned}`}
-        </p>
-        {owned && !downloadsPaused && (
-          <Card padding="md" className="mt-8">
-            <OwnedPanel listing={listing} entry={owned} />
-          </Card>
-        )}
-        <Button href={`/market/${category.key}`} variant="secondary" className="mt-8">
-          {fill(ITEM_COPY.offSaleBack, { category: inSentence(category.label) })}
-        </Button>
-      </div>
-    </Container>
+    <>
+      <CategoryNav current={listing.category} currentIsPage={false} />
+      <Container className="py-16 lg:py-24">
+        <Breadcrumb
+          trail={[
+            { label: ITEM_COPY.market, href: '/market' },
+            { label: category.label, href: `/market/${category.key}` },
+            { label: listing.title },
+          ]}
+        />
+        <div className="mt-6 max-w-2xl">
+          <h1 className="text-3xl font-bold tracking-tight text-ink md:text-4xl">{listing.title}</h1>
+          <p className="mt-4 text-base leading-relaxed text-ink-muted">
+            {PUBLIC_COPY.marketUnavailable}
+            {owned && ` ${downloadsPaused ? ITEM_COPY.offSaleDownloadsPaused : ITEM_COPY.offSaleOwned}`}
+          </p>
+          {owned && !downloadsPaused && (
+            <Card padding="md" className="mt-8">
+              <OwnedPanel listing={listing} entry={owned} />
+            </Card>
+          )}
+          <Button href={`/market/${category.key}`} variant="secondary" className="mt-8">
+            {fill(ITEM_COPY.offSaleBack, { category: inSentence(category.label) })}
+          </Button>
+        </div>
+      </Container>
+    </>
   );
 }
 
@@ -99,6 +103,7 @@ export default function ItemView({ slug }: { slug: string }) {
 
   return (
     <>
+      <CategoryNav current={listing.category} currentIsPage={false} />
       <Container className="pb-28 pt-10 lg:pb-14 lg:pt-14">
         <Breadcrumb
           trail={[
@@ -109,9 +114,9 @@ export default function ItemView({ slug }: { slug: string }) {
         />
 
         <div className="mt-6 grid gap-10 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:gap-y-0">
-          {/* Without a contents list, the cover and player stay in view beside the long right column. */}
+          {/* Without a contents list, the cover and player stay in view beside the long right column, below the category strip. */}
           <div
-            className={`lg:col-span-5 lg:row-start-1 ${files.length ? '' : 'lg:sticky lg:top-24 lg:row-span-2 lg:self-start'}`}
+            className={`lg:col-span-5 lg:row-start-1 ${files.length ? '' : 'lg:sticky lg:top-36 lg:row-span-2 lg:self-start'}`}
           >
             <CoverArt
               seed={listing.coverSeed}

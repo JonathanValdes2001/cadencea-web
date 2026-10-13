@@ -5,6 +5,7 @@ import Container from '@/components/ui/Container';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { CATEGORIES } from '@/lib/v2-demo/categories';
 import { fill } from '@/lib/v2-demo/format';
+import { CATEGORY_TINT } from '@/lib/v2-demo/market/browse';
 import { MARKET_HOME_COPY } from '@/lib/v2-demo/market/copy';
 import { sortItems } from '@/lib/v2-demo/market/queries';
 import CategoryNav from './CategoryNav';
@@ -47,6 +48,7 @@ export default function MarketLanding() {
               title={category.label}
               subtitle={category.description}
               listings={items}
+              tint={CATEGORY_TINT[category.key].solid}
               seeAll={{ href: `/market/${category.key}`, label: fill(MARKET_HOME_COPY.seeAll, { n: items.length }) }}
             />
           );

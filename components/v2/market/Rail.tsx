@@ -25,12 +25,15 @@ export default function Rail({
   subtitle,
   listings,
   seeAll,
+  tint,
   className = '',
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   listings: readonly MarketListing[];
   seeAll?: { href: string; label: string };
+  /** A category rail's tint (browse.ts), shown as a dot before the title like the category strip. */
+  tint?: string;
   className?: string;
 }) {
   const headingId = useId();
@@ -39,7 +42,14 @@ export default function Rail({
     <section aria-labelledby={headingId} className={className}>
       <SectionHeader
         size="sm"
-        title={<span id={headingId}>{title}</span>}
+        title={
+          <span className="inline-flex items-center gap-2.5">
+            {tint && (
+              <span aria-hidden="true" style={{ background: tint }} className="h-2 w-2 shrink-0 rounded-full" />
+            )}
+            <span id={headingId}>{title}</span>
+          </span>
+        }
         subtitle={subtitle}
         action={
           seeAll && (
