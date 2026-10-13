@@ -12,7 +12,7 @@ import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
 
 export const metadata: Metadata = {
-  title: 'Cadencea Vault — DAW project library and lossless backup',
+  title: 'Cadencea Vault — DAW project library with lossless cloud sync',
   description:
     'Organize every DAW project, see BPM, key and tags at a glance, and push bit-for-bit copies to the cloud. Free for Windows and macOS.',
 };

@@ -33,7 +33,7 @@ const features = [
   },
   {
     title: 'Your drive stays the master',
-    desc: 'Projects remain normal folders on your computer and open in your DAW as before. Cadencea Vault works offline; the cloud copy is a backup you control.',
+    desc: 'Projects remain normal folders on your computer and open in your DAW as before. Cadencea Vault works offline; you choose what to push to the cloud and when.',
   },
 ];
 
