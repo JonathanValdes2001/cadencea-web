@@ -16,11 +16,14 @@ const nextConfig: NextConfig = {
   async redirects() {
     // v2 preview only: the placeholder plugin catalog and the $0 cart give way
     // to the Market. Production keeps serving both pages until the v2 launch.
-    // Evaluated at build time, so SITE_CHANNEL/VERCEL_ENV must be set for the build.
+    // Songs aren't on the Market (DECISIONS.md D19), so the old Songs category
+    // goes to Stream. Evaluated at build time, so SITE_CHANNEL/VERCEL_ENV must be
+    // set for the build.
     if (!isPreviewSite()) return [];
     return [
       { source: "/vst-plugins", destination: "/market", permanent: false },
       { source: "/cart", destination: "/market", permanent: false },
+      { source: "/market/songs", destination: "/stream", permanent: false },
     ];
   },
 };

@@ -187,7 +187,7 @@ export default function ItemView({ slug }: { slug: string }) {
             <Card padding="md">
               <section id={BUY_BOX_ID} tabIndex={-1} aria-labelledby="buy-box-title" className="scroll-mt-32">
                 <h2 id="buy-box-title" className="sr-only">
-                  {listing.type === 'song' ? ITEM_COPY.listenBoxLabel : ITEM_COPY.buyBoxLabel}
+                  {ITEM_COPY.buyBoxLabel}
                 </h2>
                 <ItemBuyBox listing={listing} />
               </section>

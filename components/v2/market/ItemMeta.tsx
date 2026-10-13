@@ -6,7 +6,6 @@ import {
   contentsSummary,
   keyLabel,
   sizeAndFormat,
-  songFormatLabel,
   synthVersionLabel,
 } from '@/lib/v2-demo/market/display';
 import type { MarketFile, MarketListing } from '@/lib/v2-demo/market/types';
@@ -18,7 +17,6 @@ import { PUBLIC_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
  */
 export default function ItemMeta({ listing, files }: { listing: MarketListing; files: readonly MarketFile[] }) {
   const rows: [string, string][] = [];
-  if (listing.song) rows.push([ITEM_COPY.metaFormat, songFormatLabel(listing.song)]);
   // Themes have no tempo or key; the buy box says which Vault they work with.
   if (listing.type !== 'theme') {
     rows.push([ITEM_COPY.metaBpm, bpmLabel(listing.bpm)], [ITEM_COPY.metaKey, keyLabel(listing.key)]);

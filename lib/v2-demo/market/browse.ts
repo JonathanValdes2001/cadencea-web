@@ -27,7 +27,6 @@ export const CATEGORY_TINT: Readonly<Record<CategoryKey | 'all', CategoryTint>> 
   presets: { onDark: '#F9A8D4', solid: '#DB2777', glow: 'rgba(219, 39, 119, 0.48)' },
   midi: { onDark: '#67E8F9', solid: '#0891B2', glow: 'rgba(8, 145, 178, 0.52)' },
   beats: { onDark: '#A5B4FC', solid: '#4F46E5', glow: 'rgba(79, 70, 229, 0.58)' },
-  songs: { onDark: '#BEF264', solid: '#65A30D', glow: 'rgba(101, 163, 13, 0.45)' },
   themes: VIOLET,
 };
 
@@ -35,9 +34,9 @@ export const VIEW_MODES = ['grid', 'list'] as const;
 export type ViewMode = (typeof VIEW_MODES)[number];
 
 /**
- * Packs keep the /market card grid; beats and songs are listened to one by
- * one, so they open as rows (the Splice pattern: rows for single sounds,
- * cards for packs). Every view can switch.
+ * Packs keep the /market card grid; beats are listened to one by one, so they
+ * open as rows (the Splice pattern: rows for single sounds, cards for packs).
+ * Every view can switch.
  */
 export const DEFAULT_VIEW: Readonly<Record<CategoryKey | 'all', ViewMode>> = {
   all: 'grid',
@@ -46,7 +45,6 @@ export const DEFAULT_VIEW: Readonly<Record<CategoryKey | 'all', ViewMode>> = {
   presets: 'grid',
   midi: 'grid',
   beats: 'list',
-  songs: 'list',
   themes: 'grid',
 };
 

@@ -16,7 +16,7 @@ interface NavItem {
 }
 
 /**
- * All · Samples · Splits · Presets · MIDI · Beats · Songs · Themes, each with
+ * All · Samples · Splits · Presets · MIDI · Beats · Themes, each with
  * the number of listings on sale (WEB-V2-SPEC §4.2). A dark strip under the
  * showroom header, the same on /market, every category and "All results"
  * (and on item pages, marking the item's category); sticky under the navbar

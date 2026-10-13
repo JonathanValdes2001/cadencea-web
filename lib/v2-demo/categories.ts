@@ -1,10 +1,11 @@
 /**
  * Market categories in nav order (WEB-V2-SPEC §1.1, §4.3), each mapped to a
- * RELEASE-LIFECYCLE release type. There is no templates category in v2.
+ * RELEASE-LIFECYCLE release type. There is no templates category in v2, and
+ * no songs category: songs publish to Cadencea Stream only (DECISIONS.md D19).
  */
 import type { ReleaseType } from './release-lifecycle/types.ts';
 
-export const CATEGORY_KEYS = ['samples', 'splits', 'presets', 'midi', 'beats', 'songs', 'themes'] as const;
+export const CATEGORY_KEYS = ['samples', 'splits', 'presets', 'midi', 'beats', 'themes'] as const;
 export type CategoryKey = (typeof CATEGORY_KEYS)[number];
 
 /** Filter panel fields (§4.3); each category lists the ones it shows. */
@@ -64,14 +65,6 @@ export const CATEGORIES: readonly Category[] = [
     priceUnit: 'eur',
   },
   {
-    key: 'songs',
-    type: 'song',
-    label: 'Songs',
-    description: 'Music from artists on Cadencea Stream. Listen and support artists there.',
-    filters: ['bpm', 'key', 'genre', 'tags'],
-    priceUnit: null,
-  },
-  {
     key: 'themes',
     type: 'theme',
     label: 'Themes',
@@ -89,8 +82,9 @@ export function isCategoryKey(value: string): value is CategoryKey {
   return (CATEGORY_KEYS as readonly string[]).includes(value);
 }
 
-export function categoryForType(type: ReleaseType): Category {
-  return CATEGORIES.find((c) => c.type === type) as Category;
+/** The Market category a release type is sold in, or null for songs, which are on Stream only (D19). */
+export function categoryForType(type: ReleaseType): Category | null {
+  return CATEGORIES.find((c) => c.type === type) ?? null;
 }
 
 /** Singular labels for type badges and chips ("Sample pack", "Beat"). */
@@ -104,5 +98,8 @@ export const RELEASE_TYPE_LABEL: Readonly<Record<ReleaseType, string>> = {
   theme: 'Theme',
 };
 
-/** Path segments under /market that no item slug may use (§1.1). */
-export const RESERVED_MARKET_SEGMENTS: readonly string[] = [...CATEGORY_KEYS, 'u'];
+/**
+ * Path segments under /market that no item slug may use (§1.1): the categories,
+ * the seller path, and `songs`, which redirects to /stream (next.config.ts).
+ */
+export const RESERVED_MARKET_SEGMENTS: readonly string[] = [...CATEGORY_KEYS, 'u', 'songs'];

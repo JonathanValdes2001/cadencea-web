@@ -18,7 +18,6 @@ import type {
   MarketListing,
   PackBpm,
   PackKey,
-  SongShape,
 } from './types.ts';
 
 /** The files a pack is priced by: a pack never costs more than these one by one (CREDITS-MODEL §6.1). */
@@ -72,12 +71,6 @@ export function synthVersionLabel(synth: Synth, minVersion: string | null): stri
   return minVersion ? `${name} ${minVersion} or later` : SYNTH_LABEL[synth];
 }
 
-export function songFormatLabel(song: SongShape): string {
-  if (song.format === 'single') return 'Single';
-  const name = song.format === 'ep' ? 'EP' : 'Album';
-  return `${name} · ${song.tracks} tracks`;
-}
-
 const GENRE_LABEL: Readonly<Record<string, string>> = { 'uk garage': 'UK garage', 'r&b': 'R&B' };
 
 /** Genres are stored lowercase like tags; "uk garage" → "UK garage", "drill" → "Drill". */
@@ -85,7 +78,7 @@ export function genreLabel(genre: string): string {
   return GENRE_LABEL[genre] ?? genre.charAt(0).toUpperCase() + genre.slice(1);
 }
 
-/** The items a pack is priced by, or null for beats, songs and themes. */
+/** The items a pack is priced by, or null for beats and themes. */
 export function itemCount(type: ReleaseType, files: FileSpec | null): number | null {
   const kinds = PRICED_KINDS[type];
   return kinds && files ? countFiles(files, kinds) : null;
@@ -112,7 +105,6 @@ export function countLabel(listing: MarketListing): string | null {
 export function cardMeta(listing: MarketListing): string[] {
   const parts: string[] = [];
   if (listing.type === 'theme') return ['Vault theme'];
-  if (listing.song) parts.push(songFormatLabel(listing.song));
   if (listing.synth) parts.push(SYNTH_LABEL[listing.synth]);
   if (typeof listing.bpm === 'number') parts.push(`${listing.bpm} BPM`);
   if (listing.key && listing.key !== 'various') parts.push(formatKey(listing.key));
@@ -123,12 +115,11 @@ export function cardMeta(listing: MarketListing): string[] {
 
 /**
  * The "Contents" column of a list row (WEB-V2-SPEC §4.3): "76 files",
- * "Serum 2 · 64 presets", "EP · 4 tracks", "3 licenses", "Vault theme".
+ * "Serum 2 · 64 presets", "3 licenses", "Vault theme".
  * BPM and key have their own columns.
  */
 export function rowDetail(listing: MarketListing): string | null {
   if (listing.type === 'theme') return 'Vault theme';
-  if (listing.song) return songFormatLabel(listing.song);
   if (listing.type === 'beat') {
     const n = listing.leaseTiers.length;
     return n ? `${n} ${n === 1 ? 'license' : 'licenses'}` : null;

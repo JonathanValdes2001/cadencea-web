@@ -9,7 +9,7 @@
 export const MARKET_HOME_COPY = {
   eyebrow: 'Cadencea Market · Preview',
   title: 'Sounds made by people, published from their vault.',
-  lead: 'Sample packs, Splits, presets, MIDI and beats from independent producers, themes from Cadencea, and songs from Cadencea Stream. A person reviews every release before it goes live.',
+  lead: 'Sample packs, Splits, presets, MIDI and beats from independent producers, and themes from Cadencea. A person reviews every release before it goes live.',
   searchLabel: 'Search the Market',
   searchPlaceholder: 'Search sounds, producers or tags',
   searchSubmit: 'Search',
@@ -47,7 +47,6 @@ export const CATEGORY_NAV_LABEL = {
   presets: 'Presets',
   midi: 'MIDI',
   beats: 'Beats',
-  songs: 'Songs',
   themes: 'Themes',
 } as const;
 
@@ -156,10 +155,8 @@ export const ITEM_COPY = {
   metaFiles: 'Files',
   metaSize: 'Size and format',
   metaSynth: 'Synth',
-  metaFormat: 'Format',
   tagsLabel: 'Tags',
   buyBoxLabel: 'Buy',
-  listenBoxLabel: 'Listen and support',
   buyTitle: 'Buy {title}?',
   buyBody: "Demo: {credits} demo credits leave Maya's demo wallet ({i} included + {b} bought). No money moves.",
   buyBodyOne: "Demo: 1 demo credit leaves Maya's demo wallet ({i} included + {b} bought). No money moves.",
@@ -197,12 +194,6 @@ export const ITEM_COPY = {
   buyTierTitle: 'Buy the {tier} for {title}?',
   cardBody: "Card checkout isn't connected in this preview. No payment is taken.",
   ownedTier: 'Your license: {tier}',
-  listen: 'Listen on Cadencea Stream',
-  support: 'Support {artist}',
-  supportTitle: 'Support {artist}?',
-  supportBody: "Fan support is paid by card, from {min}. Card checkout isn't connected in this preview.",
-  supportConfirm: 'Support',
-  supportToast: 'Demo: no support was sent and no payment was taken.',
   themeVault: 'For Cadencea Vault 2.0 and later',
   themeNote: 'Themes that are free in Cadencea Vault today stay free.',
   previewFootnote:

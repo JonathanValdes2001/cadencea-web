@@ -66,7 +66,7 @@ export interface ReleaseTypeInfo {
 }
 
 export const RELEASE_TYPE_INFO: Readonly<Record<ReleaseType, ReleaseTypeInfo>> = {
-  song:        { surfaces: ['stream', 'market'], payment: 'card',    license: 'stream_non_exclusive', sellerCanPublish: true,  wizardInThisBuild: true,  firstReviewDepth: 'strict',   evidence: 'required',    minItems: 1 },
+  song:        { surfaces: ['stream'],           payment: 'card',    license: 'stream_non_exclusive', sellerCanPublish: true,  wizardInThisBuild: true,  firstReviewDepth: 'strict',   evidence: 'required',    minItems: 1 },
   beat:        { surfaces: ['market'],           payment: 'card',    license: 'beat_lease',           sellerCanPublish: true,  wizardInThisBuild: true,  firstReviewDepth: 'strict',   evidence: 'required',    minItems: 1 },
   preset_pack: { surfaces: ['market'],           payment: 'credits', license: 'rf_asset',             sellerCanPublish: true,  wizardInThisBuild: true,  firstReviewDepth: 'standard', evidence: 'recommended', minItems: 15 },
   sample_pack: { surfaces: ['market'],           payment: 'credits', license: 'rf_asset',             sellerCanPublish: true,  wizardInThisBuild: true,  firstReviewDepth: 'standard', evidence: 'recommended', minItems: 20 },

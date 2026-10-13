@@ -91,10 +91,9 @@ test('tags (all must match), genres (any), search and price', () => {
   ])
   assert.equal(filterItems(splits, filters({ max: 50 })).length, 5)
   assert.ok(filterItems(inCategory('samples'), filters({ max: 50 })).every((l) => l.price.credits <= 50))
-  // Beats: the cheapest (WAV) lease under €40; songs have no credit price at all.
+  // Beats: the cheapest (WAV) lease under €40.
   assert.equal(filterItems(inCategory('beats'), filters({ maxEur: 40 })).length, 7)
   assert.deepEqual(slugs(filterItems(inCategory('beats'), filters({ maxEur: 30 }))), ['slow-orbit'])
-  assert.deepEqual(filterItems(inCategory('songs'), filters({ max: 1000 })), [])
 })
 
 test('synth and license filters', () => {
@@ -121,15 +120,16 @@ test('synth and license filters', () => {
 
 test('sortItems: newest, price both ways, BPM and title, with missing values last', () => {
   const newest = sortItems(onSale, 'new')
-  assert.equal(newest[0].slug, 'afterimage')
+  assert.equal(newest[0].slug, 'ambient-motifs')
   for (let i = 1; i < newest.length; i += 1) assert.ok(newest[i - 1].publishedAt >= newest[i].publishedAt)
 
   const cheap = sortItems(inCategory('splits'), 'price-asc')
   assert.deepEqual(slugs(cheap).slice(-2), ['amber-hour', 'bristol-rain'])
   assert.equal(sortItems(inCategory('splits'), 'price-desc')[0].slug, 'bristol-rain')
-  // Across categories, songs have no price and sort last in both directions.
-  assert.equal(sortItems(onSale, 'price-asc').at(-1).category, 'songs')
-  assert.equal(sortItems(onSale, 'price-desc').at(-1).category, 'songs')
+  // A listing without a price sorts last in both directions.
+  const unpriced = { ...seedListing('ice-road'), slug: 'unpriced', price: { kind: 'stream_only' }, leaseTiers: [] }
+  assert.equal(sortItems([unpriced, ...onSale], 'price-asc').at(-1).slug, 'unpriced')
+  assert.equal(sortItems([unpriced, ...onSale], 'price-desc').at(-1).slug, 'unpriced')
   // Beats compare by their cheapest lease: Velour Tape's €35 WAV lease tops the list.
   assert.equal(sortItems(onSale, 'price-desc')[0].slug, 'velour-tape')
 
@@ -169,9 +169,10 @@ test('similarItems: same category, BPM within ±8 or a related key, closest BPM 
 
 test('itemsBySeller, topTags and genresOf', () => {
   assert.deepEqual(slugs(itemsBySeller('arlo-beats', SEED_LISTINGS)), ['copper-tape-loops', 'dusty-keys'])
+  // Off-sale releases stay out, and her songs are on Stream, not the Market (D19).
   const nightjar = slugs(itemsBySeller('nightjar', SEED_LISTINGS))
-  assert.equal(nightjar.length, 5)
-  assert.ok(!nightjar.includes('harbor-lights'))
+  assert.deepEqual([...nightjar].sort(), ['ice-road', 'kitchen-percussion', 'tidewater-drums'])
+  assert.ok(!nightjar.includes('late-ferry'))
   assert.equal(itemsBySeller('nobody', SEED_LISTINGS).length, 0)
 
   const tags = topTags(inCategory('samples'))
@@ -223,10 +224,10 @@ test('the grid/list view reads and writes ?view= with a default per category', a
   const { CATEGORY_KEYS } = await import('../lib/v2-demo/categories.ts')
   const { FILTER_PARAM_KEYS } = await import('../lib/v2-demo/market/queries.ts')
 
-  // Packs open as the /market card grid; beats and songs as rows.
+  // Packs open as the /market card grid; beats as rows.
   assert.equal(DEFAULT_VIEW.samples, 'grid')
   assert.equal(DEFAULT_VIEW.beats, 'list')
-  assert.equal(DEFAULT_VIEW.songs, 'list')
+  assert.ok(!('songs' in DEFAULT_VIEW) && !('songs' in CATEGORY_TINT))
   for (const key of [...CATEGORY_KEYS, 'all']) {
     assert.ok(DEFAULT_VIEW[key], `${key} has a default view`)
     assert.match(CATEGORY_TINT[key].onDark, /^#[0-9A-F]{6}$/i, `${key} has a tint`)
@@ -235,7 +236,7 @@ test('the grid/list view reads and writes ?view= with a default per category', a
   assert.equal(parseView(new URLSearchParams('view=list'), 'samples'), 'list')
   assert.equal(parseView(new URLSearchParams(''), 'beats'), 'list')
   assert.equal(parseView(new URLSearchParams('view=table'), null), 'grid')
-  assert.equal(parseView({ view: ['grid', 'list'] }, 'songs'), 'grid')
+  assert.equal(parseView({ view: ['grid', 'list'] }, 'beats'), 'grid')
   // The default is left out of the URL, so a category link stays clean.
   assert.equal(serializeView('grid', 'samples'), '')
   assert.equal(serializeView('list', 'samples'), 'view=list')

@@ -9,11 +9,12 @@
  *   the release is public. Pending revisions never show (RELEASE-LIFECYCLE §6.7).
  * - Releases approved in this browser's Studio demo that have no Market row
  *   become "Your demo release" listings that link to Studio.
+ * - Songs never become listings: they are on Cadencea Stream only (D19).
  *
  * `buildListings({}, [])` is the seed state the server renders.
  */
 import type { PublicReleaseListing, PublicReleaseView } from '../release-lifecycle/public.ts';
-import type { BpmString, LeaseTier } from '../release-lifecycle/types.ts';
+import type { BpmString, LeaseTier, ReleaseType } from '../release-lifecycle/types.ts';
 import { categoryForType } from '../categories.ts';
 import { ITEM_COPY } from './copy.ts';
 import { splitTermsFor } from './display.ts';
@@ -21,6 +22,13 @@ import { filesFromRevision } from './files.ts';
 import { MARKET_ITEMS } from './items.ts';
 import { LINKED_DETAILS, linkedSeedView } from './linked.ts';
 import type { LinkedItem, MarketLeaseTier, MarketListing, PackBpm, SeedItem, VersionEntry } from './types.ts';
+
+/** A listing's category. Songs never get here (seed rows have none; buildListings drops them), so a miss is a data bug. */
+function marketCategory(type: ReleaseType): MarketListing['category'] {
+  const category = categoryForType(type);
+  if (!category) throw new Error(`${type} is not sold in the Market`);
+  return category.key;
+}
 
 function toBpm(bpm: BpmString | null): PackBpm {
   if (bpm === null || bpm === '') return null;
@@ -51,7 +59,7 @@ export function resolveSeedItem(item: SeedItem): MarketListing {
     href: `/market/${item.slug}`,
     title: item.title,
     type: item.type,
-    category: categoryForType(item.type).key,
+    category: marketCategory(item.type),
     sellerHandle: item.seller,
     releaseId: null,
     demoRelease: false,
@@ -67,7 +75,6 @@ export function resolveSeedItem(item: SeedItem): MarketListing {
     splitTerms: item.splits ? splitTermsFor(item.splits.publishing, item.splits.advance, item.seller) : null,
     synth: item.synth ?? null,
     minSynthVersion: item.minSynthVersion ?? null,
-    song: item.song ?? null,
     description: item.description,
     publishedAt: item.publishedAt,
     updatedAt: live.date,
@@ -87,8 +94,6 @@ type MusicFields = Pick<MarketListing, 'bpm' | 'key' | 'tags'>;
 /**
  * A Nightjar release as buyers see it. `view` is the store's current revision
  * (or the seed view); `fields` are the store's BPM, key and tags, or the seed's.
- * Songs show no download price in this build (WEB-V2-SPEC §7.2 #2), so a song
- * with a card download sale still reads "On Cadencea Stream".
  */
 export function resolveLinkedItem(item: LinkedItem, view: PublicReleaseView, fields: MusicFields): MarketListing {
   const detail = LINKED_DETAILS[item.releaseId];
@@ -100,7 +105,7 @@ export function resolveLinkedItem(item: LinkedItem, view: PublicReleaseView, fie
     href: `/market/${item.slug}`,
     title: view.title,
     type: item.type,
-    category: categoryForType(item.type).key,
+    category: marketCategory(item.type),
     sellerHandle: item.seller,
     releaseId: item.releaseId,
     demoRelease: false,
@@ -111,12 +116,11 @@ export function resolveLinkedItem(item: LinkedItem, view: PublicReleaseView, fie
     key: fields.key,
     genre: detail?.genre ?? null,
     tags: fields.tags,
-    price: item.type === 'song' ? { kind: 'stream_only' } : view.price,
+    price: view.price,
     leaseTiers: marketTiers(view.leaseTiers),
     splitTerms: view.splitTerms ?? null,
     synth: detail?.synth ?? null,
     minSynthVersion: detail?.minSynthVersion ?? null,
-    song: detail?.song ?? null,
     description: newer ? view.description : (detail?.description ?? ''),
     publishedAt: detail?.publishedAt ?? view.updatedAt,
     updatedAt: view.updatedAt,
@@ -130,14 +134,14 @@ export function resolveLinkedItem(item: LinkedItem, view: PublicReleaseView, fie
   };
 }
 
-/** A release approved in the Studio demo with no Market row: its card links to Studio (WEB-V2-SPEC §4.2). */
+/** A release approved in the Studio demo with no Market row: its card links to Studio (WEB-V2-SPEC §4.2). Never a song. */
 export function demoReleaseListing(release: PublicReleaseListing): MarketListing {
   return {
     slug: release.slug,
     href: `/studio/${release.releaseId}`,
     title: release.title,
     type: release.type,
-    category: categoryForType(release.type).key,
+    category: marketCategory(release.type),
     sellerHandle: release.sellerHandle,
     releaseId: release.releaseId,
     demoRelease: true,
@@ -148,12 +152,11 @@ export function demoReleaseListing(release: PublicReleaseListing): MarketListing
     key: release.key,
     genre: null,
     tags: release.tags,
-    price: release.type === 'song' ? { kind: 'stream_only' } : release.price,
+    price: release.price,
     leaseTiers: marketTiers(release.leaseTiers),
     splitTerms: release.splitTerms ?? null,
     synth: null,
     minSynthVersion: null,
-    song: null,
     description: '',
     publishedAt: release.updatedAt,
     updatedAt: release.updatedAt,
@@ -168,9 +171,11 @@ export function demoReleaseListing(release: PublicReleaseListing): MarketListing
 }
 
 /**
- * Every listing: the 50 seed rows (linked ones resolved against `views`, with
- * their seed view as the fallback) plus public demo releases. Off-sale rows are
- * included with `isPublic: false`, so item pages can explain them.
+ * Every listing: the 43 seed rows (linked ones resolved against `views`, with
+ * their seed view as the fallback) plus public demo releases of types the
+ * Market sells. Songs are left out at the source: they publish to Stream only
+ * (D19), and Studio and Stream read them from the store directly. Off-sale rows
+ * are included with `isPublic: false`, so item pages can explain them.
  */
 export function buildListings(
   views: Readonly<Record<string, PublicReleaseView | null | undefined>>,
@@ -190,7 +195,7 @@ export function buildListings(
     return resolveLinkedItem(item, view, fields);
   });
   const demo = publicReleases
-    .filter((r) => r.isPublic && !linkedIds.has(r.releaseId))
+    .filter((r) => r.isPublic && !linkedIds.has(r.releaseId) && categoryForType(r.type) !== null)
     .map(demoReleaseListing);
   return [...listings, ...demo];
 }

@@ -15,41 +15,52 @@ import { LIBRARY_SEED } from '../lib/v2-demo/credits/library-seed.ts'
 import { LEASE_TIER_IDS } from '../lib/v2-demo/release-lifecycle/types.ts'
 import { SEED_STATE } from '../lib/v2-demo/release-lifecycle/seeds.ts'
 
-/** WEB-V2-SPEC §6.5: the Market rows backed by RELEASE-LIFECYCLE §7.4's seeds. */
+/**
+ * WEB-V2-SPEC §6.5: the Market rows backed by RELEASE-LIFECYCLE §7.4's seeds.
+ * Nightjar's songs (Late Ferry, Coastline, Harbor Lights) are on Stream only (D19).
+ */
 const LIFECYCLE_SLUGS = {
-  'late-ferry': 'demo-r01',
   'tidewater-drums': 'demo-r02',
   'ice-road': 'demo-r07',
-  'harbor-lights': 'demo-r08',
   'old-synth-memories': 'demo-r09',
   'copper-kit': 'demo-r10',
   'glass-steps': 'demo-r11',
   'kitchen-percussion': 'demo-r13',
-  coastline: 'demo-r14',
   'night-bus': 'demo-r15',
 }
-const HIDDEN_AT_SEED = ['copper-kit', 'old-synth-memories', 'glass-steps', 'night-bus', 'harbor-lights']
-const ON_SALE_PER_CATEGORY = { samples: 12, splits: 5, presets: 7, midi: 5, beats: 7, songs: 6, themes: 3 }
+const HIDDEN_AT_SEED = ['copper-kit', 'old-synth-memories', 'glass-steps', 'night-bus']
+const ON_SALE_PER_CATEGORY = { samples: 12, splits: 5, presets: 7, midi: 5, beats: 7, themes: 3 }
+const SONG_SLUGS = ['salt-in-the-well', 'quiet-harbour', 'lattice', 'afterimage', 'late-ferry', 'coastline', 'harbor-lights']
 
 const seedRows = MARKET_ITEMS.filter((item) => item.source === 'seed')
 const listingsOf = (type) => SEED_LISTINGS.filter((l) => l.type === type)
 const filesOf = (l) => generateFiles(l.slug, l.files, l)
 
-test('50 listings with unique slugs that never shadow a category or the seller route', () => {
-  assert.equal(MARKET_ITEMS.length, 50)
-  assert.equal(SEED_LISTINGS.length, 50)
+test('43 listings with unique slugs that never shadow a category or the seller route', () => {
+  assert.equal(MARKET_ITEMS.length, 43)
+  assert.equal(SEED_LISTINGS.length, 43)
   const slugs = MARKET_ITEMS.map((i) => i.slug)
   assert.equal(new Set(slugs).size, slugs.length)
   for (const slug of slugs) {
     assert.ok(!RESERVED_MARKET_SEGMENTS.includes(slug), `${slug} is reserved`)
     assert.match(slug, /^[a-z0-9]+(-[a-z0-9]+)*$/)
   }
-  assert.deepEqual([...RESERVED_MARKET_SEGMENTS].sort(), [...CATEGORY_KEYS, 'u'].sort())
+  assert.deepEqual([...RESERVED_MARKET_SEGMENTS].sort(), [...CATEGORY_KEYS, 'u', 'songs'].sort())
 })
 
-test('45 listings are on sale at seed time, with the §6.4 count per category', () => {
+test('the Market lists no songs (DECISIONS.md D19)', () => {
+  assert.ok(MARKET_ITEMS.every((item) => item.type !== 'song'))
+  assert.ok(SEED_LISTINGS.every((l) => l.type !== 'song'))
+  for (const slug of SONG_SLUGS) {
+    assert.equal(getItem(slug), null, `${slug} has no Market page`)
+    assert.equal(seedListing(slug), null, slug)
+  }
+  for (const id of ['demo-r01', 'demo-r08', 'demo-r14']) assert.ok(!LINKED_RELEASE_IDS.includes(id), id)
+})
+
+test('39 listings are on sale at seed time, with the §6.4 count per category', () => {
   const onSale = SEED_LISTINGS.filter((l) => l.isPublic)
-  assert.equal(onSale.length, 45)
+  assert.equal(onSale.length, 39)
   for (const key of CATEGORY_KEYS) {
     const n = onSale.filter((l) => l.category === key).length
     assert.equal(n, ON_SALE_PER_CATEGORY[key], key)
@@ -70,7 +81,7 @@ test('every seller resolves, and Nightjar sells only its linked releases', () =>
   }
 })
 
-test('the ten lifecycle rows carry RELEASE-LIFECYCLE §7.4 release ids and no data of their own', () => {
+test('the seven lifecycle rows carry RELEASE-LIFECYCLE §7.4 release ids and no data of their own', () => {
   const linked = MARKET_ITEMS.filter((i) => i.source === 'lifecycle')
   assert.deepEqual(Object.fromEntries(linked.map((i) => [i.slug, i.releaseId])), LIFECYCLE_SLUGS)
   for (const item of linked) {
@@ -103,7 +114,6 @@ test('LINKED_DETAILS still mirror the Studio seeds (seeds.ts)', () => {
     assert.equal(detail.history.at(-1).version, current.version, id)
     const deliverables = payload.samples ?? payload.presets ?? payload.loops ?? payload.midiFiles
     if (deliverables) assert.equal(countFiles(detail.files, ['one_shot', 'loop', 'preset', 'midi']), deliverables.length, id)
-    if (payload.kind === 'song') assert.deepEqual(detail.song, { format: payload.format, tracks: payload.tracks.length }, id)
     if (payload.kind === 'preset_pack') assert.equal(detail.synth, payload.synth, id)
   }
 })
@@ -174,8 +184,7 @@ test('beats: lease tier ids and card prices inside CREDITS-MODEL §6.2', () => {
   )
 })
 
-test('songs are stream only and themes cost 30 or 80 credits', () => {
-  for (const l of listingsOf('song')) assert.equal(l.price.kind, 'stream_only', l.slug)
+test('themes cost 30 or 80 credits', () => {
   for (const l of listingsOf('theme')) {
     assert.ok([CREDITS.priceList.themeStandard, CREDITS.priceList.themePremium].includes(creditPrice(l.price)), l.slug)
     assert.equal(l.sellerHandle, 'cadencea')
@@ -266,10 +275,20 @@ test('a linked release follows the lifecycle store, and approved demo releases j
   const card = listings.find((l) => l.releaseId === 'demo-r05')
   assert.equal(card.demoRelease, true)
   assert.equal(card.href, '/studio/demo-r05')
-  assert.equal(listings.length, 51)
+  assert.equal(listings.length, 44)
   // Linked releases never appear twice, even though usePublicReleases lists them.
   assert.equal(listings.filter((l) => l.slug === 'tidewater-drums').length, 1)
-  // Late Ferry has a €3 download sale in Studio, but songs are stream only in the Market (WEB-V2-SPEC §7.2 #2).
-  assert.equal(linkedSeedView('demo-r01').price.kind, 'card')
-  assert.equal(seedListing('late-ferry').price.kind, 'stream_only')
+})
+
+test('public songs from the Studio demo never become Market cards (D19)', () => {
+  // Late Ferry and Coastline are public in the Studio seeds, and a song approved
+  // in this browser's demo is too; buildListings drops them instead of throwing.
+  const song = (releaseId) => {
+    const release = SEED_STATE.releases[releaseId]
+    return { ...linkedSeedView(releaseId), releaseId, slug: release.slug, type: 'song', sellerHandle: 'nightjar', bpm: null, key: null, tags: [] }
+  }
+  const newSong = { ...song('demo-r01'), releaseId: 'rel-99', slug: 'brand-new-single' }
+  const listings = buildListings({}, [song('demo-r01'), song('demo-r14'), newSong])
+  assert.equal(listings.length, 43)
+  assert.ok(listings.every((l) => l.type !== 'song'))
 })

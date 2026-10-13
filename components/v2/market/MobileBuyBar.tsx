@@ -28,8 +28,7 @@ export default function MobileBuyBar({ listing, targetId }: { listing: MarketLis
 
   const owned = ownedEntry(library, listing.slug) !== null;
   let label: string;
-  if (listing.type === 'song') label = ITEM_COPY.listen;
-  else if (owned) label = ITEM_COPY.barOwned;
+  if (owned) label = ITEM_COPY.barOwned;
   else if (listing.type === 'beat') label = ITEM_COPY.barChoose;
   else label = creditPrice(listing.price) === 0 ? ITEM_COPY.barGet : ITEM_COPY.barBuy;
 
@@ -56,15 +55,9 @@ export default function MobileBuyBar({ listing, targetId }: { listing: MarketLis
           size="sm"
           className="min-w-0"
         />
-        {listing.type === 'song' ? (
-          <Button href="/stream" size="md">
-            {label}
-          </Button>
-        ) : (
-          <Button size="md" onClick={goToBuyBox}>
-            {label}
-          </Button>
-        )}
+        <Button size="md" onClick={goToBuyBox}>
+          {label}
+        </Button>
       </div>
     </div>
   );

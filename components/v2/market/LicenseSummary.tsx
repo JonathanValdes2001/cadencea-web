@@ -28,7 +28,7 @@ function List({ title, items, allowed }: { title: string; items: readonly string
 
 /**
  * A plain-language summary of the listing's license family (WEB-V2-SPEC §4.4
- * item 6). Songs are stream only in this build, so they have none.
+ * item 6). The Market sells no songs (D19), so there is no streaming license here.
  */
 export default function LicenseSummary({ listing }: { listing: MarketListing }) {
   const family = RELEASE_TYPE_INFO[listing.type].license;

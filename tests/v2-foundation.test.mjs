@@ -32,7 +32,7 @@ import {
 import { MOTIFS_BY_KIND, generateCover, hash, initials, waveformBars } from '../lib/v2-demo/cover.ts'
 import { DEMO_NOW, addDays, nextDemoTime } from '../lib/v2-demo/clock.ts'
 import { buildRecipe } from '../lib/v2-demo/audio-recipe.ts'
-import { CATEGORIES, CATEGORY_KEYS, RESERVED_MARKET_SEGMENTS, isCategoryKey } from '../lib/v2-demo/categories.ts'
+import { CATEGORIES, CATEGORY_KEYS, RESERVED_MARKET_SEGMENTS, categoryForType, isCategoryKey } from '../lib/v2-demo/categories.ts'
 import { PERSONA, PERSONA_LINE, SELLERS, getSeller } from '../lib/v2-demo/sellers.ts'
 import { createDemoStore, DEMO_STORAGE_KEYS } from '../lib/v2-demo/storage.ts'
 import { CREDITS, cardSellerEarnsEurCents, rolloverCap } from '../lib/v2-demo/credits/config.ts'
@@ -430,18 +430,27 @@ test('storage: per-area keys, version reseed and a quiet in-memory fallback', ()
 })
 
 test('categories, sellers and the one demo person', () => {
-  assert.deepEqual(CATEGORY_KEYS, ['samples', 'splits', 'presets', 'midi', 'beats', 'songs', 'themes'])
+  // DECISIONS.md D19: songs publish to Stream only, so the Market has no Songs category.
+  assert.deepEqual(CATEGORY_KEYS, ['samples', 'splits', 'presets', 'midi', 'beats', 'themes'])
   assert.deepEqual(
     CATEGORIES.map((c) => c.type),
-    ['sample_pack', 'splits_pack', 'preset_pack', 'midi_pack', 'beat', 'song', 'theme'],
+    ['sample_pack', 'splits_pack', 'preset_pack', 'midi_pack', 'beat', 'theme'],
   )
   assert.ok(isCategoryKey('splits'))
   assert.ok(!isCategoryKey('templates'))
+  assert.ok(!isCategoryKey('songs'))
+  assert.equal(categoryForType('song'), null)
+  assert.equal(categoryForType('beat')?.key, 'beats')
   assert.ok(RESERVED_MARKET_SEGMENTS.includes('u'))
+  assert.ok(RESERVED_MARKET_SEGMENTS.includes('songs'), '/market/songs redirects to /stream')
   assert.equal(PERSONA_LINE, 'Demo account: Maya Lind, releasing as Nightjar · Standard plan')
   assert.equal(PERSONA.userId, WALLET_SEED.user.id)
   assert.equal(new Set(SELLERS.map((s) => s.handle)).size, SELLERS.length)
-  assert.equal(SELLERS.length, 15)
+  assert.equal(SELLERS.length, 13)
+  assert.equal(getSeller('juniper-hollow'), null, 'song-only artists are not Market sellers')
+  assert.equal(getSeller('tessellate'), null)
+  assert.ok(SELLERS.every((s) => s.sells.length > 0))
+  assert.deepEqual(getSeller('nightjar')?.sells, ['samples', 'presets', 'beats'])
   assert.equal(getSeller('nightjar')?.location, 'Tromsø, Norway')
   assert.deepEqual(SELLERS.filter((s) => !s.fictional).map((s) => s.handle), ['cadencea'])
   assert.equal(getSeller('cadencea')?.displayName, 'Cadencea Originals')

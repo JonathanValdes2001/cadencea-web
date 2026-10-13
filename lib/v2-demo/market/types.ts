@@ -77,11 +77,6 @@ export interface MarketLeaseTier {
   priceEurCents: number;
 }
 
-export interface SongShape {
-  format: 'single' | 'ep' | 'album';
-  tracks: number;
-}
-
 interface ItemBase {
   /** Never a category key or "u" (WEB-V2-SPEC §1.1). */
   slug: string;
@@ -108,7 +103,6 @@ export interface SeedItem extends ItemBase {
   synth?: Synth;
   /** "2.0" → "Serum 2.0 or later". */
   minSynthVersion?: string;
-  song?: SongShape;
   description: string;
   publishedAt: IsoDateTime;
   /** Oldest first; the last entry is the live version. */
@@ -155,7 +149,6 @@ export interface MarketListing {
   splitTerms: SplitTerms | null;
   synth: Synth | null;
   minSynthVersion: string | null;
-  song: SongShape | null;
   description: string;
   publishedAt: IsoDateTime;
   updatedAt: IsoDateTime;

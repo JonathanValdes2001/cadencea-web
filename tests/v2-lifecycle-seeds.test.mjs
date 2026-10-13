@@ -14,11 +14,13 @@ import {
   REVISION_STATUSES,
   RELEASE_LIFECYCLE_SPEC_VERSION,
   isPublic,
+  RELEASE_TYPE_INFO,
 } from '../lib/v2-demo/release-lifecycle/types.ts'
 import { SEED_RELEASE_IDS, SEED_STATE, seedPublicView } from '../lib/v2-demo/release-lifecycle/seeds.ts'
 import {
   appealOption,
   attentionCount,
+  channelLabel,
   publicListings,
   releaseView,
   tabCounts,
@@ -263,4 +265,15 @@ test('every "free" in release-lifecycle/copy.ts is "royalty-free" or "Free up sp
     const around = strings.slice(Math.max(0, match.index - 8), match.index + 15)
     assert.match(around, /royalty-free|Free up space/i, `"${around}"`)
   }
+})
+
+// DECISIONS.md D19: songs publish to Cadencea Stream only, so Studio's channel reads "Stream".
+test('songs are on Stream only; every other type is on the Market', () => {
+  assert.deepEqual(RELEASE_TYPE_INFO.song.surfaces, ['stream'])
+  for (const release of Object.values(SEED_STATE.releases)) {
+    assert.equal(channelLabel(release), release.type === 'song' ? 'Stream' : 'Market', release.id)
+  }
+  // A browser that stored the older song channels still shows "Stream".
+  const stale = { ...SEED_STATE.releases[id(1)], channels: ['stream', 'market'] }
+  assert.equal(channelLabel(stale), 'Stream')
 })

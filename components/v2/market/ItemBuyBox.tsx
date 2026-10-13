@@ -6,13 +6,12 @@ import { CheckboxField } from '@/components/ui/Field';
 import Price from '@/components/ui/Price';
 import { useToast } from '@/components/ui/Toast';
 import DemoConfirm from '@/components/v2/common/DemoConfirm';
-import { CREDITS } from '@/lib/v2-demo/credits/config';
 import { CHECKOUT_COPY } from '@/lib/v2-demo/credits/copy';
 import { ownedEntry } from '@/lib/v2-demo/credits/library-seed';
 import { buyWithCredits, useMarketLibrary, useWallet } from '@/lib/v2-demo/credits/store';
 import { previewSpend } from '@/lib/v2-demo/credits/wallet';
 import { PALETTES } from '@/lib/v2-demo/cover';
-import { creditsToEurCents, fill, formatEurCents } from '@/lib/v2-demo/format';
+import { creditsToEurCents, fill } from '@/lib/v2-demo/format';
 import { ITEM_COPY, RESULT_COPY } from '@/lib/v2-demo/market/copy';
 import {
   creditPrice,
@@ -20,7 +19,6 @@ import {
   isFirstParty,
   priceTerms,
   purchaseItemFor,
-  sellerName,
 } from '@/lib/v2-demo/market/display';
 import type { MarketListing } from '@/lib/v2-demo/market/types';
 import { SPLITS_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
@@ -137,40 +135,8 @@ function CreditBuyBox({ listing }: { listing: MarketListing }) {
   );
 }
 
-/** Songs are stream only in this build: listen on Stream, or support the artist by card (WEB-V2-SPEC §4.4). */
-function SongBox({ listing }: { listing: MarketListing }) {
-  const toast = useToast();
-  const [supporting, setSupporting] = useState(false);
-  const artist = sellerName(listing.sellerHandle);
-  return (
-    <div className="space-y-4">
-      <Price price={listing.price} size="lg" />
-      <Button href="/stream" fullWidth size="lg">
-        {ITEM_COPY.listen}
-      </Button>
-      <Button variant="secondary" fullWidth onClick={() => setSupporting(true)}>
-        {fill(ITEM_COPY.support, { artist })}
-      </Button>
-      <DemoConfirm
-        open={supporting}
-        onClose={() => setSupporting(false)}
-        onConfirm={() => {
-          setSupporting(false);
-          toast.show(ITEM_COPY.supportToast);
-        }}
-        title={fill(ITEM_COPY.supportTitle, { artist })}
-        body={fill(ITEM_COPY.supportBody, {
-          min: formatEurCents(CREDITS.fanSupportMinEurCents, { trimZeros: true }),
-        })}
-        confirmLabel={ITEM_COPY.supportConfirm}
-      />
-    </div>
-  );
-}
-
-/** The buy box (WEB-V2-SPEC §4.4 item 5), by how the listing is paid for. */
+/** The buy box (WEB-V2-SPEC §4.4 item 5), by how the listing is paid for. The Market sells no songs (D19). */
 export default function ItemBuyBox({ listing }: { listing: MarketListing }) {
-  if (listing.type === 'song') return <SongBox listing={listing} />;
   if (listing.type === 'beat') return <BeatLicensePicker listing={listing} />;
   return <CreditBuyBox listing={listing} />;
 }

@@ -35,7 +35,7 @@ import { APPEAL_WINDOW_DAYS, RELEASE_TYPE_INFO, TRANSITIONS, isPublic } from './
 import { diffRevision, emptyChangeSummary } from './diff.ts';
 import { validateSubmission } from './validation.ts';
 import { addDays } from '../clock.ts';
-import { CATEGORY_KEYS } from '../categories.ts';
+import { RESERVED_MARKET_SEGMENTS } from '../categories.ts';
 import { MARKET_ITEMS } from '../market/items.ts';
 
 /** The Demo reviewer (§7.3). Appeals are decided by the second id, so "a different reviewer" holds. */
@@ -265,12 +265,11 @@ function slugify(title: string): string {
 }
 
 /**
- * Market URLs a release slug must never take: category pages, the seller path
- * and the static seed listings (`/market/{slug}` serves those first).
+ * Market URLs a release slug must never take: category pages, the seller path,
+ * the songs redirect and the static seed listings (`/market/{slug}` serves those first).
  */
 const RESERVED_SLUGS: ReadonlySet<string> = new Set([
-  ...CATEGORY_KEYS,
-  'u',
+  ...RESERVED_MARKET_SEGMENTS,
   ...MARKET_ITEMS.filter((item) => item.source === 'seed').map((item) => item.slug),
 ]);
 

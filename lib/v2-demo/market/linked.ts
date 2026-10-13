@@ -1,13 +1,13 @@
 /**
- * Nightjar's ten Market-linked releases (WEB-V2-SPEC §6.5, RELEASE-LIFECYCLE §7.4).
+ * Nightjar's seven Market-linked releases (WEB-V2-SPEC §6.5, RELEASE-LIFECYCLE §7.4).
+ * Her songs aren't here: songs are on Cadencea Stream only (DECISIONS.md D19).
  *
  * The Market reads them through `useCurrentRelease` and `usePublicReleases`
  * (release-lifecycle/public.ts) in the browser, and through `seedPublicView`
  * (release-lifecycle/seeds.ts) for the server render. A public view carries
  * title, price, version, cover, lease tiers, Splits terms and "What's new";
  * `LINKED_DETAILS` adds what it doesn't: description, genre, contents, synth,
- * song format, the version history up to the seed, and the seed's BPM, key and
- * tags (the store supplies those instead while the release is public). The
+ * the version history up to the seed, and the seed's BPM, key and tags (the store supplies those instead while the release is public). The
  * details mirror the seeds in seeds.ts; tests/v2-market-data.test.mjs checks
  * that they still agree.
  */
@@ -15,19 +15,16 @@ import type { PublicReleaseView } from '../release-lifecycle/public.ts';
 import type { KeyValue, Synth } from '../release-lifecycle/types.ts';
 import { seedPublicView } from '../release-lifecycle/seeds.ts';
 import { ITEM_COPY } from './copy.ts';
-import type { FileGroup, FileSpec, SongShape, VersionEntry } from './types.ts';
+import type { FileGroup, FileSpec, VersionEntry } from './types.ts';
 
 /** The release ids behind Market rows, in RELEASE-LIFECYCLE seed order. */
 export const LINKED_RELEASE_IDS: readonly string[] = [
-  'demo-r01',
   'demo-r02',
   'demo-r07',
-  'demo-r08',
   'demo-r09',
   'demo-r10',
   'demo-r11',
   'demo-r13',
-  'demo-r14',
   'demo-r15',
 ];
 
@@ -49,7 +46,6 @@ export interface LinkedDetail {
   files?: FileSpec;
   synth?: Synth;
   minSynthVersion?: string;
-  song?: SongShape;
 }
 
 const first = (date: string): VersionEntry => ({ version: 1, date, note: ITEM_COPY.firstRelease });
@@ -63,20 +59,6 @@ const run = (kind: FileGroup['kind'], count: number, name: string): FileGroup =>
 });
 
 export const LINKED_DETAILS: Readonly<Record<string, LinkedDetail>> = {
-  'demo-r01': {
-    description:
-      'A slow night crossing from Tromsø, built on tape-saturated Rhodes and field recordings from the ferry deck.',
-    genre: 'downtempo',
-    publishedAt: '2026-07-22T14:00:00Z',
-    history: [
-      first('2026-07-22T14:00:00Z'),
-      { version: 2, date: '2026-08-04T15:00:00Z', note: 'Fixed a typo in the title.' },
-    ],
-    bpm: 84,
-    key: { root: 'A', mode: 'Minor' },
-    tags: ['downtempo', 'rhodes', 'night'],
-    song: { format: 'single', tracks: 1 },
-  },
   'demo-r02': {
     description:
       'Drums recorded in a boathouse at low tide: big wooden kicks, tight snares, toms and shakers, with a few loops to start from.',
@@ -110,16 +92,6 @@ export const LINKED_DETAILS: Readonly<Record<string, LinkedDetail>> = {
     bpm: 140,
     key: { root: 'G', mode: 'Minor' },
     tags: ['dark', '808', 'cinematic'],
-  },
-  'demo-r08': {
-    description: 'A single for the first night of the polar winter, with harbour sounds under a soft synth line.',
-    genre: 'downtempo',
-    publishedAt: '2026-10-06T15:00:00Z',
-    history: [first('2026-10-06T15:00:00Z')],
-    bpm: 78,
-    key: { root: 'C#', mode: 'Minor' },
-    tags: ['downtempo', 'ambient', 'synth'],
-    song: { format: 'single', tracks: 1 },
   },
   'demo-r09': {
     description: 'Thirty Vital presets that recreate the leads, basses and keys of an old family synth.',
@@ -180,16 +152,6 @@ export const LINKED_DETAILS: Readonly<Record<string, LinkedDetail>> = {
         run('loop', 10, 'Groove'),
       ],
     },
-  },
-  'demo-r14': {
-    description: 'Five songs written on walks along the coast, from the first warm day to the last light of summer.',
-    genre: 'electronic',
-    publishedAt: '2026-08-26T12:00:00Z',
-    history: [first('2026-08-26T12:00:00Z')],
-    bpm: 100,
-    key: { root: 'D', mode: 'Major' },
-    tags: ['downtempo', 'electronic', 'coast'],
-    song: { format: 'ep', tracks: 5 },
   },
   'demo-r15': {
     description: 'A late-night beat with a rattling bus-stop rhythm and a long, warm bassline.',

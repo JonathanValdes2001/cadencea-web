@@ -4,6 +4,7 @@
  * Every seller except `cadencea` is fictional. The one demo person is Maya Lind,
  * on Standard, who releases as Nightjar (DECISIONS.md D1): her wallet is
  * CREDITS-MODEL §10's and her releases are RELEASE-LIFECYCLE §7.4's seeds.
+ * Song-only artists aren't Market sellers: songs are on Stream only (D19).
  */
 import type { CategoryKey } from './categories.ts';
 
@@ -160,33 +161,11 @@ export const SELLERS: readonly Seller[] = [
     firstParty: false,
   },
   {
-    handle: 'juniper-hollow',
-    displayName: 'Juniper Hollow',
-    location: 'Oslo, Norway',
-    genres: ['indie folk'],
-    sells: ['songs'],
-    bio: 'Juniper Hollow is an indie folk band from Oslo, recording to tape in a rehearsal room.',
-    sellingSince: '2026-08-04',
-    fictional: true,
-    firstParty: false,
-  },
-  {
-    handle: 'tessellate',
-    displayName: 'Tessellate',
-    location: 'Stockholm, Sweden',
-    genres: ['electronic'],
-    sells: ['songs'],
-    bio: 'Tessellate makes melodic electronic music in Stockholm on hardware synths and drum machines.',
-    sellingSince: '2026-08-11',
-    fictional: true,
-    firstParty: false,
-  },
-  {
     handle: 'nightjar',
     displayName: 'Nightjar',
     location: 'Tromsø, Norway',
     genres: ['downtempo', 'electronic'],
-    sells: ['samples', 'presets', 'beats', 'songs'],
+    sells: ['samples', 'presets', 'beats'],
     bio: 'Nightjar is the artist name of Maya Lind, who makes downtempo and electronic music in Tromsø, plus the drums, presets and beats behind it.',
     sellingSince: '2026-06-01',
     fictional: true,

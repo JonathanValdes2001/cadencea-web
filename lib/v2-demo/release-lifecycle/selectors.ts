@@ -213,8 +213,9 @@ export function versionLine(view: ReleaseView): string {
   return VERSION_COPY.notLive;
 }
 
+/** "Market", "Stream" or "Market + Stream". Songs are on Stream only (D19), also in a browser that stored older channels. */
 export function channelLabel(release: Release): string {
-  const market = release.channels.includes('market');
+  const market = release.type !== 'song' && release.channels.includes('market');
   const stream = release.channels.includes('stream');
   if (market && stream) return CHANNEL_LABEL.both;
   return stream ? CHANNEL_LABEL.stream : CHANNEL_LABEL.market;

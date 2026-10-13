@@ -1,5 +1,6 @@
 /**
- * The Market seed (WEB-V2-SPEC §6.4): 50 listings, 45 on sale at seed time.
+ * The Market seed (WEB-V2-SPEC §6.4): 43 listings, 39 on sale at seed time.
+ * No songs: they publish to Cadencea Stream only (DECISIONS.md D19).
  *
  * Every producer, release and price is fictional demo data, not a product
  * decision. Rows marked `lifecycle` are Nightjar's releases (§6.5): they carry
@@ -19,7 +20,6 @@ const key = (code: string): KeyValue => decodeKey(code) ?? null;
 const credits = (n: number): Price => ({ kind: 'credits', credits: n });
 const ZERO: Price = { kind: 'free' };
 const PER_TIER: Price = { kind: 'per_tier' };
-const STREAM_ONLY: Price = { kind: 'stream_only' };
 
 const firstRelease = (date: string): VersionEntry[] => [{ version: 1, date, note: ITEM_COPY.firstRelease }];
 
@@ -846,77 +846,6 @@ const BEATS: readonly SeedItem[] = [
   },
 ];
 
-const SONGS: readonly SeedItem[] = [
-  {
-    source: 'seed',
-    slug: 'salt-in-the-well',
-    title: 'Salt in the Well',
-    type: 'song',
-    seller: 'juniper-hollow',
-    bpm: 96,
-    key: key('G'),
-    genre: 'indie folk',
-    tags: ['indie folk', 'acoustic'],
-    price: STREAM_ONLY,
-    song: { format: 'single', tracks: 1 },
-    description:
-      'An acoustic indie folk single with two voices, guitar and a brushed snare. Juniper Hollow recorded it live to tape in their Oslo rehearsal room.',
-    publishedAt: '2026-08-04T10:00:00Z',
-    versions: firstRelease('2026-08-04T10:00:00Z'),
-  },
-  {
-    source: 'seed',
-    slug: 'quiet-harbour',
-    title: 'Quiet Harbour',
-    type: 'song',
-    seller: 'juniper-hollow',
-    bpm: 'various',
-    key: 'various',
-    genre: 'indie folk',
-    tags: ['indie folk'],
-    price: STREAM_ONLY,
-    song: { format: 'ep', tracks: 4 },
-    description:
-      'A four-track indie folk EP about leaving a small town, recorded over one winter. Fiddle, banjo and three voices, with the tempo and key changing from song to song.',
-    publishedAt: '2026-09-18T10:00:00Z',
-    versions: firstRelease('2026-09-18T10:00:00Z'),
-  },
-  {
-    source: 'seed',
-    slug: 'lattice',
-    title: 'Lattice',
-    type: 'song',
-    seller: 'tessellate',
-    bpm: 122,
-    key: key('Fm'),
-    genre: 'electronic',
-    tags: ['electronic', 'melodic'],
-    price: STREAM_ONLY,
-    song: { format: 'single', tracks: 1 },
-    description:
-      'A melodic electronic single at 122 BPM in F Minor. Tessellate played it on hardware synths and a drum machine and mixed it in one evening.',
-    publishedAt: '2026-08-11T10:00:00Z',
-    versions: firstRelease('2026-08-11T10:00:00Z'),
-  },
-  {
-    source: 'seed',
-    slug: 'afterimage',
-    title: 'Afterimage',
-    type: 'song',
-    seller: 'tessellate',
-    bpm: 'various',
-    key: 'various',
-    genre: 'electronic',
-    tags: ['electronic'],
-    price: STREAM_ONLY,
-    song: { format: 'ep', tracks: 5 },
-    description:
-      'A five-track electronic EP that moves from ambient openers to club tempo. Each track has its own tempo and key.',
-    publishedAt: '2026-10-05T10:00:00Z',
-    versions: firstRelease('2026-10-05T10:00:00Z'),
-  },
-];
-
 const THEMES: readonly SeedItem[] = [
   {
     source: 'seed',
@@ -980,9 +909,6 @@ const LINKED_ROWS: readonly LinkedItem[] = [
   linked('ice-road', 'Ice Road', 'beat', 'demo-r07'),
   linked('glass-steps', 'Glass Steps', 'beat', 'demo-r11'),
   linked('night-bus', 'Night Bus', 'beat', 'demo-r15'),
-  linked('late-ferry', 'Late Ferry', 'song', 'demo-r01'),
-  linked('coastline', 'Coastline', 'song', 'demo-r14'),
-  linked('harbor-lights', 'Harbor Lights', 'song', 'demo-r08'),
 ];
 
 export const MARKET_ITEMS: readonly MarketItem[] = [
@@ -991,7 +917,6 @@ export const MARKET_ITEMS: readonly MarketItem[] = [
   ...PRESET_PACKS,
   ...MIDI_PACKS,
   ...BEATS,
-  ...SONGS,
   ...THEMES,
   ...LINKED_ROWS,
 ];
