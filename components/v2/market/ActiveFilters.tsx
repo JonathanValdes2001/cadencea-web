@@ -65,26 +65,28 @@ export default function ActiveFilters({
   filters,
   onChange,
   onClear,
+  className = '',
 }: {
   filters: MarketFilters;
   onChange: (patch: Partial<MarketFilters>) => void;
   onClear: () => void;
+  className?: string;
 }) {
   const chips = chipsFor(filters);
   if (!chips.length) return null;
   return (
-    <div role="group" aria-label={FILTER_COPY.activeLabel} className="flex flex-wrap items-center gap-2">
+    <div role="group" aria-label={FILTER_COPY.activeLabel} className={`flex flex-wrap items-center gap-2 ${className}`}>
       {chips.map((chip) => (
         <span
           key={chip.id}
-          className="inline-flex items-center rounded-sm border border-line bg-elevated pl-3 text-sm text-ink"
+          className="inline-flex items-center rounded-sm border border-brand-200 bg-brand-50 pl-3 text-sm font-medium text-brand-800 tabular-nums"
         >
           {chip.label}
           <button
             type="button"
             onClick={() => onChange(chip.remove)}
             aria-label={fill(FILTER_COPY.remove, { label: chip.label })}
-            className="flex h-9 w-9 items-center justify-center rounded-sm text-ink-muted hover:text-ink pointer-coarse:h-11 pointer-coarse:w-11"
+            className="flex h-8 w-8 items-center justify-center rounded-sm text-brand-700 hover:bg-brand-100 hover:text-brand-900 pointer-coarse:h-11 pointer-coarse:w-11"
           >
             <Close size={16} />
           </button>
@@ -93,7 +95,7 @@ export default function ActiveFilters({
       <button
         type="button"
         onClick={onClear}
-        className="inline-flex h-9 items-center px-2 text-sm font-semibold text-accent-ink hover:text-accent-hover pointer-coarse:h-11"
+        className="inline-flex h-8 items-center px-2 text-sm font-semibold text-accent-ink hover:text-accent-hover pointer-coarse:h-11"
       >
         {FILTER_COPY.clearAll}
       </button>

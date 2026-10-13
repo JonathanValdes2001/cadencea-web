@@ -5,8 +5,6 @@ import { isPreviewSite } from '@/lib/site-channel.mjs';
 import { CATEGORY_BY_KEY, isCategoryKey } from '@/lib/v2-demo/categories';
 import { getItem } from '@/lib/v2-demo/market/items';
 import { seedListing } from '@/lib/v2-demo/market/resolve';
-import CategoryHeader from '@/components/v2/market/CategoryHeader';
-import CategoryNav from '@/components/v2/market/CategoryNav';
 import ItemView from '@/components/v2/market/ItemView';
 import MarketBrowser from '@/components/v2/market/MarketBrowser';
 
@@ -32,13 +30,9 @@ export default async function MarketSlugPage({ params }: Props) {
   if (isCategoryKey(slug)) {
     const category = CATEGORY_BY_KEY[slug];
     return (
-      <>
-        <CategoryHeader title={category.label} lead={category.description} />
-        <CategoryNav current={category.key} />
-        <Suspense>
-          <MarketBrowser category={category.key} />
-        </Suspense>
-      </>
+      <Suspense>
+        <MarketBrowser category={category.key} title={category.label} lead={category.description} />
+      </Suspense>
     );
   }
 
