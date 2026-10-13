@@ -60,7 +60,7 @@ const faqs = [
   },
   {
     q: 'How private are my files?',
-    a: 'Files travel over encrypted connections, and only you and the collaborators you invite can open your projects. Your local folders remain the master copy.',
+    a: 'Files travel over encrypted connections, and you choose which projects to upload and who you share them with. Your local folders remain the master copy; keep a separate backup of important work. See our Privacy Policy for how we handle data.',
   },
   {
     q: 'Do collaborators need to pay?',

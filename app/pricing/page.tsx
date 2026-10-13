@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Faq from '@/components/ui/Faq';
 import { useLazyModule } from '@/components/useLazyModule';
 import { useShowV2 } from '@/components/v2/common/V2Flag';
+import { subscriptionCheckout } from '@/lib/subscription-checkout.mjs';
 import {
   api,
   ApiError,
   type BillingPlansResponse,
-  type CheckoutSessionResponse,
   type SubscriptionStatusResponse,
 } from '@/lib/api-client';
 
@@ -75,7 +75,7 @@ const includedFeatures = [
   },
   {
     title: 'Private by default',
-    desc: 'Encrypted in transit. Only you and the collaborators you invite can open your projects.',
+    desc: 'Encrypted in transit. You choose which projects to upload and who you share them with.',
   },
   {
     title: 'Bring your library',
@@ -117,9 +117,10 @@ const pricingFaq = [
 const SWITCH_PLAN_HREF = 'mailto:support@cadencea.app?subject=Switch%20my%20Cadencea%20plan';
 
 /**
- * The paid plan a signed-in user is still billed for, or null. Checkout always
- * starts a new subscription, so a subscriber who picked another plan here would
- * pay for both; until plans can be switched in place, support switches them.
+ * The paid plan a signed-in user is still billed for, or null. Display only:
+ * the click path goes through subscriptionCheckout, which rechecks the status,
+ * sends subscribers (and API 409s) to the billing portal and never falls back
+ * to a purchase when the lookup fails.
  */
 function activePaidPlan(status: SubscriptionStatusResponse): string | null {
   const plan = status.plan?.toLowerCase();
@@ -141,6 +142,8 @@ export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [paidPlan, setPaidPlan] = useState<string | null>(null);
+  // Locks every plan button synchronously so a double click can't start two checkouts.
+  const checkoutBusy = useRef(false);
 
   useEffect(() => {
     if (!user) {
@@ -154,7 +157,8 @@ export default function PricingPage() {
         if (!cancelled) setPaidPlan(activePaidPlan(res));
       })
       .catch(() => {
-        // Unknown status: the plan buttons behave as before.
+        // Unknown status: the buttons stay, and handleSubscribe rechecks the
+        // status through subscriptionCheckout, which fails closed.
       });
     return () => {
       cancelled = true;
@@ -177,14 +181,13 @@ export default function PricingPage() {
   }, []);
 
   const handleSubscribe = async (plan: Plan) => {
+    if (authLoading || checkoutBusy.current) return;
     setError(null);
 
     if (plan.monthlyPrice === 0) {
       router.push(user ? '/account/subscription' : '/signup');
       return;
     }
-
-    if (authLoading) return;
 
     if (!user) {
       router.push(`/login?redirect=${encodeURIComponent('/pricing')}`);
@@ -209,11 +212,9 @@ export default function PricingPage() {
     }
 
     try {
+      checkoutBusy.current = true;
       setLoadingPlan(plan.name);
-      const res = await api.post<CheckoutSessionResponse>(
-        '/billing/create-checkout-session',
-        { price_id: priceId }
-      );
+      const res = await subscriptionCheckout(api, priceId);
       window.location.href = res.url;
     } catch (err) {
       const message =
@@ -222,6 +223,7 @@ export default function PricingPage() {
           : 'Something went wrong starting checkout. Please try again.';
       setError(message);
       setLoadingPlan(null);
+      checkoutBusy.current = false;
     }
   };
 
@@ -335,24 +337,15 @@ export default function PricingPage() {
                     {showV2 && preview && <preview.PlanCreditsLine plan={plan.name} check={<Check />} />}
                   </ul>
 
-                  {paidPlan && !isFree ? (
-                    plan.name.toLowerCase() === paidPlan ? (
-                      <p className="mt-10 inline-flex h-11 items-center justify-center rounded-sm border border-line text-sm font-semibold tracking-wide text-ink-muted">
-                        Current plan
-                      </p>
-                    ) : (
-                      <a
-                        href={SWITCH_PLAN_HREF}
-                        className="mt-10 inline-flex h-11 items-center justify-center rounded-sm border border-ink text-sm font-semibold tracking-wide text-ink hover:bg-elevated"
-                      >
-                        Email us to switch
-                      </a>
-                    )
+                  {paidPlan && !isFree && plan.name.toLowerCase() === paidPlan ? (
+                    <p className="mt-10 inline-flex h-11 items-center justify-center rounded-sm border border-line text-sm font-semibold tracking-wide text-ink-muted">
+                      Current plan
+                    </p>
                   ) : (
                     <button
                       type="button"
                       onClick={() => handleSubscribe(plan)}
-                      disabled={loadingPlan !== null && loadingPlan !== plan.name}
+                      disabled={authLoading || loadingPlan !== null}
                       aria-busy={loadingPlan === plan.name}
                       className={`mt-10 inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
                         isFree
@@ -360,7 +353,11 @@ export default function PricingPage() {
                           : 'bg-accent text-white hover:bg-accent-hover'
                       }`}
                     >
-                      {loadingPlan === plan.name ? 'Redirecting…' : plan.cta}
+                      {loadingPlan === plan.name
+                        ? 'Redirecting…'
+                        : paidPlan && !isFree
+                          ? 'Manage subscription'
+                          : plan.cta}
                     </button>
                   )}
                 </div>
@@ -377,7 +374,7 @@ export default function PricingPage() {
           )}
           {paidPlan && (
             <p className="mx-auto mt-8 max-w-xl text-center text-sm text-ink">
-              To switch plans, email{' '}
+              Your subscription is managed in the billing portal. To switch plans, email{' '}
               <a href={SWITCH_PLAN_HREF} className="font-medium text-accent-ink hover:text-accent-hover">
                 support@cadencea.app
               </a>{' '}

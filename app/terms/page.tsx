@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
-  // Merge gate (WEB-V2-SPEC §9.3 #2): §5.1 below moved to euros on
-  // cadencea-v2-beta. Before main, legal approves it, the .docx gets the same
-  // text, and this page gets a new effectiveDate plus a matching lastUpdated.
+  // Merge gate (WEB-V2-SPEC §9.3 #2): §5.1 euros reached main on October 13,
+  // 2026 (lastUpdated below). v2 adds the VAT sentence; before v2 ships, legal
+  // approves it, the .docx gets the same text, and effectiveDate is reviewed.
   return (
-    <LegalLayout title="Terms of Service" effectiveDate="April 15, 2026">
+    <LegalLayout title="Terms of Service" effectiveDate="April 15, 2026" lastUpdated="October 13, 2026">
       <h2>1. Introduction and Acceptance</h2>
       <p>
         These Terms of Service (&ldquo;Terms&rdquo;) constitute a legally

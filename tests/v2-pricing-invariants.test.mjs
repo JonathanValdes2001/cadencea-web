@@ -14,7 +14,7 @@ test('checkout code, plan names and prices are unchanged', async () => {
   for (const snippet of [
     'p.id.toLowerCase() === plan.name.toLowerCase()',
     "'/billing/plans'",
-    "'/billing/create-checkout-session'",
+    'subscriptionCheckout(api, priceId)',
     'window.location.href = res.url;',
     "name: 'Free'",
     "name: 'Basic'",
@@ -32,6 +32,9 @@ test('checkout code, plan names and prices are unchanged', async () => {
   ]) {
     assert.ok(page.includes(snippet), `app/pricing/page.tsx lost: ${snippet}`)
   }
+  // The checkout call itself lives in lib/subscription-checkout.mjs (main #1).
+  const checkout = await read('lib/subscription-checkout.mjs')
+  assert.ok(checkout.includes("'/billing/create-checkout-session'"), 'subscription-checkout lost the checkout endpoint')
 })
 
 test('no highlighted plan: free uses the outline button, paid plans the primary one', async () => {

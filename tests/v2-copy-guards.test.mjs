@@ -155,13 +155,17 @@ test('production copy makes no VAT claim', async () => {
   }
 })
 
-// The pricing page must not send a subscriber to checkout for a second plan.
-test('plan changes go through support, never a second checkout', async () => {
+// The pricing page must not send a subscriber to checkout for a second plan:
+// every paid click goes through subscriptionCheckout (subscriber or API 409 ->
+// billing portal; a failed status lookup never purchases).
+test('plan changes go to the billing portal, never a second checkout', async () => {
   const pricing = await readFile(path.join(root, 'app/pricing/page.tsx'), 'utf8')
   assert.doesNotMatch(pricing, /anytime from your account's Subscription page/)
   assert.doesNotMatch(pricing, /change or cancel anytime/)
   assert.match(pricing, /'\/billing\/subscription-status'/)
-  assert.match(pricing, /Email us to switch/)
+  assert.match(pricing, /subscriptionCheckout\(api, priceId\)/)
+  assert.doesNotMatch(pricing, /'\/billing\/create-checkout-session'/)
+  assert.match(pricing, /Manage subscription/)
 })
 
 // The shipped Vault doesn't recognize Studio One (.song) or Bitwig (.bwproject)
