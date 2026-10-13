@@ -388,6 +388,7 @@ test('storage: per-area keys, version reseed and a quiet in-memory fallback', ()
     releaseLifecycle: 'cadencea.v2-demo.release-lifecycle.v1',
     credits: 'cadencea.v2-demo.credits.v1',
     market: 'cadencea.v2-demo.market.v1',
+    creatorProfile: 'cadencea.v2-demo.creator-profile.v1',
   })
   const saved = globalThis.window
   try {

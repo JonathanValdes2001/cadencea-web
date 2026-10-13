@@ -124,7 +124,7 @@ function newSamplePack(state) {
   const project = findProject('saltmarsh-kit')
   const payload = { ...prefillPayload(project, 'sample_pack', { displayName: 'Nightjar', personName: 'Maya Lind', userId: 'demo-maya' }, DEMO_NOW), genre: 'Downtempo' }
   const source = { vaultId: 'demo-vault-nightjar', projectName: project.name, pushedAtCapture: true, capturedAt: DEMO_NOW }
-  const after = viaRule('T01', state, { type: 'create_release', releaseType: 'sample_pack', source, payload }, SELLER)
+  const after = viaRule('T01', state, { type: 'create_release', releaseType: 'sample_pack', source, payload, sellerEligible: true }, SELLER)
   const releaseId = Object.keys(after.releases).find((k) => !state.releases[k])
   return { state: after, releaseId, evidence: buildEvidence(project, DEMO_NOW, null) }
 }
@@ -355,7 +355,7 @@ test('T14 with a future release date schedules the song and sets goesPublicAt', 
     tracks: base.tracks.map((t) => ({ ...t, language: 'en', key: { ...t.key, confirmed: true } })),
   }
   const source = { vaultId: 'demo-vault-nightjar', projectName: project.name, pushedAtCapture: true, capturedAt: DEMO_NOW }
-  let state = ok(SEED_STATE, { type: 'create_release', releaseType: 'song', source, payload })
+  let state = ok(SEED_STATE, { type: 'create_release', releaseType: 'song', source, payload, sellerEligible: true })
   const releaseId = Object.keys(state.releases).find((k) => !SEED_STATE.releases[k])
   state = ok(state, { type: 'submit', releaseId, attestation: ATTESTATION, evidence: buildEvidence(project, DEMO_NOW, null) })
   const caseId = lastCaseOf(state, open(state, releaseId))
@@ -579,7 +579,20 @@ test('actions outside the rules return invalid_state, wrong actors not_allowed_f
   refused(SEED_STATE, { type: 'unpublish', releaseId: id(1) }, OTHER_SELLER, 'not_found')
   // Themes are first-party only (L18).
   const theme = { ...current(SEED_STATE, id(9)).payload, kind: 'theme', themeId: 'x', screenshots: [], appearance: 'dark' }
-  refused(SEED_STATE, { type: 'create_release', releaseType: 'theme', source: { vaultId: 'v', projectName: 'p', pushedAtCapture: true, capturedAt: DEMO_NOW }, payload: theme }, SELLER, 'type_not_publishable')
+  refused(SEED_STATE, { type: 'create_release', releaseType: 'theme', source: { vaultId: 'v', projectName: 'p', pushedAtCapture: true, capturedAt: DEMO_NOW }, payload: theme, sellerEligible: true }, SELLER, 'type_not_publishable')
+})
+
+// T01 "seller eligible" (PUBLISH-PROCEDURE §1): no verified creator profile, no release.
+test('T01 refuses a seller without a verified creator profile', () => {
+  const project = findProject('saltmarsh-kit')
+  const payload = { ...prefillPayload(project, 'sample_pack', { displayName: 'Nightjar', personName: 'Maya Lind', userId: 'demo-maya' }, DEMO_NOW), genre: 'Downtempo' }
+  const source = { vaultId: 'demo-vault-nightjar', projectName: project.name, pushedAtCapture: true, capturedAt: DEMO_NOW }
+  const action = { type: 'create_release', releaseType: 'sample_pack', source, payload }
+  refused(SEED_STATE, { ...action, sellerEligible: false }, SELLER, 'seller_not_eligible')
+  refused(SEED_STATE, action, SELLER, 'seller_not_eligible')
+  const result = apply(SEED_STATE, { ...action, sellerEligible: false })
+  assert.equal(result.message, 'Verify your creator profile before you publish.')
+  ok(SEED_STATE, { ...action, sellerEligible: true })
 })
 
 /* ------------------------------------------------------------------ */
@@ -808,6 +821,8 @@ test('a new release never takes a category key or a seed listing slug', () => {
     return ok(state, { type: 'save_draft', releaseId, payload }).releases[releaseId].slug
   }
   assert.equal(slugFor('Samples'), 'samples-2')
+  // /market/songs redirects to Stream (D19), so it stays reserved.
+  assert.equal(slugFor('Songs'), 'songs-2')
   assert.equal(getItem('velvet-pads').source, 'seed')
   assert.equal(slugFor('Velvet Pads'), 'velvet-pads-2')
   assert.equal(slugFor('Saltmarsh Kit'), 'saltmarsh-kit')

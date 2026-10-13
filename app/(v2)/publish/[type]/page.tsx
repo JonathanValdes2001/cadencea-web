@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
 import ComingLaterType from '@/components/v2/publish/ComingLaterType';
+import PublishScreen from '@/components/v2/publish/PublishScreen';
 import PublishWizard from '@/components/v2/publish/PublishWizard';
 import { fill } from '@/lib/v2-demo/format';
 import { COMING_LATER_COPY, WIZARD_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
@@ -34,8 +35,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return { title: `${title} (preview)` };
 }
 
-// Server shell: the wizard is a client component that keeps its draft in this
-// browser's demo store. `?project=` comes from "Start from a Vault project" on /publish.
+// Server shell: the Publish window (PUBLISH-PROCEDURE §2–§3) with Type filled in,
+// and Project too with `?project=` (the project shortcuts). The wizard is a client
+// component that keeps its draft in this browser's demo store.
 export default async function PublishTypePage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
@@ -44,5 +46,9 @@ export default async function PublishTypePage({ params, searchParams }: { params
   if (!resolved) notFound();
   if (resolved.kind === 'later') return <ComingLaterType type={resolved.type} />;
   const { project } = await searchParams;
-  return <PublishWizard mode="new" type={resolved.type} projectId={typeof project === 'string' ? project : null} />;
+  return (
+    <PublishScreen shortcuts>
+      <PublishWizard mode="new" type={resolved.type} projectId={typeof project === 'string' ? project : null} />
+    </PublishScreen>
+  );
 }

@@ -18,6 +18,8 @@ export const DEMO_STORAGE_KEYS = {
   credits: 'cadencea.v2-demo.credits.v1',
   /** Market purchases, downloads and returns. */
   market: 'cadencea.v2-demo.market.v1',
+  /** Publish's creator profile and its verification state (PUBLISH-PROCEDURE §1). Replaces `seller-profile.v1`. */
+  creatorProfile: 'cadencea.v2-demo.creator-profile.v1',
 } as const;
 
 export interface DemoStore<T> {

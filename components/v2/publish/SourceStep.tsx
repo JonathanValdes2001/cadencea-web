@@ -7,12 +7,14 @@ import { Check, Refresh } from '@/components/ui/Icons';
 import Tooltip from '@/components/ui/Tooltip';
 import { confidenceLevel, fill, formatKey } from '@/lib/v2-demo/format';
 import { PREFILL_COPY, WIZARD_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
+import { PROJECT_STEP } from '@/lib/v2-demo/release-lifecycle/publish-copy';
 import { diffRevision } from '@/lib/v2-demo/release-lifecycle/diff';
 import { DAW_LABEL } from '@/lib/v2-demo/release-lifecycle/options';
 import type { Provenanced, ReleasePayload } from '@/lib/v2-demo/release-lifecycle/types';
 import { CHANGE_KIND_LABEL, FILE_CHANGE_LABEL, WIZARD_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
 import { VAULT_PROJECTS, type VaultProject } from '@/lib/v2-demo/release-lifecycle/vault-projects';
 import { fieldLabel } from '@/components/v2/studio/field-values';
+import { fieldId } from './wizard-shared';
 
 /** BPM or key with its prefill chip and, for Detect values, the confidence level (number in a tooltip, D4). */
 function Provenance<T>({ label, value, format }: { label: string; value: Provenanced<T> | undefined; format: (v: T) => string }) {
@@ -65,16 +67,19 @@ export function ProjectFacts({ project }: { project: VaultProject }) {
 }
 
 /**
- * Step 1, "Project" (RL §5.2, §5.3): pick one of the demo Vault projects, then
- * "Start from a Vault project". Once a draft exists the project is fixed and
- * "Refresh from Vault project" shows what would change before applying it.
+ * Step 2, "Project" (PUBLISH-PROCEDURE §2; RL §5.2, §5.3): choose one of the
+ * demo Vault projects; "Next" starts from it with everything it knows filled
+ * in. Once a draft exists the project is fixed and "Refresh from Vault project"
+ * shows what would change before applying it.
  */
 export default function SourceStep({
   payload,
   project,
   projectName,
   locked,
-  onStart,
+  picked,
+  onPick,
+  error,
   refreshed,
   onApplyRefresh,
 }: {
@@ -84,15 +89,16 @@ export default function SourceStep({
   projectName: string | null;
   /** True once a draft exists: the source can't change any more. */
   locked: boolean;
-  onStart: (project: VaultProject) => void;
+  /** The project chosen but not started yet. */
+  picked: string | null;
+  onPick: (projectId: string) => void;
+  error?: string;
   /** The payload a refresh would produce, or null when the project isn't available. */
   refreshed: ReleasePayload | null;
   onApplyRefresh: () => void;
 }) {
   const groupId = useId();
-  const [picked, setPicked] = useState<string | null>(project?.id ?? null);
   const [showRefresh, setShowRefresh] = useState(false);
-  const pickedProject = VAULT_PROJECTS.find((p) => p.id === picked) ?? null;
 
   if (locked) {
     const changes = payload && refreshed ? diffRevision(payload, refreshed) : null;
@@ -164,8 +170,9 @@ export default function SourceStep({
 
   return (
     <div>
-      <p className="text-sm text-ink-muted">{WIZARD_UI.source.lead}</p>
-      <fieldset className="mt-4">
+      <p className="text-sm text-ink-muted">{PROJECT_STEP.lead}</p>
+      {error && <p className="mt-2 text-sm font-medium text-danger">{error}</p>}
+      <fieldset id={fieldId('source')} tabIndex={-1} className="mt-4">
         <legend className="sr-only">{WIZARD_UI.source.heading}</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           {VAULT_PROJECTS.map((p) => {
@@ -177,7 +184,7 @@ export default function SourceStep({
                   selected ? 'border-ink bg-elevated' : 'border-line hover:border-line-strong'
                 }`}
               >
-                <input type="radio" name={groupId} value={p.id} checked={selected} onChange={() => setPicked(p.id)} className="sr-only" />
+                <input type="radio" name={groupId} value={p.id} checked={selected} onChange={() => onPick(p.id)} className="sr-only" />
                 <div className="w-16 shrink-0">
                   <CoverArt seed={p.coverSeed} kind={p.suggestedType} decorative rounded="sm" />
                 </div>
@@ -198,9 +205,6 @@ export default function SourceStep({
           })}
         </div>
       </fieldset>
-      <Button className="mt-4" disabled={!pickedProject} onClick={() => pickedProject && onStart(pickedProject)}>
-        {WIZARD_COPY.source.start}
-      </Button>
     </div>
   );
 }

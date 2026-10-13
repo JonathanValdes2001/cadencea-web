@@ -21,9 +21,11 @@ import { allViews, attentionCount, inTab, lastActivity, tabCounts } from '@/lib/
 import { resetLifecycleDemo, useLifecycle } from '@/lib/v2-demo/release-lifecycle/store';
 import { STUDIO_TABS, type StudioTab } from '@/lib/v2-demo/release-lifecycle/types';
 import { STUDIO_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
-import { sellerProfileStore, studioTabStore } from '@/lib/v2-demo/release-lifecycle/viewer-prefs';
+import { CREATOR_COPY } from '@/lib/v2-demo/release-lifecycle/publish-copy';
+import { studioTabStore } from '@/lib/v2-demo/release-lifecycle/viewer-prefs';
 import { useDemoStore } from '@/lib/v2-demo/use-demo-store';
 import ActionMenu from './ActionMenu';
+import { resetCreatorProfile } from '@/components/v2/publish/CreatorGate';
 import { AutoApprover } from './DemoReviewer';
 import { ReleaseActionsProvider } from './ReleaseActions';
 import ReleaseRow, { ROW_GRID } from './ReleaseRow';
@@ -84,7 +86,7 @@ export default function StudioDashboard({ demo }: { demo: boolean }) {
 
   const reset = () => {
     resetLifecycleDemo();
-    sellerProfileStore.reset();
+    resetCreatorProfile();
     studioTabStore.reset();
     setResetOpen(false);
     toast.show(STUDIO_UI.resetToast);
@@ -106,6 +108,14 @@ export default function StudioDashboard({ demo }: { demo: boolean }) {
                 label={STUDIO_UI.moreOptions}
                 items={[
                   { id: 'market', label: STUDIO_UI.openMarket, href: '/market' },
+                  {
+                    id: 'reset-creator',
+                    label: CREATOR_COPY.demo.reset,
+                    onSelect: () => {
+                      resetCreatorProfile();
+                      toast.show(CREATOR_COPY.demo.resetToast);
+                    },
+                  },
                   { id: 'reset', label: STUDIO_UI.reset, danger: true, onSelect: () => setResetOpen(true) },
                 ]}
               />

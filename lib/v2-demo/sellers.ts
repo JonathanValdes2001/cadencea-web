@@ -18,8 +18,9 @@ export const PERSONA = {
   planName: 'Standard',
 } as const;
 
-/** PersonaBanner, the same on every v2 page. */
-export const PERSONA_LINE = 'Demo account: Maya Lind, releasing as Nightjar · Standard plan';
+/** PersonaBanner, the same on every v2 page; {name} is the creator profile's display name. */
+export const PERSONA_LINE_TEMPLATE = 'Demo account: Maya Lind, releasing as {name} · Standard plan';
+export const PERSONA_LINE = PERSONA_LINE_TEMPLATE.replace('{name}', PERSONA.artistName);
 
 /** Shown under the persona line when someone is signed in ({displayName}). */
 export const SIGNED_IN_NOTE = "You're signed in as {displayName}. This page shows a demo account, not yours.";

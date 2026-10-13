@@ -8,7 +8,7 @@ import { PUBLISH_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
 import { VAULT_PROJECTS } from '@/lib/v2-demo/release-lifecycle/vault-projects';
 import { ProjectFacts } from './SourceStep';
 
-/** "Start from a Vault project" on /publish: each demo project opens the wizard it suits, prefilled. */
+/** "Start from a Vault project" under the Publish window: each demo project opens Publish with its type and project filled in. */
 export default function ProjectShortcuts({ className = '' }: { className?: string }) {
   return (
     <section aria-labelledby="projects-heading" className={className}>

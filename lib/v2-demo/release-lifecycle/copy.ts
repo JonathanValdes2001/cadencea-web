@@ -544,10 +544,13 @@ export const SPLITS_COPY = {
   buyerAck: 'I understand these loops are royalty-split, not royalty-free, and I accept the terms above.',
 } as const;
 
-/** [`prefill.*`] `{level}` is High, Medium or Low (DECISIONS.md D4). */
+/**
+ * [`prefill.*`] `{level}` is High, Medium or Low (DECISIONS.md D4). The chip
+ * labels follow PUBLISH-PROCEDURE §2, which overrides RL's "Detected (confirm)".
+ */
 export const PREFILL_COPY = {
   fromProject: 'From your project',
-  detected: 'Detected (confirm)',
+  detected: 'Detected, please confirm',
   needsInput: 'Needs your input',
   looksRight: 'Looks right',
   detectedNote: 'Detected by Cadencea · {level} confidence. Check it before you submit.',

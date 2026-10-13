@@ -8,14 +8,20 @@ import type {
   Provenanced,
   ReleasePayload,
   ValidationIssue,
-  WizardStepId,
 } from '@/lib/v2-demo/release-lifecycle/types';
 import { needsConfirmation } from '@/lib/v2-demo/release-lifecycle/validation';
 import { buildEvidence, type VaultProject } from '@/lib/v2-demo/release-lifecycle/vault-projects';
 import { DEMO_NOW } from '@/lib/v2-demo/clock';
 import { WIZARD_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
+import { PUBLISH_STEP_ORDER, type PublishStepId } from '@/lib/v2-demo/release-lifecycle/publish-copy';
 
-export const STEP_ORDER: readonly WizardStepId[] = ['source', 'details', 'contents', 'cover_preview', 'license_price', 'review_submit'];
+export type { PublishStepId };
+
+/**
+ * The Publish steps (PUBLISH-PROCEDURE §2): Type · Project · Details · Files ·
+ * Cover · Price · Review. "type" is a UI step; the rest are RL's step ids.
+ */
+export const STEP_ORDER: readonly PublishStepId[] = PUBLISH_STEP_ORDER;
 
 /** The element id of a payload field, so a checklist issue can move focus to it. */
 export function fieldId(field: string): string {
@@ -32,7 +38,7 @@ export interface StepProps<P extends ReleasePayload = ReleasePayload> {
   isUpdate: boolean;
 }
 
-export function issueLookup(issues: readonly ValidationIssue[], flagged: ReadonlySet<WizardStepId>) {
+export function issueLookup(issues: readonly ValidationIssue[], flagged: ReadonlySet<PublishStepId>) {
   return (field: string, exact = false): string | undefined => {
     const hit = issues.find((i) => flagged.has(i.step) && (i.field === field || (!exact && i.field.startsWith(`${field}.`))));
     return hit?.message;
@@ -40,7 +46,7 @@ export function issueLookup(issues: readonly ValidationIssue[], flagged: Readonl
 }
 
 /**
- * The prefill chip (RL §5.2, §5.3): "Detected (confirm)" for an unconfirmed
+ * The prefill chip (RL §5.2, §5.3): "Detected, please confirm" for an unconfirmed
  * Detect value, with the confidence number only in its tooltip (DECISIONS.md
  * D4); "From your project" when the value is still the project's; "Needs your
  * input" when empty.

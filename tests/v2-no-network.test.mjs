@@ -26,6 +26,14 @@ async function v2Files() {
   return files
 }
 
+/**
+ * PUBLISH-PROCEDURE §1 (founder, 2026-10-14) words the creator setup with the
+ * provider's name ("Verify your identity with Stripe…", "Connect payouts with
+ * Stripe (demo)", "Tax details are collected by Stripe."), so the Vault and the
+ * website match. Only its copy file may name it; no file may import it.
+ */
+const STRIPE_NAME_ALLOWED = new Set(['lib/v2-demo/release-lifecycle/publish-copy.ts'])
+
 const FORBIDDEN = [
   [/api-client/i, 'the API client'],
   [/\bapi\.(get|post|put|patch|delete)\(/i, 'an API call'],
@@ -42,6 +50,7 @@ test('v2 code has no network calls, payment SDKs or billing endpoints', async ()
   assert.ok(files.length > 20, 'expected the v2 folders to exist')
   for (const { rel, source } of files) {
     for (const [pattern, what] of FORBIDDEN) {
+      if (what.startsWith('the name Stripe') && STRIPE_NAME_ALLOWED.has(rel)) continue
       assert.doesNotMatch(source, pattern, `${rel} mentions ${what}`)
     }
   }

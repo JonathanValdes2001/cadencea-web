@@ -723,7 +723,11 @@ export interface Entitlement {
 /* ------------------------------------------------------------------ */
 
 export type SellerAction =
-  | { type: 'create_release'; releaseType: ReleaseType; source: VaultSourceRef; payload: ReleasePayload }
+  /**
+   * `sellerEligible`: the seller has a verified creator profile (T01 "seller
+   * eligible"; PUBLISH-PROCEDURE §1). The demo reads it from the creator store.
+   */
+  | { type: 'create_release'; releaseType: ReleaseType; source: VaultSourceRef; payload: ReleasePayload; sellerEligible: boolean }
   | { type: 'save_draft'; releaseId: Id; payload: ReleasePayload; changeNote?: string }
   | { type: 'submit'; releaseId: Id; attestation: Attestation; evidence: ProvenanceEvidence | null }
   | { type: 'pull_back'; releaseId: Id }
@@ -887,7 +891,8 @@ export type LifecycleErrorCode =
   | 'same_reviewer'
   | 'release_suspended'
   | 'not_relistable'
-  | 'type_not_publishable';
+  | 'type_not_publishable'
+  | 'seller_not_eligible';
 
 export type ApplyResult =
   | { ok: true; state: LifecycleState; events: ReviewEvent[] }

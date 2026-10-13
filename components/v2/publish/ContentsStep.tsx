@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useId } from 'react';
+import React, { useId, useState } from 'react';
 import Button from '@/components/ui/Button';
 import { CheckboxField, SelectField, StepperField, TextField } from '@/components/ui/Field';
-import { Chevron, Trash } from '@/components/ui/Icons';
+import { Check, Chevron, Trash, Waveform } from '@/components/ui/Icons';
 import { fill, formatBytes, formatDuration } from '@/lib/v2-demo/format';
 import { countOneShots, fileName } from '@/lib/v2-demo/release-lifecycle/demo-files';
 import { LANGUAGES } from '@/lib/v2-demo/release-lifecycle/options';
 import type { BeatPayload, FileRef, SongPayload, SongTrack } from '@/lib/v2-demo/release-lifecycle/types';
 import { LEASE_TIER_IDS } from '@/lib/v2-demo/release-lifecycle/types';
+import { PREFILL_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
+import { FILES_STEP } from '@/lib/v2-demo/release-lifecycle/publish-copy';
 import { WIZARD_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
 import {
   audioCandidates,
@@ -22,6 +24,81 @@ import {
 import { fieldId, mergeFiles, type StepProps } from './wizard-shared';
 
 const C = WIZARD_UI.contents;
+const F = FILES_STEP;
+
+/** "wav", "flac" … from a path. */
+const extOf = (path: string) => path.split('.').pop()?.toLowerCase() ?? '';
+
+/**
+ * "Which audio should listeners hear?" (PUBLISH-PROCEDURE §2 step 4): the main
+ * audio, lossless and never converted. The project's player file comes
+ * preselected; "Choose a different file" offers the other lossless files.
+ */
+function MainAudio({
+  field,
+  file,
+  playerFile,
+  candidates,
+  note,
+  onChange,
+  error,
+}: {
+  field: string;
+  file: FileRef;
+  playerFile: string | null;
+  candidates: readonly FileRef[];
+  note: string;
+  onChange: (file: FileRef) => void;
+  error?: string;
+}) {
+  const [choosing, setChoosing] = useState(false);
+  const fromProject = playerFile !== null && file.path === playerFile;
+  return (
+    <section aria-labelledby={`${fieldId(field)}-title`} className="rounded-md border border-line p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id={`${fieldId(field)}-title`} className="text-sm font-semibold text-ink">
+          {F.mainAudio}
+        </h3>
+        {fromProject && (
+          <span className="rounded-sm bg-tone-neutral-bg px-2 py-0.5 text-[11px] font-semibold text-tone-neutral">{PREFILL_COPY.fromProject}</span>
+        )}
+      </div>
+      <p className="mt-3 flex items-start gap-2 text-sm text-ink">
+        <Waveform size={20} className="mt-px shrink-0 text-ink-subtle" />
+        <span className="min-w-0 break-all font-medium">{fileName(file.path)}</span>
+        <Check size={16} className="mt-0.5 shrink-0 text-tone-success" />
+      </p>
+      <p className="ml-7 text-xs tabular-nums text-ink-subtle">
+        {file.durationMs !== undefined && `${formatDuration(file.durationMs)} · `}
+        {formatBytes(file.bytes)} · {note}
+      </p>
+      {error && <p className="ml-7 mt-1 text-xs font-medium text-danger">{error}</p>}
+      {choosing ? (
+        <div className="mt-3 max-w-md">
+          <SelectField
+            id={fieldId(field)}
+            label={F.pick}
+            value={file.path}
+            onChange={(e) => {
+              const next = candidates.find((f) => f.path === e.target.value);
+              if (next) onChange(next);
+            }}
+            options={candidates.map((f) => ({ value: f.path, label: f.durationMs !== undefined ? `${f.path} · ${formatDuration(f.durationMs)}` : f.path }))}
+          />
+          <Button className="mt-2" size="sm" variant="ghost" onClick={() => setChoosing(false)}>
+            {F.keep}
+          </Button>
+        </div>
+      ) : (
+        candidates.length > 1 && (
+          <Button className="mt-3" size="sm" variant="secondary" onClick={() => setChoosing(true)}>
+            {F.chooseOther}
+          </Button>
+        )
+      )}
+    </section>
+  );
+}
 
 /** A checklist of files with select all / none and a count. */
 function FilePicker({
@@ -208,7 +285,8 @@ function TrackList({ payload, update, project, errorFor }: { payload: SongPayloa
 }
 
 /**
- * Step 3, "Tracks / Files / Presets / Samples" (RL §5.3, §5.5): the deliverables,
+ * Step 4, "Files" (PUBLISH-PROCEDURE §2; RL §5.3, §5.5): the main audio for songs
+ * and beats, then the deliverables,
  * from the project's default selection; the seller can change it. Publishing
  * never writes to the project (L15).
  */
@@ -260,16 +338,14 @@ export default function ContentsStep({ payload, update, project, errorFor }: Ste
     return (
       <div className="space-y-6">
         {noProject}
-        <SelectField
-          id={fieldId('mainMix')}
-          label={C.mainMix}
-          value={payload.mainMix.path}
+        <MainAudio
+          field="mainMix"
+          file={payload.mainMix}
+          playerFile={project?.playerFile ?? null}
+          candidates={audio.filter((f) => extOf(f.path) === 'wav' && !payload.stems.some((s) => s.path === f.path))}
+          note={F.losslessBeat}
           error={errorFor('mainMix')}
-          onChange={(e) => {
-            const mainMix = audio.find((f) => f.path === e.target.value);
-            if (mainMix) update(withTierFiles({ ...payload, mainMix, previewStartMs: defaultPreviewStart(mainMix.durationMs) }, project));
-          }}
-          options={audio.map((f) => ({ value: f.path, label: f.durationMs !== undefined ? `${f.path} · ${formatDuration(f.durationMs)}` : f.path }))}
+          onChange={(mainMix) => update(withTierFiles({ ...payload, mainMix, previewStartMs: defaultPreviewStart(mainMix.durationMs) }, project))}
         />
         <div>
           <p className="mb-2 text-xs text-ink-subtle">{C.stemsHint}</p>
@@ -287,9 +363,28 @@ export default function ContentsStep({ payload, update, project, errorFor }: Ste
   }
 
   if (payload.kind === 'song') {
+    const first = payload.tracks[0];
+    const lossless = mergeFiles(project ? audioCandidates(project) : [], first ? [first.audio] : []).filter(
+      (f) => ['wav', 'flac'].includes(extOf(f.path)) && !/(^|\/)stems\//i.test(f.path) && !payload.tracks.slice(1).some((t) => t.audio.path === f.path),
+    );
     return (
       <div className="space-y-6">
         {noProject}
+        {first && (
+          <MainAudio
+            field="tracks.0.audio"
+            file={first.audio}
+            playerFile={project?.playerFile ?? null}
+            candidates={lossless}
+            note={F.lossless}
+            onChange={(audio) =>
+              update({
+                ...payload,
+                tracks: payload.tracks.map((t, i) => (i === 0 ? { ...t, audio, previewStartMs: defaultPreviewStart(audio.durationMs) } : t)),
+              })
+            }
+          />
+        )}
         <TrackList payload={payload} update={update} project={project} errorFor={errorFor} />
       </div>
     );

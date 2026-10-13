@@ -9,6 +9,7 @@ import { useMarketLibrary } from '@/lib/v2-demo/credits/store';
 import { fill } from '@/lib/v2-demo/format';
 import { EVIDENCE_COPY, HUMAN_MADE_COPY, NOTICE_COPY, RIGHTS_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
 import type { ChangeSummary, LicensedMaterial, ProvenanceEvidence, ValidationIssue, WizardStepId } from '@/lib/v2-demo/release-lifecycle/types';
+import { REVIEW_STEP } from '@/lib/v2-demo/release-lifecycle/publish-copy';
 import { WIZARD_UI } from '@/lib/v2-demo/release-lifecycle/ui-copy';
 import { CHANGE_NOTE_MAX } from '@/lib/v2-demo/release-lifecycle/validation';
 import { EvidenceSummary } from '@/components/v2/studio/EvidencePanel';
@@ -97,8 +98,8 @@ function LicensedMaterialEditor({ entries, onChange, nothingToList, setNothingTo
 }
 
 /**
- * Step 6, "Review, Human-Made and submit" (RL §5.2, §5.6, §5.7, §9.7): every
- * open issue as a link to its field, the change note and inline notices for
+ * Step 7, "Review" (PUBLISH-PROCEDURE §2; RL §5.2, §5.6, §5.7, §9.7): "Fix {n}
+ * things to submit" with every open issue as a link to its step and field, the change note and inline notices for
  * updates, the Human-Made Standard and attestation, licensed material, the
  * evidence summary with its privacy promises, and the rights text.
  */
@@ -161,7 +162,7 @@ export default function ReviewSubmitStep({
           <div className="rounded-md border border-tone-warning bg-tone-warning-bg p-4">
             <h3 id={`${baseId}-issues`} className="flex items-center gap-2 text-sm font-semibold text-tone-warning">
               <Alert size={16} />
-              {R.issuesTitle}
+              {issues.length === 1 ? REVIEW_STEP.fixOne : fill(REVIEW_STEP.fixMany, { n: issues.length })}
             </h3>
             <ul className="mt-2 space-y-1">
               {issues.map((issue, i) => (

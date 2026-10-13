@@ -1,21 +1,28 @@
 'use client';
 
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
-import Container from '@/components/ui/Container';
 import EmptyState from '@/components/ui/EmptyState';
 import { TextAreaField } from '@/components/ui/Field';
-import { Alert, ArrowRight } from '@/components/ui/Icons';
+import { Alert, ArrowRight, Check } from '@/components/ui/Icons';
 import Stepper from '@/components/ui/Stepper';
 import { useToast } from '@/components/ui/Toast';
 import DemoConfirm from '@/components/v2/common/DemoConfirm';
-import { useHydrated } from '@/components/v2/studio/useHydrated';
 import { DEMO_NOW } from '@/lib/v2-demo/clock';
 import { fill } from '@/lib/v2-demo/format';
 import { CONFIRM_COPY, NOTICE_COPY, WIZARD_COPY, WIZARD_STEP_LABELS } from '@/lib/v2-demo/release-lifecycle/copy';
+import { creatorProfileStore, isCreatorVerified } from '@/lib/v2-demo/release-lifecycle/creator';
 import { diffRevision } from '@/lib/v2-demo/release-lifecycle/diff';
+import {
+  PROJECT_STEP,
+  PUBLISH_FOOTER,
+  PUBLISH_STEP_ASKS,
+  PUBLISH_STEP_LABELS,
+  PUBLISH_WINDOW,
+  REVIEW_STEP,
+  TYPE_STEP,
+} from '@/lib/v2-demo/release-lifecycle/publish-copy';
 import { releaseView, revisionsOf } from '@/lib/v2-demo/release-lifecycle/selectors';
 import { SELLER_ACTOR, dispatch, lifecycleStore } from '@/lib/v2-demo/release-lifecycle/store';
 import {
@@ -42,24 +49,27 @@ import {
   type VaultProject,
   type WizardType,
 } from '@/lib/v2-demo/release-lifecycle/vault-projects';
-import { sellerProfileStore } from '@/lib/v2-demo/release-lifecycle/viewer-prefs';
 import { PERSONA } from '@/lib/v2-demo/sellers';
 import ChangesPanel from './ChangesPanel';
 import ContentsStep from './ContentsStep';
 import CoverStep from './CoverStep';
+import CreatorGate from './CreatorGate';
 import DetailsStep from './DetailsStep';
 import LicensePriceStep from './LicensePriceStep';
+import PublishWindow from './PublishWindow';
 import ReviewSubmitStep, { type AttestationChecks } from './ReviewSubmitStep';
 import SourceStep from './SourceStep';
+import TypeStep from './TypeStep';
 import WizardSummary from './WizardSummary';
-import { evidenceFor, fieldId, issueLookup, setBpm, setKey, STEP_ORDER } from './wizard-shared';
+import { evidenceFor, fieldId, issueLookup, setBpm, setKey, STEP_ORDER, type PublishStepId } from './wizard-shared';
 
 const AUTOSAVE_MS = 500;
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
-/** Maya Lind as Nightjar, with the display name from the first-time seller step. */
+/** Maya Lind, releasing under the creator profile's display name (PUBLISH-PROCEDURE §1). */
 function sellerIdentity(): SellerIdentity {
-  return { displayName: sellerProfileStore.getSnapshot().displayName, personName: PERSONA.personName, userId: PERSONA.userId };
+  const displayName = creatorProfileStore.getSnapshot().displayName.trim() || PERSONA.artistName;
+  return { displayName, personName: PERSONA.personName, userId: PERSONA.userId };
 }
 
 /** "Refresh from Vault project" (RL §5.6): re-read what the project knows; keep what only the seller decides. */
@@ -80,7 +90,8 @@ function refreshFromProject(current: ReleasePayload, project: VaultProject, type
 }
 
 interface WizardInit {
-  type: WizardType;
+  /** Null on /publish until step 1 picks one. */
+  type: WizardType | null;
   releaseId: string | null;
   isUpdate: boolean;
   title: string | null;
@@ -97,13 +108,14 @@ interface WizardInit {
   lockedTerritories: string[];
   evidenceFallback: ProvenanceEvidence | null;
   attestation: Attestation | null;
-  step: WizardStepId;
+  step: PublishStepId;
 }
 
 type Blocked = keyof typeof WIZARD_UI.blocked;
 
-function newInit(type: WizardType, projectId: string | null): WizardInit {
-  const project = projectId ? VAULT_PROJECTS.find((p) => p.id === projectId) ?? null : null;
+/** A new release: /publish starts at Type; /publish/[type] has Type filled in, and `?project=` Project too. */
+function newInit(type: WizardType | null, projectId: string | null): WizardInit {
+  const project = type && projectId ? VAULT_PROJECTS.find((p) => p.id === projectId) ?? null : null;
   return {
     type,
     releaseId: null,
@@ -111,7 +123,7 @@ function newInit(type: WizardType, projectId: string | null): WizardInit {
     title: null,
     liveVersion: null,
     baseline: null,
-    payload: project ? prefillPayload(project, type, sellerIdentity(), DEMO_NOW) : null,
+    payload: project && type ? prefillPayload(project, type, sellerIdentity(), DEMO_NOW) : null,
     projectId: project?.id ?? null,
     projectName: project?.name ?? null,
     changeNote: '',
@@ -121,7 +133,7 @@ function newInit(type: WizardType, projectId: string | null): WizardInit {
     lockedTerritories: [],
     evidenceFallback: null,
     attestation: null,
-    step: project ? 'details' : 'source',
+    step: !type ? 'type' : project ? 'details' : 'source',
   };
 }
 
@@ -188,6 +200,41 @@ function toAttestation(c: AttestationChecks): Attestation {
   };
 }
 
+/** "{project} · {type}" in the window header (§3). */
+function windowSubtitle(projectName: string | null, type: WizardType | null): string {
+  return [projectName, type ? WIZARD_COPY.tiles[type].title : null].filter(Boolean).join(' · ') || PUBLISH_WINDOW.newRelease;
+}
+
+/** The Cover step's heading: "Cover and preview" for songs and beats, "Cover and demo" for packs. */
+function stepHeading(step: PublishStepId, type: WizardType | null): string {
+  if (step === 'cover_preview' && type) return WIZARD_STEP_LABELS[type].cover_preview;
+  return PUBLISH_STEP_ASKS[step];
+}
+
+/* ------------------------------------------------------------------ */
+/* After submit                                                        */
+/* ------------------------------------------------------------------ */
+
+function Submitted({ releaseId, subtitle }: { releaseId: string; subtitle: string }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => headingRef.current?.focus(), []);
+  return (
+    <PublishWindow subtitle={subtitle} closeHref={`/studio/${releaseId}`}>
+      <div className="mx-auto flex max-w-md flex-col items-center py-10 text-center md:py-16">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-tone-success-bg text-tone-success">
+          <Check size={24} />
+        </span>
+        <h2 ref={headingRef} tabIndex={-1} className="mt-5 text-xl font-bold tracking-tight text-ink focus:outline-none">
+          {REVIEW_STEP.submitted}
+        </h2>
+        <Button className="mt-6" href={`/studio/${releaseId}`} iconRight={<ArrowRight size={16} />}>
+          {REVIEW_STEP.openInStudio}
+        </Button>
+      </div>
+    </PublishWindow>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* The form                                                            */
 /* ------------------------------------------------------------------ */
@@ -196,28 +243,34 @@ function WizardForm({ init }: { init: WizardInit }) {
   const router = useRouter();
   const toast = useToast();
   const replyId = useId();
-  const labels = WIZARD_STEP_LABELS[init.type];
 
+  const [type, setTypeState] = useState<WizardType | null>(init.type);
   const [payload, setPayload] = useState<ReleasePayload | null>(init.payload);
   const [projectId, setProjectId] = useState<string | null>(init.projectId);
+  const [pickedProjectId, setPickedProjectId] = useState<string | null>(init.projectId);
   const [releaseId, setReleaseId] = useState<string | null>(init.releaseId);
   const [changeNote, setChangeNoteState] = useState(init.changeNote);
   const [checks, setChecks] = useState<AttestationChecks>(() => toChecks(init.attestation));
   const [nothingToList, setNothingToList] = useState(false);
   const [howMadeNote, setHowMadeNote] = useState(init.evidenceFallback?.howMadeNote ?? '');
-  const [step, setStep] = useState<WizardStepId>(init.step);
-  const [flagged, setFlagged] = useState<ReadonlySet<WizardStepId>>(() => new Set(init.step === 'review_submit' ? STEP_ORDER : []));
-  const [visited, setVisited] = useState<ReadonlySet<WizardStepId>>(() => new Set());
+  const [step, setStep] = useState<PublishStepId>(init.step);
+  const [flagged, setFlagged] = useState<ReadonlySet<PublishStepId>>(() => new Set(init.step === 'review_submit' ? STEP_ORDER : []));
+  const [visited, setVisited] = useState<ReadonlySet<PublishStepId>>(
+    () => new Set<PublishStepId>([...(init.type ? (['type'] as const) : []), ...(init.payload ? (['source'] as const) : [])]),
+  );
   const [saveState, setSaveState] = useState<'idle' | 'pending' | 'saved'>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [reply, setReply] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState<string | null>(null);
   const [focusTarget, setFocusTarget] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const stepChanged = useRef(false);
 
   // Autosave reads these, so a debounced save always writes the latest edit.
+  const typeRef = useRef(init.type);
   const payloadRef = useRef(init.payload);
   const changeNoteRef = useRef(init.changeNote);
   const projectIdRef = useRef(init.projectId);
@@ -226,6 +279,8 @@ function WizardForm({ init }: { init: WizardInit }) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const project = useMemo(() => (projectId ? findProject(projectId) : null), [projectId]);
+  // Type and project are fixed once a project is started (and the draft saves).
+  const locked = payload !== null;
 
   /** Writes the draft now: T01 on a new release's first save, T07 on an update's first change, else T02. */
   const save = useCallback((): string | null => {
@@ -237,13 +292,16 @@ function WizardForm({ init }: { init: WizardInit }) {
     let id = releaseIdRef.current;
     if (!id) {
       const source = projectIdRef.current ? findProject(projectIdRef.current) : null;
-      if (!source) return null;
+      const releaseType = typeRef.current;
+      if (!source || !releaseType) return null;
       const created = dispatch(
         {
           type: 'create_release',
-          releaseType: init.type,
+          releaseType,
           source: { vaultId: DEMO_VAULT_ID, projectName: source.name, pushedAtCapture: true, capturedAt: DEMO_NOW },
           payload: current,
+          // T01 "seller eligible" (PUBLISH-PROCEDURE §1): the reducer refuses without a verified creator profile.
+          sellerEligible: isCreatorVerified(creatorProfileStore.getSnapshot()),
         },
         SELLER_ACTOR,
       );
@@ -278,7 +336,7 @@ function WizardForm({ init }: { init: WizardInit }) {
     setSaveError(null);
     setSaveState('saved');
     return id;
-  }, [init.type, init.isUpdate, init.liveVersion, toast]);
+  }, [init.isUpdate, init.liveVersion, toast]);
 
   const saveRef = useRef(save);
   useEffect(() => {
@@ -314,10 +372,19 @@ function WizardForm({ init }: { init: WizardInit }) {
     schedule();
   };
 
+  const pickType = (next: WizardType) => {
+    if (locked) return;
+    typeRef.current = next;
+    setTypeState(next);
+  };
+
+  /** Starts from the chosen project, with everything it knows filled in (§2 step 2). */
   const start = (picked: VaultProject) => {
+    const releaseType = typeRef.current;
+    if (!releaseType) return;
     projectIdRef.current = picked.id;
     setProjectId(picked.id);
-    update(prefillPayload(picked, init.type, sellerIdentity(), DEMO_NOW));
+    update(prefillPayload(picked, releaseType, sellerIdentity(), DEMO_NOW));
     setVisited((v) => new Set(v).add('source'));
     goTo('details');
   };
@@ -339,19 +406,28 @@ function WizardForm({ init }: { init: WizardInit }) {
     });
   }, [payload, checks, evidence, init.isUpdate, init.releaseDateLocked, changeNote, changes]);
   const errorFor = useMemo(() => issueLookup(issues, flagged), [issues, flagged]);
+  const issueCount = (s: PublishStepId) => (s === 'type' ? (type ? 0 : 1) : issues.filter((i) => i.step === s).length);
 
   /* Navigation ------------------------------------------------------- */
 
   const index = STEP_ORDER.indexOf(step);
-  function goTo(next: WizardStepId) {
+  function goTo(next: PublishStepId) {
     stepChanged.current = true;
-    // Until a project is picked there is nothing to show on the other steps.
-    setStep(payloadRef.current ? next : 'source');
+    // Nothing to show past Type without a type, or past Project without a project.
+    if (!typeRef.current) setStep('type');
+    else if (!payloadRef.current && next !== 'type') setStep('source');
+    else setStep(next);
   }
   const advance = () => {
-    // "Continue" flags issues on the step it leaves; "Back" never validates (RL §5.2).
+    // "Next" flags issues on the step it leaves; "Back" never validates (§2).
     setFlagged((f) => new Set(f).add(step));
     setVisited((v) => new Set(v).add(step));
+    if (step === 'type' && !typeRef.current) return;
+    if (step === 'source' && !payloadRef.current) {
+      const picked = pickedProjectId ? findProject(pickedProjectId) : null;
+      if (picked) start(picked);
+      return;
+    }
     goTo(STEP_ORDER[Math.min(index + 1, STEP_ORDER.length - 1)]);
   };
   const back = () => goTo(STEP_ORDER[Math.max(index - 1, 0)]);
@@ -370,7 +446,8 @@ function WizardForm({ init }: { init: WizardInit }) {
       el?.scrollIntoView({ block: 'center' });
       setFocusTarget(null);
     } else if (stepChanged.current) {
-      headingRef.current?.focus();
+      bodyRef.current?.scrollTo({ top: 0 });
+      headingRef.current?.focus({ preventScroll: true });
     }
     stepChanged.current = false;
   }, [step, focusTarget]);
@@ -379,12 +456,11 @@ function WizardForm({ init }: { init: WizardInit }) {
 
   const resubmitting = init.openStatus === 'changes_requested';
   const onlyNothingChanged = issues.length === 1 && issues[0].code === 'nothing_changed';
-  const submitLabel = init.isUpdate ? WIZARD_COPY.buttons.submitUpdate : WIZARD_COPY.buttons.submit;
   const confirmCopy = resubmitting ? CONFIRM_COPY.resubmit : init.isUpdate ? CONFIRM_COPY.submit_update : CONFIRM_COPY.submit_first;
   const n = init.liveVersion ?? 1;
   const confirmVars = { title: payload?.title ?? '', n, next: n + 1 };
   const confirmBody =
-    !resubmitting && init.isUpdate && init.type === 'song' && 'bodyAlt' in confirmCopy ? confirmCopy.bodyAlt : confirmCopy.body;
+    !resubmitting && init.isUpdate && type === 'song' && 'bodyAlt' in confirmCopy ? confirmCopy.bodyAlt : confirmCopy.body;
 
   const submit = () => {
     const id = save() ?? releaseIdRef.current;
@@ -403,8 +479,7 @@ function WizardForm({ init }: { init: WizardInit }) {
       return;
     }
     setConfirmOpen(false);
-    toast.show(`Demo: ${NOTICE_COPY.toastSubmitted}`);
-    router.push(`/studio/${id}`);
+    setSubmitted(id);
   };
 
   const saveDraft = () => {
@@ -415,26 +490,35 @@ function WizardForm({ init }: { init: WizardInit }) {
 
   /* Render ------------------------------------------------------------ */
 
-  const stepItems = STEP_ORDER.map((id) => ({ id, label: labels[id] }));
-  const issueCounts = Object.fromEntries(STEP_ORDER.map((s) => [s, flagged.has(s) ? issues.filter((i) => i.step === s).length : 0]));
-  const completed = STEP_ORDER.filter((s) => visited.has(s) && !issues.some((i) => i.step === s));
-  const h1 = init.isUpdate && init.title ? fill(WIZARD_COPY.h1Edit, { title: init.title }) : fill(WIZARD_COPY.h1, { type: WIZARD_COPY.typeName[init.type] });
-  const coverBase = releaseId ?? projectId ?? init.type;
+  const subtitle = windowSubtitle(
+    init.projectName ?? findProject(projectId ?? pickedProjectId ?? '')?.name ?? null,
+    type,
+  );
+  if (submitted) return <Submitted releaseId={submitted} subtitle={subtitle} />;
+
+  const stepItems = STEP_ORDER.map((id) => ({ id, label: PUBLISH_STEP_LABELS[id] }));
+  const issueCounts = Object.fromEntries(STEP_ORDER.map((s) => [s, flagged.has(s) ? issueCount(s) : 0]));
+  const completed = STEP_ORDER.filter((s) => visited.has(s) && issueCount(s) === 0);
+  const coverBase = releaseId ?? projectId ?? type ?? 'release';
   const stepProps = payload ? { payload, update, project, errorFor, isUpdate: init.isUpdate } : null;
   const hasDraft = saveState === 'saved' || init.openStatus !== null;
   const saveText = saveError ?? (saveState === 'pending' ? WIZARD_UI.saving : hasDraft ? WIZARD_UI.saved : WIZARD_UI.notSaved);
 
   let body: React.ReactNode = null;
-  if (step === 'source' || !stepProps) {
+  if (step === 'type') {
+    body = <TypeStep value={type} locked={locked} onPick={pickType} error={flagged.has('type') && !type ? TYPE_STEP.pickOne : undefined} />;
+  } else if (step === 'source' || !stepProps || !type) {
     body = (
       <SourceStep
         payload={payload}
         project={project}
         projectName={init.projectName}
-        locked={payload !== null}
-        onStart={start}
-        refreshed={payload && project ? refreshFromProject(payload, project, init.type) : null}
-        onApplyRefresh={() => payload && project && update(refreshFromProject(payload, project, init.type))}
+        locked={locked}
+        picked={pickedProjectId}
+        onPick={setPickedProjectId}
+        error={flagged.has('source') && !payload && !pickedProjectId ? PROJECT_STEP.pickOne : undefined}
+        refreshed={payload && project && type ? refreshFromProject(payload, project, type) : null}
+        onApplyRefresh={() => payload && project && type && update(refreshFromProject(payload, project, type))}
       />
     );
   } else if (step === 'details') body = <DetailsStep {...stepProps} />;
@@ -447,7 +531,7 @@ function WizardForm({ init }: { init: WizardInit }) {
       <ReviewSubmitStep
         {...stepProps}
         issues={issues}
-        stepLabel={(s) => labels[s]}
+        stepLabel={(s) => PUBLISH_STEP_LABELS[s]}
         onGoTo={goToIssue}
         attestation={checks}
         setAttestation={setChecks}
@@ -469,82 +553,95 @@ function WizardForm({ init }: { init: WizardInit }) {
     : onlyNothingChanged
       ? VALIDATION_COPY.nothing_changed
       : issues.length > 0
-        ? WIZARD_UI.review.issuesTitle
+        ? issues.length === 1
+          ? REVIEW_STEP.fixOne
+          : fill(REVIEW_STEP.fixMany, { n: issues.length })
         : undefined;
-  const submitText =
-    issues.length === 0 || onlyNothingChanged || init.saveOnly
-      ? submitLabel
-      : issues.length === 1
-        ? WIZARD_UI.fixOne
-        : fill(WIZARD_COPY.buttons.fixToSubmit, { n: issues.length });
+  const showChanges = init.isUpdate && changes !== null && init.liveVersion !== null;
+  const showSummary = !showChanges && type !== null && step !== 'type';
 
   return (
     <>
-      <Container className="pb-36 pt-10 lg:pt-14">
-        <Link href={releaseId ? `/studio/${releaseId}` : '/studio'} className="inline-flex min-h-11 items-center text-sm text-ink-muted hover:text-ink hover:underline">
-          {WIZARD_UI.backToStudio}
-        </Link>
-        <h1 className="mt-2 break-words text-3xl font-bold tracking-tight text-ink md:text-4xl">{h1}</h1>
-        {init.saveOnly && (
-          <p className="mt-4 flex items-center gap-2 rounded-md bg-tone-warning-bg px-4 py-3 text-sm text-tone-warning">
-            <Alert size={16} />
-            {WIZARD_UI.saveOnly}
-          </p>
-        )}
-        <div className="mt-6">
-          <Stepper steps={stepItems} current={step} completed={completed} issues={issueCounts} onStepClick={(id) => goTo(id as WizardStepId)} label={WIZARD_UI.stepsLabel} />
-        </div>
-        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,720px)_minmax(0,1fr)]">
+      <PublishWindow
+        subtitle={subtitle}
+        closeHref={releaseId ? `/studio/${releaseId}` : '/studio'}
+        status={<span className={saveError ? 'text-danger' : undefined}>{saveText}</span>}
+        bodyRef={bodyRef}
+        stepper={
+          <Stepper
+            steps={stepItems}
+            current={step}
+            completed={completed}
+            issues={issueCounts}
+            onStepClick={(id) => goTo(id as PublishStepId)}
+            label={PUBLISH_WINDOW.stepsLabel}
+          />
+        }
+        footer={
+          <>
+            <Button variant="ghost" onClick={back} disabled={index === 0} className="max-sm:px-3">
+              {PUBLISH_FOOTER.back}
+            </Button>
+            {/* A wrapper, so the spacing holds when the disabled button sits inside its tooltip. */}
+            <span className="ml-auto">
+              <Button
+                variant="secondary"
+                onClick={saveDraft}
+                disabled={!payload}
+                disabledReason={payload ? undefined : WIZARD_UI.pickProjectFirst}
+                className="max-sm:px-4"
+              >
+                {PUBLISH_FOOTER.saveDraft}
+              </Button>
+            </span>
+            {last ? (
+              // On a phone the long label takes its own row under Back and Save draft.
+              <span className="max-sm:w-full">
+                <Button
+                  fullWidth
+                  onClick={() => {
+                    setSubmitError(null);
+                    setConfirmOpen(true);
+                  }}
+                  disabled={Boolean(blockedReason)}
+                  disabledReason={blockedReason}
+                >
+                  {PUBLISH_FOOTER.submit}
+                </Button>
+              </span>
+            ) : (
+              <Button onClick={advance} iconRight={<ArrowRight size={16} />} className="max-sm:px-4">
+                {PUBLISH_FOOTER.next}
+              </Button>
+            )}
+          </>
+        }
+      >
+        <div className={showChanges || showSummary ? 'grid gap-8 lg:grid-cols-[minmax(0,1fr)_15rem]' : ''}>
           <div className="min-w-0">
+            {init.saveOnly && (
+              <p className="mb-5 flex items-center gap-2 rounded-md bg-tone-warning-bg px-4 py-3 text-sm text-tone-warning">
+                <Alert size={16} />
+                {WIZARD_UI.saveOnly}
+              </p>
+            )}
             <h2 ref={headingRef} tabIndex={-1} className="text-xl font-bold tracking-tight text-ink focus:outline-none">
-              {labels[step]}
+              {stepHeading(step, type)}
             </h2>
             <div className="mt-5">{body}</div>
           </div>
-          <aside className="min-w-0">
-            <div className="space-y-4 lg:sticky lg:top-24">
-              {init.isUpdate && changes && init.liveVersion !== null ? (
-                <ChangesPanel changes={changes} liveVersion={init.liveVersion} />
-              ) : (
-                <WizardSummary type={init.type} payload={payload} coverSeed={coverBase} />
-              )}
-            </div>
-          </aside>
+          {showChanges && changes && init.liveVersion !== null && (
+            <aside className="min-w-0 lg:sticky lg:top-0 lg:self-start">
+              <ChangesPanel changes={changes} liveVersion={init.liveVersion} />
+            </aside>
+          )}
+          {showSummary && type && (
+            <aside className="hidden min-w-0 lg:sticky lg:top-0 lg:block lg:self-start">
+              <WizardSummary type={type} payload={payload} coverSeed={coverBase} />
+            </aside>
+          )}
         </div>
-      </Container>
-
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas">
-        <Container className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3">
-          <Button variant="ghost" onClick={back} disabled={index === 0}>
-            {WIZARD_COPY.buttons.back}
-          </Button>
-          <p aria-live="polite" className={`text-xs ${saveError ? 'text-danger' : 'text-ink-subtle'}`}>
-            {saveText}
-          </p>
-          <div className="ml-auto flex gap-2">
-            <Button variant="secondary" onClick={saveDraft} disabled={!payload} disabledReason={payload ? undefined : WIZARD_UI.pickProjectFirst}>
-              {WIZARD_COPY.buttons.saveDraft}
-            </Button>
-            {last ? (
-              <Button
-                onClick={() => {
-                  setSubmitError(null);
-                  setConfirmOpen(true);
-                }}
-                disabled={Boolean(blockedReason)}
-                disabledReason={blockedReason}
-                iconRight={blockedReason ? undefined : <ArrowRight size={16} />}
-              >
-                {submitText}
-              </Button>
-            ) : (
-              <Button onClick={advance} iconRight={<ArrowRight size={16} />}>
-                {WIZARD_COPY.buttons.continue}
-              </Button>
-            )}
-          </div>
-        </Container>
-      </div>
+      </PublishWindow>
 
       <DemoConfirm
         open={confirmOpen}
@@ -575,14 +672,14 @@ function WizardForm({ init }: { init: WizardInit }) {
 function BlockedState({ reason, releaseId }: { reason: Blocked; releaseId: string }) {
   const copy = WIZARD_UI.blocked[reason];
   return (
-    <Container className="py-10 lg:py-14">
-      <EmptyState headingLevel="h1" title={copy.title} body={copy.body} action={<Button href={`/studio/${releaseId}`}>{WIZARD_UI.backToStudio}</Button>} />
-    </Container>
+    <PublishWindow closeHref={`/studio/${releaseId}`}>
+      <EmptyState title={copy.title} body={copy.body} action={<Button href={`/studio/${releaseId}`}>{WIZARD_UI.backToStudio}</Button>} />
+    </PublishWindow>
   );
 }
 
-/** A new release; the prefill reads the seller profile, which lives in this browser. */
-function NewEntry({ type, projectId }: { type: WizardType; projectId: string | null }) {
+/** A new release; the prefill reads the creator profile, which lives in this browser. */
+function NewEntry({ type, projectId }: { type: WizardType | null; projectId: string | null }) {
   const [init] = useState(() => newInit(type, projectId));
   return <WizardForm init={init} />;
 }
@@ -596,14 +693,9 @@ function EditEntry({ releaseId, step }: { releaseId: string; step: WizardStepId 
   });
   if (prepared === null) {
     return (
-      <Container className="py-10 lg:py-14">
-        <EmptyState
-          headingLevel="h1"
-          title={DETAIL_UI.notFoundTitle}
-          body={DETAIL_UI.notFoundBody}
-          action={<Button href="/studio">{WIZARD_UI.backToStudio}</Button>}
-        />
-      </Container>
+      <PublishWindow>
+        <EmptyState title={DETAIL_UI.notFoundTitle} body={DETAIL_UI.notFoundBody} action={<Button href="/studio">{WIZARD_UI.backToStudio}</Button>} />
+      </PublishWindow>
     );
   }
   if (typeof prepared === 'string') return <BlockedState reason={prepared} releaseId={releaseId} />;
@@ -611,16 +703,20 @@ function EditEntry({ releaseId, step }: { releaseId: string; step: WizardStepId 
 }
 
 /**
- * The Publish wizard (RL §5, WEB-V2-SPEC §4.6): `/publish/[type]` starts a new
- * release; `/studio/[releaseId]/edit` continues a draft or creates a pending
- * revision while the live version stays up. Everything waits for hydration,
- * because the draft and the seller profile live in this browser.
+ * The Publish window (PUBLISH-PROCEDURE §2–§3, RL §5): Type · Project · Details
+ * · Files · Cover · Price · Review. `/publish` starts at Type, `/publish/[type]`
+ * has it filled in, and `/studio/[releaseId]/edit` continues a draft or creates
+ * a pending revision while the live version stays up. Behind the creator gate
+ * (§1): without a verified creator profile it shows "Become a creator" instead.
+ * Everything waits for hydration, because the draft and the profile live in
+ * this browser.
  */
 export default function PublishWizard(
-  props: { mode: 'new'; type: WizardType; projectId: string | null } | { mode: 'edit'; releaseId: string; step: WizardStepId | null },
+  props: { mode: 'new'; type: WizardType | null; projectId: string | null } | { mode: 'edit'; releaseId: string; step: WizardStepId | null },
 ) {
-  const hydrated = useHydrated();
-  if (!hydrated) return <Container className="min-h-[60vh] py-10" aria-busy="true">{null}</Container>;
-  if (props.mode === 'edit') return <EditEntry releaseId={props.releaseId} step={props.step} />;
-  return <NewEntry type={props.type} projectId={props.projectId} />;
+  return (
+    <CreatorGate closeHref={props.mode === 'edit' ? `/studio/${props.releaseId}` : '/studio'}>
+      {props.mode === 'edit' ? <EditEntry releaseId={props.releaseId} step={props.step} /> : <NewEntry type={props.type} projectId={props.projectId} />}
+    </CreatorGate>
+  );
 }

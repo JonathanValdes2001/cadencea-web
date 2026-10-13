@@ -243,39 +243,10 @@ export const DEMO_REVIEWER_UI = {
   inProgress: 'Review started',
 } as const;
 
+/** What's left of the old /publish page: the project shortcuts under the Publish window. */
 export const PUBLISH_UI = {
-  eyebrow: 'Publish · Demo',
-  title: 'What are you publishing?',
-  lead: 'Start from a project in Cadencea Vault. We fill in what the vault already knows (BPM, key, tags, artwork and files) and ask only for the rest.',
-  typesLabel: 'Release types',
-  rails: {
-    song: 'Streamed; downloads by card later',
-    beat: 'Paid by card',
-    pack: 'Paid with credits',
-  },
-  comingLaterNote: 'Coming later',
-  disabled: 'Not available',
-  requirements: [
-    { label: 'Verified email', met: true },
-    { label: 'Account at least 7 days old', met: true },
-    { label: 'Two-factor sign-in', met: true },
-    { label: 'Payouts: set up later', met: false },
-  ],
-  requirementsNote: 'Payouts are needed before money is paid out, not to publish.',
-  met: 'Done',
-  notMet: 'Later',
-  projectsLead: "Pick a project and we'll open the matching wizard with everything the vault knows filled in.",
+  projectsLead: 'Each one opens Publish with its type and details filled in.',
   openWizard: 'Publish as a {type}',
-  seller: {
-    title: 'Set up your seller profile',
-    body: 'Once per account, before your first release. Buyers see your display name; your handle is part of your Market address.',
-    handle: 'Handle',
-    handleHint: 'Locked after your first approved release.',
-    displayName: 'Display name',
-    displayNameHint: 'Used in credit lines like "prod. by {name}".',
-    displayNameError: 'Use 2 to 40 characters.',
-    save: 'Save and continue',
-  },
 } as const;
 
 /** The rules summaries on /publish/splits-pack and /publish/midi-pack (RL §3.2, §3.4; prices from CREDITS-MODEL §6.1). */
@@ -304,7 +275,6 @@ export const COMING_LATER_RULES = {
 
 export const WIZARD_UI = {
   backToStudio: 'Back to Studio',
-  stepsLabel: 'Wizard steps',
   summary: 'Summary',
   type: 'Type',
   price: 'Price',
@@ -312,7 +282,6 @@ export const WIZARD_UI = {
   changes: 'Changes',
   changesAgainst: 'Compared with version {n}',
   noChanges: 'Nothing changed yet.',
-  fixOne: 'Fix 1 thing to submit',
   submitError: "This couldn't be submitted: {message}",
   saving: 'Saving…',
   saved: 'Draft saved',
@@ -343,7 +312,6 @@ export const WIZARD_UI = {
   saveOnly: 'Saving only: this release is on hold.',
   source: {
     heading: 'Your Vault projects',
-    lead: 'Pick the project this release comes from. Publishing never changes the project.',
     selected: 'Selected',
     project: 'Project',
     files: '{n} files',
@@ -413,7 +381,6 @@ export const WIZARD_UI = {
     oneShots: 'One-shots',
     loops: 'Loops',
     countsHint: 'Under 2 seconds counts as a one-shot. Check the split.',
-    mainMix: 'Main mix',
     stems: 'Stems',
     stemsHint: 'Needed for the Stems, Unlimited and Exclusive leases.',
     tracks: 'Tracks',
@@ -481,7 +448,6 @@ export const WIZARD_UI = {
     fanSupportHint: 'Card only, on your artist page.',
   },
   review: {
-    issuesTitle: 'Fix these to submit',
     ready: 'Everything is ready to submit.',
     goTo: 'Go to {step}',
     licensed: 'Licensed material',

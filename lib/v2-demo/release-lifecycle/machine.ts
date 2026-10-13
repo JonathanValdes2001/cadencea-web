@@ -58,6 +58,7 @@ const ERROR_MESSAGE: Readonly<Record<LifecycleErrorCode, string>> = {
   release_suspended: "You can't edit or submit while this release is on hold.",
   not_relistable: "This release can't be relisted.",
   type_not_publishable: "Sellers can't publish this type.",
+  seller_not_eligible: 'Verify your creator profile before you publish.',
 };
 
 /** Events from the Demo reviewer panel carry the "Simulated" tag (§7.3, §9.9). */
@@ -368,6 +369,8 @@ function sellerRelease(state: LifecycleState, actor: Actor, releaseId: Id): Rele
 function createRelease(state: LifecycleState, a: ActionOf<'create_release'>, actor: Actor, now: IsoDateTime): ApplyResult {
   if (!actorMayTake('create_release', actor.kind) || actor.kind !== 'seller') return fail('not_allowed_for_actor');
   if (!RELEASE_TYPE_INFO[a.releaseType].sellerCanPublish) return fail('type_not_publishable');
+  // T01 "seller eligible": nobody publishes without a verified creator profile (PUBLISH-PROCEDURE §1).
+  if (a.sellerEligible !== true) return fail('seller_not_eligible');
   if (a.payload.kind !== a.releaseType || !a.source) return fail('validation_failed');
   const rule = matchRule('create_release', actor.kind, 'first', 'none', 'none');
   if (typeof rule === 'string') return fail(rule);
