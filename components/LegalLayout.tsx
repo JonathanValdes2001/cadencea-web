@@ -3,12 +3,14 @@ import React from 'react';
 type LegalLayoutProps = {
   title: string;
   effectiveDate: string;
+  lastUpdated?: string;
   children: React.ReactNode;
 };
 
 export default function LegalLayout({
   title,
   effectiveDate,
+  lastUpdated = 'April 15, 2026',
   children,
 }: LegalLayoutProps) {
   return (
@@ -16,7 +18,7 @@ export default function LegalLayout({
       <section className="border-b border-line">
         <div className="mx-auto max-w-3xl px-6 py-16 lg:py-20">
           <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
-            Last updated: April 15, 2026
+            Last updated: {lastUpdated}
           </p>
           <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
             {title}

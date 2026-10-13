@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalLayout title="Terms of Service" effectiveDate="April 15, 2026">
+    <LegalLayout title="Terms of Service" effectiveDate="April 15, 2026" lastUpdated="October 13, 2026">
       <h2>1. Introduction and Acceptance</h2>
       <p>
         These Terms of Service (&ldquo;Terms&rdquo;) constitute a legally
@@ -72,23 +72,23 @@ export default function TermsPage() {
       <p>The Service offers the following subscription tiers:</p>
       <ul>
         <li>
-          <strong>Free:</strong> $0/month — 5 GB cloud storage
+          <strong>Free:</strong> €0/month — 5 GB cloud storage
         </li>
         <li>
-          <strong>Basic:</strong> $4.99/month or $49.90/year — 50 GB cloud
+          <strong>Basic:</strong> €4.99/month or €49.99/year — 50 GB cloud
           storage
         </li>
         <li>
-          <strong>Standard:</strong> $14.99/month or $149.90/year — 250 GB
+          <strong>Standard:</strong> €14.99/month or €149.99/year — 250 GB
           cloud storage
         </li>
         <li>
-          <strong>Pro:</strong> $24.99/month or $249.90/year — 500 GB cloud
+          <strong>Pro:</strong> €24.99/month or €249.99/year — 500 GB cloud
           storage
         </li>
       </ul>
       <p>
-        All prices are in US Dollars (USD). Prices, storage limits, features,
+        All prices are in euros (EUR). Prices, storage limits, features,
         and tier structures are subject to change. We will notify you of any
         pricing changes at least 30 days before they take effect. Changes will
         apply at the start of your next billing cycle.
