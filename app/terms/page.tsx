@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalLayout title="Terms of Service" effectiveDate="April 15, 2026">
+    <LegalLayout title="Terms of Service" effectiveDate="April 15, 2026" lastUpdated="October 13, 2026">
       <h2>1. Introduction and Acceptance</h2>
       <p>
         These Terms of Service (&ldquo;Terms&rdquo;) constitute a legally

@@ -175,9 +175,9 @@ export default async function CadenceaVault() {
             <div className="relative mx-auto mt-16 max-w-6xl lg:mt-20">
               <ScreenshotFrame
                 src="/vault/list.png"
-                alt="Cadencea Vault project library with album art, tags and a playback bar"
-                width={2005}
-                height={1357}
+                alt="Cadencea Vault project list with color-coded tags, play buttons and sync status"
+                width={1702}
+                height={1002}
                 priority
                 sizes="(min-width: 1024px) 1152px, 100vw"
               />

@@ -103,7 +103,7 @@ export default function PricingPage() {
   }, [user]);
 
   const hasSubscription = subscription && subscription.plan !== 'free' &&
-    !['canceled', 'incomplete_expired'].includes(subscription.status.split(' ')[0]);
+    !['canceled', 'incomplete_expired'].includes((subscription.status ?? '').split(' ')[0]);
 
   useEffect(() => {
     let cancelled = false;
