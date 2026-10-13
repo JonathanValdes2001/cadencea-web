@@ -122,6 +122,24 @@ export const FILTER_COPY = {
   maxEurChip: 'WAV lease under €{eur}',
 } as const;
 
+/** §4.3 the browse frame: filter buttons, tag row, view switch and list rows. */
+export const BROWSE_COPY = {
+  /** The header search box's placeholder in a category ("Search sample packs"); it still matches producers and tags. */
+  searchIn: 'Search {category}',
+  filterBarLabel: 'Filter results',
+  clearField: 'Clear',
+  doneField: 'Done',
+  /** Spoken after a filter button's count: "Key, 2 selected". */
+  selected: '{n} selected',
+  tagRowLabel: 'Popular tags',
+  viewLabel: 'View',
+  gridView: 'Grid',
+  listView: 'List',
+  gridViewLabel: 'Show as a grid',
+  listViewLabel: 'Show as a list',
+  listColumns: { title: 'Title', bpm: 'BPM', key: 'Key', contents: 'Contents', price: 'Price' },
+} as const;
+
 /** §4.4 item page, buy box and its dialogs. */
 export const ITEM_COPY = {
   breadcrumbLabel: 'Breadcrumb',

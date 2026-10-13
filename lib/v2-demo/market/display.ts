@@ -121,6 +121,22 @@ export function cardMeta(listing: MarketListing): string[] {
   return parts;
 }
 
+/**
+ * The "Contents" column of a list row (WEB-V2-SPEC §4.3): "76 files",
+ * "Serum 2 · 64 presets", "EP · 4 tracks", "3 licenses", "Vault theme".
+ * BPM and key have their own columns.
+ */
+export function rowDetail(listing: MarketListing): string | null {
+  if (listing.type === 'theme') return 'Vault theme';
+  if (listing.song) return songFormatLabel(listing.song);
+  if (listing.type === 'beat') {
+    const n = listing.leaseTiers.length;
+    return n ? `${n} ${n === 1 ? 'license' : 'licenses'}` : null;
+  }
+  const count = countLabel(listing);
+  return listing.synth ? [SYNTH_LABEL[listing.synth], count].filter(Boolean).join(' · ') : count;
+}
+
 const KIND_LABEL: Readonly<Record<MarketFileKind, [string, string]>> = {
   one_shot: ['one-shot', 'one-shots'],
   loop: ['loop', 'loops'],

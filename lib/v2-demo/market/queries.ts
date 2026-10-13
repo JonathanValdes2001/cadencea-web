@@ -12,8 +12,11 @@ import { getSeller } from '../sellers.ts';
 import { comparablePriceCents, creditPrice, fromEurCents, STEM_TIERS } from './display.ts';
 import type { MarketListing } from './types.ts';
 
-/** Every query key the Market reads; any of them on /market shows the "All results" view. */
-export const FILTER_PARAM_KEYS = ['q', 'bpm', 'half', 'key', 'tag', 'genre', 'max', 'maxEur', 'synth', 'lic', 'sort'] as const;
+/**
+ * Every query key the Market reads; any of them on /market shows the "All
+ * results" view. `view` (grid or list) isn't a filter: browse.ts reads it.
+ */
+export const FILTER_PARAM_KEYS = ['q', 'bpm', 'half', 'key', 'tag', 'genre', 'max', 'maxEur', 'synth', 'lic', 'sort', 'view'] as const;
 
 export const SORT_KEYS = ['new', 'price-asc', 'price-desc', 'bpm-asc', 'title'] as const;
 export type SortKey = (typeof SORT_KEYS)[number];

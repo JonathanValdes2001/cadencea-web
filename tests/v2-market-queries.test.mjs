@@ -215,3 +215,68 @@ test('parseFilters and serializeFilters round-trip, and bad values are dropped',
   assert.equal(activeFilterCount(full), 13)
   assert.equal(activeFilterCount(filters({ q: 'x', sort: 'title' })), 0)
 })
+
+// The browse frame (WEB-V2-SPEC §4.3): ?view= picks grid or list, defaults per
+// category, and never counts as a filter.
+test('the grid/list view reads and writes ?view= with a default per category', async () => {
+  const { CATEGORY_TINT, DEFAULT_VIEW, parseView, serializeView } = await import('../lib/v2-demo/market/browse.ts')
+  const { CATEGORY_KEYS } = await import('../lib/v2-demo/categories.ts')
+  const { FILTER_PARAM_KEYS } = await import('../lib/v2-demo/market/queries.ts')
+
+  // Packs open as the /market card grid; beats and songs as rows.
+  assert.equal(DEFAULT_VIEW.samples, 'grid')
+  assert.equal(DEFAULT_VIEW.beats, 'list')
+  assert.equal(DEFAULT_VIEW.songs, 'list')
+  for (const key of [...CATEGORY_KEYS, 'all']) {
+    assert.ok(DEFAULT_VIEW[key], `${key} has a default view`)
+    assert.match(CATEGORY_TINT[key].onDark, /^#[0-9A-F]{6}$/i, `${key} has a tint`)
+  }
+
+  assert.equal(parseView(new URLSearchParams('view=list'), 'samples'), 'list')
+  assert.equal(parseView(new URLSearchParams(''), 'beats'), 'list')
+  assert.equal(parseView(new URLSearchParams('view=table'), null), 'grid')
+  assert.equal(parseView({ view: ['grid', 'list'] }, 'songs'), 'grid')
+  // The default is left out of the URL, so a category link stays clean.
+  assert.equal(serializeView('grid', 'samples'), '')
+  assert.equal(serializeView('list', 'samples'), 'view=list')
+  assert.equal(serializeView('list', 'beats'), '')
+  assert.equal(serializeView('grid', 'beats'), 'view=grid')
+
+  // On /market a view in the URL shows "All results", but it isn't a filter.
+  assert.ok(FILTER_PARAM_KEYS.includes('view'))
+  assert.deepEqual(parseFilters(new URLSearchParams('view=list')), EMPTY_FILTERS)
+})
+
+test('each filter button counts and clears only its own field', async () => {
+  const { FIELD_CLEAR, fieldCount } = await import('../lib/v2-demo/market/browse.ts')
+  const full = filters({
+    bpmMin: 120,
+    half: true,
+    keys: ['F#m', 'Am'],
+    tags: ['dark'],
+    genres: ['drill'],
+    maxEur: 40,
+    synths: ['vital'],
+    license: ['stems', 'exclusive'],
+  })
+  const counts = Object.fromEntries(Object.keys(FIELD_CLEAR).map((field) => [field, fieldCount(field, full)]))
+  assert.deepEqual(counts, { bpm: 1, key: 2, genre: 1, tags: 1, price: 1, synth: 1, license: 2 })
+  // The counts add up to the Filters button's total.
+  assert.equal(Object.values(counts).reduce((a, b) => a + b, 0), activeFilterCount(full))
+  for (const field of Object.keys(FIELD_CLEAR)) {
+    const cleared = { ...full, ...FIELD_CLEAR[field] }
+    assert.equal(fieldCount(field, cleared), 0, field)
+    assert.equal(activeFilterCount(cleared), activeFilterCount(full) - counts[field], field)
+  }
+  assert.equal({ ...full, ...FIELD_CLEAR.bpm }.half, false)
+})
+
+test('list rows name what each listing contains', async () => {
+  const { rowDetail } = await import('../lib/v2-demo/market/display.ts')
+  assert.equal(rowDetail(seedListing('kiln-drill-kit')), '120 files')
+  assert.equal(rowDetail(seedListing('neon-cathedral')), 'Serum 2 · 64 presets')
+  assert.equal(rowDetail(seedListing('amber-hour')), '12 loops')
+  assert.match(rowDetail(seedListing('cold-concrete')), /^\d licenses?$/)
+  assert.equal(rowDetail(seedListing('theme-celestia')), 'Vault theme')
+  for (const listing of onSale) assert.ok(rowDetail(listing), listing.slug)
+})
