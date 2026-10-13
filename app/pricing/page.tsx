@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { subscriptionCheckout } from '@/lib/subscription-checkout.mjs';
 import {
   api,
   ApiError,
   type BillingPlansResponse,
-  type CheckoutSessionResponse,
+  type SubscriptionStatusResponse,
 } from '@/lib/api-client';
 
 type Plan = {
@@ -67,7 +68,7 @@ const plans: Plan[] = [
 const includedFeatures = [
   {
     title: 'Secure & private',
-    desc: 'End-to-end encryption for all your music projects and data.',
+    desc: 'Choose which projects to upload and who you share them with. Keep a separate backup of important work.',
   },
   {
     title: 'Easy migration',
@@ -87,6 +88,22 @@ export default function PricingPage() {
     useState<BillingPlansResponse | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionStatusResponse | null>(null);
+  const checkoutBusy = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSubscription(null);
+    if (user) {
+      api.get<SubscriptionStatusResponse>('/billing/subscription-status')
+        .then((value) => { if (!cancelled) setSubscription(value); })
+        .catch(() => { /* The click handler rechecks and fails closed. */ });
+    }
+    return () => { cancelled = true; };
+  }, [user]);
+
+  const hasSubscription = subscription && subscription.plan !== 'free' &&
+    !['canceled', 'incomplete_expired'].includes(subscription.status.split(' ')[0]);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,6 +121,7 @@ export default function PricingPage() {
   }, []);
 
   const handleSubscribe = async (plan: Plan) => {
+    if (authLoading || checkoutBusy.current) return;
     setError(null);
 
     if (plan.monthlyPrice === 0) {
@@ -136,11 +154,9 @@ export default function PricingPage() {
     }
 
     try {
+      checkoutBusy.current = true;
       setLoadingPlan(plan.name);
-      const res = await api.post<CheckoutSessionResponse>(
-        '/billing/create-checkout-session',
-        { price_id: priceId }
-      );
+      const res = await subscriptionCheckout(api, priceId);
       window.location.href = res.url;
     } catch (err) {
       const message =
@@ -149,6 +165,7 @@ export default function PricingPage() {
           : 'Something went wrong starting checkout. Please try again.';
       setError(message);
       setLoadingPlan(null);
+      checkoutBusy.current = false;
     }
   };
 
@@ -271,7 +288,7 @@ export default function PricingPage() {
                   <button
                     type="button"
                     onClick={() => handleSubscribe(plan)}
-                    disabled={loadingPlan !== null && loadingPlan !== plan.name}
+                    disabled={authLoading || loadingPlan !== null}
                     aria-busy={loadingPlan === plan.name}
                     className={`mt-10 inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
                       plan.popular
@@ -279,7 +296,7 @@ export default function PricingPage() {
                         : 'border border-ink text-ink hover:bg-elevated'
                     }`}
                   >
-                    {loadingPlan === plan.name ? 'Redirecting…' : plan.cta}
+                    {loadingPlan === plan.name ? 'Redirecting…' : hasSubscription ? 'Manage subscription' : plan.cta}
                   </button>
                 </div>
               );

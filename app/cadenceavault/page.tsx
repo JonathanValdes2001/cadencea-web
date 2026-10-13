@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 
-const heroChips = ['Lossless backups', 'Works with any DAW', 'Offline-first'];
+const heroChips = ['Original-quality files', 'Works with any DAW', 'Local project library'];
 
 const showcases = [
   {
@@ -44,11 +44,11 @@ const showcases = [
 const features = [
   {
     title: 'Project management',
-    desc: 'Organize your music projects with intuitive file management, version control, and collaborative workflows.',
+    desc: 'Organize your music projects with tags, BPM, musical key, and per-project sharing.',
   },
   {
-    title: 'Secure cloud backup',
-    desc: 'Automatic, encrypted backups keep your creative work safe and accessible from anywhere.',
+    title: 'Cloud sync you control',
+    desc: 'Upload selected projects in their original quality and download them on another device. Keep a separate backup of important work.',
   },
   {
     title: 'File sharing',
@@ -71,7 +71,7 @@ const systemRequirements = [
     name: 'macOS',
     available: false,
     items: [
-      'macOS 10.15 or later',
+      'macOS 12 or later',
       'Apple Silicon (M1 or later) or 64-bit Intel',
       '4 GB RAM minimum',
       '2 GB free disk space',
@@ -174,7 +174,7 @@ export default async function CadenceaVault() {
             {/* Flagship screenshot */}
             <div className="relative mx-auto mt-16 max-w-6xl lg:mt-20">
               <ScreenshotFrame
-                src="/vault/library.png"
+                src="/vault/list.png"
                 alt="Cadencea Vault project library with album art, tags and a playback bar"
                 width={2005}
                 height={1357}

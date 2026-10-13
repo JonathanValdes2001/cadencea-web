@@ -240,13 +240,14 @@ export default function AccountSettings() {
                 },
                 {
                   title: 'Two-factor authentication',
-                  desc: 'Add extra security to your account.',
-                  status: 'Enabled',
+                  desc: 'Two-factor authentication cannot currently be managed from this page.',
+                  status: 'Unavailable here',
                 },
               ].map((row) => (
                 <li key={row.title}>
                   <button
                     type="button"
+                    disabled
                     className="flex w-full items-center justify-between gap-4 py-4 text-left hover:bg-elevated"
                   >
                     <div>

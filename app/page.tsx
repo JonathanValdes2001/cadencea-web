@@ -23,7 +23,7 @@ const faqs = [
   },
   {
     q: 'Is my data secure?',
-    a: 'Absolutely. All cloud backups are encrypted and stored securely. Your music and project files remain private and under your control at all times.',
+    a: 'You choose which projects to upload and who you share them with. Cloud sync is not a replacement for a separate backup of important work. See our Privacy Policy for how we handle data.',
   },
   {
     q: 'Can I cancel my subscription at any time?',
@@ -38,7 +38,7 @@ const pillars = [
   },
   {
     title: 'Privacy first',
-    desc: 'Your creative work stays yours. Encrypted cloud storage and no data harvesting, ever.',
+    desc: 'Your creative work stays yours. You choose what to upload and who to share it with.',
   },
   {
     title: 'Stay in flow',
