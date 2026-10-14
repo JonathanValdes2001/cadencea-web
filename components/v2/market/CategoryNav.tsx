@@ -18,7 +18,7 @@ interface NavItem {
 /**
  * All · Samples · Splits · Presets · MIDI · Beats · Themes, each with
  * the number of listings on sale (WEB-V2-SPEC §4.2). A dark strip under the
- * showroom header, the same on /market, every category and "All results"
+ * site navigation, the same on /market, every category and "All results"
  * (and on item pages, marking the item's category); sticky under the navbar
  * from md. Each category carries its tint as a dot and, when current, as the
  * underline.
@@ -26,10 +26,12 @@ interface NavItem {
 export default function CategoryNav({
   current,
   currentIsPage = true,
+  search,
 }: {
   current: CategoryKey | 'all';
   /** False on item pages: the category is where the page lives, not the page itself. */
   currentIsPage?: boolean;
+  search?: React.ReactNode;
 }) {
   const listings = useMarketListings();
   const items = useMemo<NavItem[]>(() => {
@@ -56,8 +58,8 @@ export default function CategoryNav({
 
   return (
     <div className="on-dark z-30 border-y border-white/10 bg-showroom-to md:sticky md:top-16">
-      <Container>
-        <nav aria-label={MARKET_HOME_COPY.categoryNavLabel}>
+      <Container className="flex flex-col md:flex-row md:items-center md:gap-6">
+        <nav aria-label={MARKET_HOME_COPY.categoryNavLabel} className="min-w-0 flex-1">
           <div ref={scroller} className="scroll-fade-x scrollbar-none relative -mx-6 overflow-x-auto px-6 lg:-mx-8 lg:px-8">
             <ul className="flex w-max min-w-full gap-1 pr-6">
               {items.map((item) => {
@@ -90,6 +92,7 @@ export default function CategoryNav({
             </ul>
           </div>
         </nav>
+        {search && <div className="pb-3 md:w-72 md:shrink-0 md:py-2">{search}</div>}
       </Container>
     </div>
   );

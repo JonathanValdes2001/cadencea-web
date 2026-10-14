@@ -10,6 +10,7 @@ import { MARKET_HOME_COPY } from '@/lib/v2-demo/market/copy';
 import { sortItems } from '@/lib/v2-demo/market/queries';
 import CategoryNav from './CategoryNav';
 import MarketCard from './MarketCard';
+import MarketSearch from './MarketSearch';
 import Rail, { railListClass } from './Rail';
 import { useMarketListings } from './useMarketListings';
 
@@ -26,8 +27,12 @@ export default function MarketLanding() {
 
   return (
     <>
-      <CategoryNav current="all" />
-      <Container className="space-y-12 py-12 lg:space-y-16 lg:py-16">
+      <h1 className="sr-only">Cadencea Market</h1>
+      <CategoryNav
+        current="all"
+        search={<MarketSearch id="market-search" label={MARKET_HOME_COPY.searchLabel} placeholder={MARKET_HOME_COPY.searchLabel} />}
+      />
+      <Container className="space-y-12 pb-12 pt-6 lg:space-y-16 lg:pb-16 lg:pt-8">
         {featured.length > 0 && (
           <section aria-labelledby="market-featured">
             <SectionHeader size="sm" title={<span id="market-featured">{MARKET_HOME_COPY.featuredTitle}</span>} />

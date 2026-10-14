@@ -31,7 +31,7 @@ export default async function MarketSlugPage({ params }: Props) {
     const category = CATEGORY_BY_KEY[slug];
     return (
       <Suspense>
-        <MarketBrowser category={category.key} title={category.label} lead={category.description} />
+        <MarketBrowser category={category.key} title={category.label} />
       </Suspense>
     );
   }

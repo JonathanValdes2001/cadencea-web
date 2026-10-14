@@ -217,16 +217,16 @@ test('audio recipe: seeded, drums-only without a key, nothing for themes', () =>
 
 test('credits/config.ts equals CREDITS-MODEL', () => {
   assert.equal(CREDITS.eurCentsPerCredit, 10)
-  assert.deepEqual(CREDITS.monthly, { free: 0, basic: 10, standard: 30, pro: 50 })
-  assert.equal(CREDITS.rolloverMultiple, 2)
-  assert.equal(rolloverCap('standard'), 60)
-  assert.deepEqual(CREDITS.welcome, { credits: 30, validDays: 60, scope: 'cadencea_originals' })
+  assert.deepEqual(CREDITS.monthly, { free: 0, basic: 5, standard: 10, pro: 20 })
+  assert.equal(CREDITS.rolloverMultiple, null)
+  assert.equal(rolloverCap('standard'), null)
+  assert.deepEqual(CREDITS.welcome, { credits: 0, validDays: 60, scope: 'cadencea_originals' })
   assert.deepEqual(
     CREDITS.topUp.quickPicks.map((p) => [p.credits, p.eurCents]),
-    [[100, 1000], [250, 2500], [500, 5000]],
+    [[100, 1000], [300, 2850], [1000, 9000]],
   )
-  assert.deepEqual(CREDITS.topUp.exact, { minEurCents: 1000, maxEurCents: 10000, stepEurCents: 500 })
-  assert.equal(CREDITS.topUp.bonus, 0)
+  assert.deepEqual(CREDITS.topUp.exact, { minCredits: 100, maxCredits: 1000, stepCredits: 50 })
+  assert.deepEqual(CREDITS.topUp.discounts, [{ minCredits: 1000, percent: 10 }, { minCredits: 300, percent: 5 }])
   assert.equal(CREDITS.boughtCap, 2000)
   assert.deepEqual(CREDITS.refundDays, { topUp: 14, undownloadedItem: 14 })
   assert.deepEqual(CREDITS.spendOrder, ['included', 'bought'])
@@ -317,19 +317,19 @@ test('wallet: spend appends a purchase whose balances add up', () => {
 })
 
 test('wallet: top-ups follow the €10–100 €5-step rule and the 2,000 bought-credit cap', () => {
-  for (const cents of [1000, 1500, 2500, 5000, 10000]) assert.equal(topUpError(WALLET_SEED, cents), null, `${cents}`)
-  for (const cents of [500, 1200, 10500, 999]) assert.equal(topUpError(WALLET_SEED, cents), 'invalid_amount', `${cents}`)
+  for (const cents of [1000, 1500, 2500, 5000, 10000]) assert.equal(topUpError(WALLET_SEED, cents / 10), null, `${cents}`)
+  for (const cents of [500, 1200, 10500, 999]) assert.equal(topUpError(WALLET_SEED, cents / 10), 'invalid_amount', `${cents}`)
   const nearCap = structuredClone(WALLET_SEED)
   nearCap.buckets.bought.lots[0].remaining = 1800 // 1,900 bought in all
-  assert.equal(topUpError(nearCap, 1000), null)
-  assert.equal(topUpError(nearCap, 1500), 'over_cap')
+  assert.equal(topUpError(nearCap, 100), null)
+  assert.equal(topUpError(nearCap, 150), 'over_cap')
 
-  const result = topUp(WALLET_SEED, { eurCents: 1000, at: '2026-10-10T12:00:01Z' })
+  const result = topUp(WALLET_SEED, { credits: 100, at: '2026-10-10T12:00:01Z' })
   assert.equal(result.ok, true)
   assert.deepEqual(result.entry.balance_after, { included: 29, bought: 360 })
   const lot = result.wallet.buckets.bought.lots.at(-1)
   assert.equal(lot.refundable_until, '2026-10-24T12:00:01Z')
-  assert.equal(result.entry.memo, 'Top-up €10')
+  assert.equal(result.entry.memo, 'Top-up 100 credits for €10.00')
 })
 
 test('wallet: top-up refunds only within 14 days and only for unspent credits', () => {
@@ -363,7 +363,7 @@ test('wallet: an item returns only if not downloaded and within 14 days', () => 
 test('wallet: the suggested top-up covers a shortfall in €5 steps from €10 to €100', () => {
   assert.equal(suggestedTopUpEurCents(1), 1000)
   assert.equal(suggestedTopUpEurCents(101), 1500)
-  assert.equal(suggestedTopUpEurCents(1000), 10000)
+  assert.equal(suggestedTopUpEurCents(1000), 9000)
   assert.equal(suggestedTopUpEurCents(1001), null)
 })
 
@@ -459,7 +459,7 @@ test('categories, sellers and the one demo person', () => {
 })
 
 test('copy: credit strings are verbatim and release copy calls nothing free', () => {
-  assert.equal(PRICING_CREDITS.planLines.standard, '30 Market credits a month (€3)')
+  assert.equal(PRICING_CREDITS.planLines.standard, '10 Market credits a month (€1)')
   assert.equal(CHECKOUT_COPY.usesSplit, 'Uses {i} included + {b} bought credits (€{eur})')
   // RELEASE-LIFECYCLE §7.6: "free" appears only in "royalty-free" and "Free up space".
   const text = JSON.stringify(copy).replace(/royalty-free|free up space/gi, '')

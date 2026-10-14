@@ -1,21 +1,22 @@
 /**
- * Every credit number the v2 demo uses, transcribed once from
- * docs/v2/CREDITS-MODEL.md (section numbers in the comments) as WEB-V2-SPEC §6.2
- * lays it out. Copy and UI never hardcode these numbers; they read them here.
+ * Every credit number the v2 demo uses, kept in sync with
+ * docs/V2-CREDITS.md. Earlier section numbers describe the legacy demo model. Copy and UI never hardcode these numbers; they read them here.
  * tests/v2-foundation.test.mjs pins the values, so a change to the model updates
  * this file and the test together.
  */
 export const CREDITS = {
-  source: 'docs/v2/CREDITS-MODEL.md',
+  source: 'docs/V2-CREDITS.md',
   eurCentsPerCredit: 10,                                   // §2
-  monthly: { free: 0, basic: 10, standard: 30, pro: 50 },  // §3
-  rolloverMultiple: 2,                                     // §3: cap = 2 × monthly
-  welcome: { credits: 30, validDays: 60, scope: 'cadencea_originals' }, // §3
-  topUp: { quickPicks: [{ credits: 100, eurCents: 1000 }, { credits: 250, eurCents: 2500 }, { credits: 500, eurCents: 5000 }],
-           exact: { minEurCents: 1000, maxEurCents: 10000, stepEurCents: 500 }, bonus: 0 },  // §4
+  monthly: { free: 0, basic: 5, standard: 10, pro: 20 },
+  rolloverMultiple: null,                                  // Unlimited rollover
+  welcome: { credits: 0, validDays: 60, scope: 'cadencea_originals' },
+  topUp: {
+    quickPicks: [{ credits: 100, eurCents: 1000 }, { credits: 300, eurCents: 2850 }, { credits: 1000, eurCents: 9000 }],
+    exact: { minCredits: 100, maxCredits: 1000, stepCredits: 50 },
+    discounts: [{ minCredits: 1000, percent: 10 }, { minCredits: 300, percent: 5 }],
+  },
   boughtCap: 2000,                                         // §5.4
   refundDays: { topUp: 14, undownloadedItem: 14 },         // §5.3
-  cancelGraceDays: 30,                                     // §5.5
   spendOrder: ['included', 'bought'],                      // §5.1
   priceList: {                                             // §6.1
     oneShot: 1, loop: 1, midiFile: 1, preset: 2,
@@ -40,9 +41,15 @@ export const CREDITS = {
 
 export type PlanId = keyof typeof CREDITS.monthly;
 
-/** Rollover cap for a plan's included credits (§3): 2 × the monthly amount. */
-export function rolloverCap(plan: PlanId): number {
-  return CREDITS.monthly[plan] * CREDITS.rolloverMultiple;
+/** null is serialized explicitly: every plan has unlimited rollover. */
+export function rolloverCap(_plan: PlanId): null {
+  return null;
+}
+
+/** A bulk discount reduces the payment, keeping the seller's credit payout fixed. */
+export function topUpQuote(credits: number): { credits: number; eurCents: number; discountPercent: number } {
+  const discountPercent = CREDITS.topUp.discounts.find((tier) => credits >= tier.minCredits)?.percent ?? 0;
+  return { credits, eurCents: Math.round(credits * CREDITS.eurCentsPerCredit * (100 - discountPercent) / 100), discountPercent };
 }
 
 /** What a seller earns for a credit sale, in euro cents (§7): €0.05 per credit. */

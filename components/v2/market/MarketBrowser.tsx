@@ -20,13 +20,13 @@ import {
   type MarketFilters,
 } from '@/lib/v2-demo/market/queries';
 import ActiveFilters from './ActiveFilters';
-import CategoryHeader from './CategoryHeader';
 import CategoryNav from './CategoryNav';
 import FilterBar from './FilterBar';
 import FilterPanel, { availableFields } from './FilterPanel';
 import FilterSheet from './FilterSheet';
 import MarketGrid from './MarketGrid';
 import MarketList from './MarketList';
+import MarketSearch from './MarketSearch';
 import SortSelect from './SortSelect';
 import TagRow from './TagRow';
 import ViewToggle from './ViewToggle';
@@ -41,8 +41,8 @@ const inSentence = (label: string) => (/^[A-Z]{2}/.test(label) ? label : label.c
 
 /**
  * A category view or the "All results" view (WEB-V2-SPEC §4.3), in the one
- * browse frame every Market page shares (the Splice pattern): the showroom
- * header with the search box, the category strip, a row of filter buttons
+ * browse frame every Market page shares (the Splice pattern): the
+ * category strip with compact search, a row of filter buttons
  * (a sheet below md), the tag row, active filter chips, the results bar with
  * sort and the grid/list switch, then the results. The URL is the state:
  * every change replaces the query string, so a copied link restores the same
@@ -51,11 +51,9 @@ const inSentence = (label: string) => (/^[A-Z]{2}/.test(label) ? label : label.c
 export default function MarketBrowser({
   category,
   title,
-  lead,
 }: {
   category: CategoryKey | null;
   title: string;
-  lead: string;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -74,7 +72,6 @@ export default function MarketBrowser({
     [listings, category],
   );
   const results = useMemo(() => sortItems(filterItems(pool, filters), filters.sort), [pool, filters]);
-  const covers = useMemo(() => sortItems(pool, 'new').slice(0, 3), [pool]);
   // Tags have their own row at every width, so the sheet and the filter buttons leave them out.
   const sheetFields = availableFields(fields, pool, priceUnit).filter((field) => field !== 'tags');
 
@@ -130,39 +127,28 @@ export default function MarketBrowser({
   const fieldProps = { filters, onChange: update, priceUnit, pool };
 
   const search = (
-    <form
-      role="search"
+    <MarketSearch
+      id="market-browser-search"
+      label={category ? FILTER_COPY.searchLabel : FILTER_COPY.searchAllLabel}
+      value={query}
+      onChange={onQueryChange}
+      placeholder={
+        config
+          ? fill(BROWSE_COPY.searchIn, { category: inSentence(config.label) })
+          : MARKET_HOME_COPY.searchLabel
+      }
       onSubmit={(e) => {
         e.preventDefault();
         cancelPendingSearch();
         update({ q: query.trim() });
       }}
-    >
-      <label htmlFor="market-browser-search" className="sr-only">
-        {category ? FILTER_COPY.searchLabel : FILTER_COPY.searchAllLabel}
-      </label>
-      <div className="relative">
-        <Search size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted" />
-        <input
-          id="market-browser-search"
-          type="search"
-          value={query}
-          onChange={(e) => onQueryChange(e.currentTarget.value)}
-          placeholder={
-            config
-              ? fill(BROWSE_COPY.searchIn, { category: inSentence(config.label) })
-              : MARKET_HOME_COPY.searchPlaceholder
-          }
-          className="h-12 w-full rounded-sm border border-white/20 bg-white/5 pl-12 pr-4 text-base text-dark-text placeholder:text-dark-muted focus:border-brand-400"
-        />
-      </div>
-    </form>
+    />
   );
 
   return (
     <>
-      <CategoryHeader title={title} lead={lead} tint={category ?? 'all'} search={search} covers={covers} />
-      <CategoryNav current={category ?? 'all'} />
+      <h1 className="sr-only">{title}</h1>
+      <CategoryNav current={category ?? 'all'} search={search} />
 
       <Container className="pb-16 pt-6 lg:pb-20 lg:pt-8">
         <h2 className="sr-only">{CARD_COPY.resultsHeading}</h2>

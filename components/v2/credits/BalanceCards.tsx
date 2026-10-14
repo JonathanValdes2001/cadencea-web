@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button';
 import { CREDITS } from '@/lib/v2-demo/credits/config';
 import { PRICING_CREDITS, WALLET_COPY } from '@/lib/v2-demo/credits/copy';
 import { useWallet } from '@/lib/v2-demo/credits/store';
-import { atCap, nextGrantAmount, refundableLots, welcomeLot } from '@/lib/v2-demo/credits/wallet';
+import { nextGrantAmount, refundableLots, welcomeLot } from '@/lib/v2-demo/credits/wallet';
 import { creditsToEurCents, fill, formatDate, formatEurCents } from '@/lib/v2-demo/format';
 import WalletBar from './WalletBar';
 
@@ -31,14 +31,12 @@ function CardShell({ children }: { children: React.ReactNode }) {
 export default function BalanceCards() {
   const { wallet, balances } = useWallet();
   const { plan } = wallet;
-  const cap = wallet.buckets.included.cap;
   const nextGrant = formatDate(plan.next_grant_at);
   const welcome = welcomeLot(wallet);
   const refundable = refundableLots(wallet);
   const planLine = PRICING_CREDITS.planLines[plan.id];
-  // The grant only tops up to the rollover cap (CREDITS-MODEL §3).
+  // Unlimited rollover: the full monthly grant remains available.
   const grant = nextGrantAmount(wallet);
-  const capped = plan.monthly_credits > 0 && grant < plan.monthly_credits;
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -59,7 +57,7 @@ export default function BalanceCards() {
         <h2 className="text-base font-semibold tabular-nums text-ink">
           {fill(WALLET_COPY.includedRow, { included: balances.included.toLocaleString('en-US') })}
         </h2>
-        <p className="mt-1 text-sm text-ink-muted">{fill(WALLET_COPY.includedHint, { cap })}</p>
+        <p className="mt-1 text-sm text-ink-muted">{WALLET_COPY.includedHint}</p>
         <ul className="mt-4 flex-1 space-y-2 text-sm text-ink">
           {plan.monthly_credits === 0 ? (
             <li>{WALLET_COPY.freePlan}</li>
@@ -69,13 +67,6 @@ export default function BalanceCards() {
           {welcome?.expires_at && (
             <li>
               {fill(WALLET_COPY.welcomeHint, { n: welcome.remaining, date: formatDate(welcome.expires_at) })}
-            </li>
-          )}
-          {capped && (
-            <li className="rounded-sm bg-tone-warning-bg px-3 py-2 text-tone-warning">
-              {atCap(wallet)
-                ? fill(WALLET_COPY.atCap, { cap, date: nextGrant, monthly: plan.monthly_credits })
-                : fill(WALLET_COPY.nearCap, { cap, date: nextGrant, monthly: plan.monthly_credits, n: grant })}
             </li>
           )}
         </ul>

@@ -23,6 +23,8 @@ export interface BoughtLot {
   source: 'topup';
   credits: number;
   paid_eur_cents: number;
+  /** Cash already refunded; caps later refunds if a returned item restores credits. */
+  refunded_eur_cents?: number;
   remaining: number;
   purchased_at: string;
   refundable_until: string;
@@ -75,13 +77,13 @@ export interface Wallet {
     name: string;
     billing: 'monthly' | 'yearly';
     monthly_credits: number;
-    rollover_cap: number;
+    rollover_cap: number | null;
     next_grant_at: string;
     introductory: boolean;
   };
   balances: { included: number; bought: number; total: number; total_eur_cents: number };
   buckets: {
-    included: { label: string; cap: number; cap_counts: 'monthly_grant'; lots: IncludedLot[] };
+    included: { label: string; cap: number | null; cap_counts: 'monthly_grant'; lots: IncludedLot[] };
     bought: { label: string; cap: number; lots: BoughtLot[] };
   };
   ledger: LedgerEntry[];

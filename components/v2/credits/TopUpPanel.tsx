@@ -5,40 +5,38 @@ import Button from '@/components/ui/Button';
 import { StepperField } from '@/components/ui/Field';
 import { useToast } from '@/components/ui/Toast';
 import DemoConfirm from '@/components/v2/common/DemoConfirm';
-import { CREDITS } from '@/lib/v2-demo/credits/config';
+import { CREDITS, topUpQuote } from '@/lib/v2-demo/credits/config';
 import { CHECKOUT_COPY, WALLET_COPY } from '@/lib/v2-demo/credits/copy';
 import { addTopUp, refundTopUpLot, useWallet } from '@/lib/v2-demo/credits/store';
 import type { BoughtLot } from '@/lib/v2-demo/credits/types';
-import { refundableLots, topUpError } from '@/lib/v2-demo/credits/wallet';
+import { refundableLots, topUpError, topUpRefundEurCents } from '@/lib/v2-demo/credits/wallet';
 import { fill, formatCredits, formatDate, formatEurCents } from '@/lib/v2-demo/format';
 
 const { exact, quickPicks } = CREDITS.topUp;
-const toCredits = (eurCents: number) => eurCents / CREDITS.eurCentsPerCredit;
 const euros = (eurCents: number) => formatEurCents(eurCents, { trimZeros: true });
 
 /**
  * "Top up" on /credits (WEB-V2-SPEC §4.8, CREDITS-MODEL §4): quick picks, an exact
- * amount from €10 to €100 in €5 steps, the 2,000 bought-credit cap, and the
+ * credit amount from 100 to 1,000 in 50-credit steps, the 2,000 bought-credit cap, and the
  * 14-day refund of unspent top-up credits. Every action goes through DemoConfirm
  * and only changes this browser's demo wallet.
  */
 export default function TopUpPanel() {
   const { wallet } = useWallet();
   const toast = useToast();
-  const [amountEur, setAmountEur] = useState(quickPicks[0].eurCents / 100);
+  const [credits, setCredits] = useState<number>(quickPicks[0].credits);
   const [confirmTopUp, setConfirmTopUp] = useState(false);
   const [refundLot, setRefundLot] = useState<BoughtLot | null>(null);
 
-  const eurCents = amountEur * 100;
-  const credits = toCredits(eurCents);
+  const { eurCents, discountPercent } = topUpQuote(credits);
   // The stepper takes any typed value and snaps it on blur, so an amount can be briefly off-step.
-  const amountError = topUpError(wallet, eurCents);
+  const amountError = topUpError(wallet, credits);
   const overCap = amountError === 'over_cap';
   const refundable = refundableLots(wallet);
 
   const onTopUp = () => {
     setConfirmTopUp(false);
-    const result = addTopUp(eurCents);
+    const result = addTopUp(credits);
     if (result.ok) toast.show(`Demo: ${formatCredits(credits)} added to the Bought wallet.`);
     else toast.show(result.error === 'over_cap' ? `Demo: ${CHECKOUT_COPY.boughtCap}` : 'Demo: nothing was added.');
   };
@@ -59,21 +57,25 @@ export default function TopUpPanel() {
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3" role="group" aria-label="Quick picks">
         {quickPicks.map((pick) => {
-          const selected = pick.eurCents === eurCents;
+          const selected = pick.credits === credits;
+          const quote = topUpQuote(pick.credits);
           return (
             <button
               key={pick.eurCents}
               type="button"
               aria-pressed={selected}
-              onClick={() => setAmountEur(pick.eurCents / 100)}
+              onClick={() => setCredits(pick.credits)}
               className={`rounded-md border p-4 text-left ${
                 selected ? 'border-accent bg-accent-soft' : 'border-line bg-canvas hover:border-line-strong'
               }`}
             >
               <span className="block text-base font-semibold tabular-nums text-ink">
-                {pick.credits} credits · {euros(pick.eurCents)}
+                {pick.credits.toLocaleString('en-US')} credits · {euros(pick.eurCents)}
               </span>
-              <span className="mt-1 block text-sm text-ink-muted">€0.10 per credit, no bonus</span>
+              <span className="mt-1 block text-sm text-ink-muted">
+                {quote.discountPercent > 0 ? `Save ${quote.discountPercent}%` : 'Standard price'}
+                {' · €'}{(pick.eurCents / pick.credits / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} per credit
+              </span>
             </button>
           );
         })}
@@ -82,14 +84,13 @@ export default function TopUpPanel() {
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <StepperField
           id="top-up-exact"
-          label="Exact amount"
-          value={amountEur}
-          onValueChange={setAmountEur}
-          min={exact.minEurCents / 100}
-          max={exact.maxEurCents / 100}
-          step={exact.stepEurCents / 100}
-          prefix="€"
-          addon={`= ${formatCredits(credits)}`}
+          label="Choose your credits"
+          value={credits}
+          onValueChange={setCredits}
+          min={exact.minCredits}
+          max={exact.maxCredits}
+          step={exact.stepCredits}
+          addon={`= ${euros(eurCents)}${discountPercent ? ` · save ${discountPercent}%` : ''}`}
         />
         <Button
           onClick={() => setConfirmTopUp(true)}
@@ -126,7 +127,7 @@ export default function TopUpPanel() {
         onClose={() => setConfirmTopUp(false)}
         onConfirm={onTopUp}
         title={`Top up ${euros(eurCents)}?`}
-        body={`Demo top-up: no payment is taken. ${credits} demo credits are added to the Bought wallet in this browser, refundable for 14 days.`}
+        body={`Demo top-up: no payment is taken. ${credits} demo credits are added to the Bought wallet in this browser${discountPercent ? ` at ${discountPercent}% off` : ''}. Unspent credits are refundable for 14 days at the price paid.`}
         confirmLabel="Add"
       />
 
@@ -138,7 +139,7 @@ export default function TopUpPanel() {
         body={
           refundLot
             ? `Demo: ${refundLot.remaining} unspent credits leave the Bought wallet, and ${formatEurCents(
-                refundLot.remaining * CREDITS.eurCentsPerCredit,
+                topUpRefundEurCents(refundLot),
               )} would go back to the card. No money moves.`
             : ''
         }

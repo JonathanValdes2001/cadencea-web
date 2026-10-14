@@ -49,7 +49,7 @@ function browserStorage(): Storage | null {
  * `seed` must be a module-level constant so the server snapshot keeps one
  * reference. `version` is the spec version the stored shape follows.
  */
-export function createDemoStore<T>(opts: { key: string; version: string; seed: T }): DemoStore<T> {
+export function createDemoStore<T>(opts: { key: string; version: string; seed: T; normalize?: (state: T) => T }): DemoStore<T> {
   const { key, version, seed } = opts;
   let current: T | undefined;
   const listeners = new Set<() => void>();
@@ -60,7 +60,7 @@ export function createDemoStore<T>(opts: { key: string; version: string; seed: T
       if (!raw) return seed;
       const parsed = JSON.parse(raw) as Partial<Envelope<T>> | null;
       if (!parsed || parsed.version !== version || parsed.state === undefined) return seed;
-      return parsed.state;
+      return opts.normalize ? opts.normalize(parsed.state) : parsed.state;
     } catch {
       return seed;
     }

@@ -162,7 +162,6 @@ export const ITEM_COPY = {
   buyBodyOne: "Demo: 1 demo credit leaves Maya's demo wallet ({i} included + {b} bought). No money moves.",
   buyConfirm: 'Buy',
   boughtToast: 'Demo: {title} is in the demo library.',
-  welcomeApply: 'Welcome credits apply',
   topUp: 'Top up to buy this',
   topUpSuggestion: 'Checkout suggests the smallest top-up that covers it: €{amount}.',
   topUpSteps: 'Top up in more than one step.',
@@ -227,6 +226,7 @@ export const ITEM_COPY = {
 
 /** Toasts for demo actions the stores refuse. */
 export const RESULT_COPY: Readonly<Record<string, string>> = {
+  included_in_pack: 'Demo: this file is part of your completed pack. Return the pack before returning the individual purchase.',
   insufficient_credits: 'Demo: not enough credits in the demo wallet.',
   already_owned: 'Demo: this is already in the demo library.',
   downloaded: "Demo: a purchase you've downloaded can't be returned.",

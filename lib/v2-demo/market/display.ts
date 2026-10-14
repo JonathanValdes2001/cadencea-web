@@ -9,7 +9,8 @@ import type { PurchaseItem } from '../credits/wallet.ts';
 import { fill, formatBytes, formatKey } from '../format.ts';
 import { getSeller } from '../sellers.ts';
 import { LEASE_RIGHTS } from './copy.ts';
-import { countFiles } from './files.ts';
+import { countFiles, listingFiles } from './files.ts';
+import { packCompletionPrice, type MarketLibrary } from '../credits/library-seed.ts';
 import type {
   FileSpec,
   MarketFile,
@@ -43,6 +44,14 @@ const SELLS_SINGLE_FILES: readonly ReleaseType[] = ['sample_pack', 'preset_pack'
 /** The credit price of one file from a pack, or null when it isn't sold on its own. */
 export function singleFileCredits(type: ReleaseType, file: MarketFile): number | null {
   return SELLS_SINGLE_FILES.includes(type) ? SINGLE_FILE_CREDITS[file.kind] : null;
+}
+
+export function packPurchaseQuote(listing: MarketListing, library: MarketLibrary) {
+  const files = listingFiles(listing).flatMap((file) => {
+    const credits = singleFileCredits(listing.type, file);
+    return credits === null ? [] : [{ id: file.id, credits }];
+  });
+  return { ...packCompletionPrice(library, { slug: listing.slug, version: listing.version, credits: creditPrice(listing.price) ?? 0, files }), files };
 }
 
 export function sellerName(handle: string): string {

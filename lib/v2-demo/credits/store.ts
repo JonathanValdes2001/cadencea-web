@@ -12,9 +12,10 @@ import type { LeaseTierId, Money, SplitTerms } from '../release-lifecycle/types.
 import { nextDemoTime } from '../clock.ts';
 import { createDemoStore, DEMO_STORAGE_KEYS } from '../storage.ts';
 import { useDemoStore } from '../use-demo-store.ts';
-import { LIBRARY_SEED, ownedEntry } from './library-seed.ts';
+import { LIBRARY_SEED, ownedEntry, packCompletionPrice } from './library-seed.ts';
 import type { LibraryEntry, MarketLibrary } from './library-seed.ts';
 import type { Wallet } from './types.ts';
+import { CREDITS } from './config.ts';
 import { WALLET_SEED } from './wallet-seed.ts';
 import { balances, refundTopUp, returnItem, spend, topUp } from './wallet.ts';
 import type { Balances, PurchaseItem, WalletError } from './wallet.ts';
@@ -26,6 +27,12 @@ export const walletStore = createDemoStore<Wallet>({
   key: DEMO_STORAGE_KEYS.credits,
   version: STORE_VERSION,
   seed: WALLET_SEED,
+  // Preserve balances, purchases and historical prices when applying the new allowance policy.
+  normalize: (wallet) => ({
+    ...wallet,
+    plan: { ...wallet.plan, monthly_credits: CREDITS.monthly[wallet.plan.id], rollover_cap: null },
+    buckets: { ...wallet.buckets, included: { ...wallet.buckets.included, cap: null } },
+  }),
 });
 
 export const marketLibraryStore = createDemoStore<MarketLibrary>({
@@ -91,14 +98,19 @@ const entryKey = (slug: string, fileId?: string | null) => (fileId ? `${slug}#${
  * library. A 0-credit Splits pack moves no credits.
  */
 export function buyWithCredits(
-  args: ListingRef & { credits: number; item: PurchaseItem; splitTerms?: SplitTerms },
+  args: ListingRef & { credits: number; item: PurchaseItem; splitTerms?: SplitTerms; packFiles?: readonly { id: string; credits: number }[] },
 ): DemoActionResult {
   const library = marketLibraryStore.getSnapshot();
+  if (!Number.isInteger(args.credits) || args.credits < 0) return { ok: false, error: 'invalid_amount' };
   if (ownedEntry(library, args.slug, args.fileId ?? null)) return { ok: false, error: 'already_owned' };
+  const credits = !args.fileId && args.packFiles
+    ? packCompletionPrice(library, { slug: args.slug, version: args.version, credits: args.credits, files: args.packFiles }).credits
+    : args.credits;
+  if (!Number.isInteger(credits) || credits < 0) return { ok: false, error: 'invalid_amount' };
   const at = nextTime();
   let purchaseLedgerId: string | null = null;
-  if (args.credits > 0) {
-    const result = spend(walletStore.getSnapshot(), { credits: args.credits, item: args.item, at });
+  if (credits > 0) {
+    const result = spend(walletStore.getSnapshot(), { credits, item: args.item, at });
     if (!result.ok) return { ok: false, error: result.error, shortfall: result.shortfall };
     walletStore.update(() => result.wallet);
     purchaseLedgerId = result.entry.id;
@@ -110,7 +122,7 @@ export function buyWithCredits(
     title: args.title,
     releaseId: args.releaseId ?? null,
     version: args.version,
-    pricePaid: args.credits > 0 ? { kind: 'credits', credits: args.credits } : { kind: 'free' },
+    pricePaid: credits > 0 ? { kind: 'credits', credits } : { kind: 'free' },
     purchaseLedgerId,
     splitTerms: args.splitTerms,
     purchasedAt: at,
@@ -154,6 +166,7 @@ export function markDownloaded(key: string): DemoActionResult {
 export function returnPurchase(key: string): DemoActionResult {
   const entry = findOwned(key);
   if (!entry) return { ok: false, error: 'not_owned' };
+  if (entry.fileId && ownedEntry(marketLibraryStore.getSnapshot(), entry.slug)) return { ok: false, error: 'included_in_pack' };
   const at = nextTime();
   if (entry.purchaseLedgerId) {
     const result = returnItem(walletStore.getSnapshot(), {
@@ -170,8 +183,8 @@ export function returnPurchase(key: string): DemoActionResult {
   return { ok: true };
 }
 
-export function addTopUp(eurCents: number): DemoActionResult {
-  const result = topUp(walletStore.getSnapshot(), { eurCents, at: nextTime() });
+export function addTopUp(credits: number): DemoActionResult {
+  const result = topUp(walletStore.getSnapshot(), { credits, at: nextTime() });
   if (!result.ok) return { ok: false, error: result.error };
   walletStore.update(() => result.wallet);
   return { ok: true };

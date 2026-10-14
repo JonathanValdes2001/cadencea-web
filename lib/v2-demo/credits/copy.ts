@@ -10,15 +10,15 @@
 export const PRICING_CREDITS = {
   eyebrow: 'Market credits · Preview',
   heading: 'Credits for sounds, presets and MIDI',
-  subheading: '1 credit = €0.10. Every price shows credits and euros side by side.',
+  subheading: 'Standard price: 1 credit = €0.10. Bulk top-ups cost less; every item shows credits and euros.',
   cards: [
     {
       title: 'Included with your plan',
-      body: "Basic 10, Standard 30 and Pro 50 credits every month. Unused credits roll over, up to two months' worth.",
+      body: "Free 0, Basic 5, Standard 10 and Pro 20 credits every month. Unused credits roll over without a cap.",
     },
     {
       title: 'Top up when you need more',
-      body: "€10, €25 or €50, or any amount up to €100. Credits you buy don't expire, and unspent ones are refundable for 14 days.",
+      body: "100 credits for €10, 300 for €28.50 (save 5%) or 1,000 for €90 (save 10%). Bought credits do not expire; unspent credits are refundable for 14 days at the price paid.",
     },
     {
       title: 'Money buys music',
@@ -30,10 +30,10 @@ export const PRICING_CREDITS = {
   footnote:
     "Detect (key, BPM and tags) is free on every plan. Credits are spent only at Cadencea and are never paid out or sent between users. Prices include VAT. Included amounts are introductory. Preview: credits aren't on sale yet.",
   planLines: {
-    free: '30 welcome credits for Cadencea Originals',
-    basic: '10 Market credits a month (€1)',
-    standard: '30 Market credits a month (€3)',
-    pro: '50 Market credits a month (€5)',
+    free: '0 monthly Market credits',
+    basic: '5 Market credits a month (€0.50)',
+    standard: '10 Market credits a month (€1)',
+    pro: '20 Market credits a month (€2)',
   },
 } as const;
 
@@ -47,16 +47,16 @@ export const PRICING_MARKET_FAQ = {
 export const CREDITS_EXPLAINER = [
   {
     title: 'Get credits.',
-    body: 'Paid plans include credits every month. Every new account gets 30 welcome credits for Cadencea Originals. Anyone can top up from €10.',
+    body: 'Paid plans include 5, 10 or 20 credits every month. Free accounts receive no included or welcome credits. Anyone can top up from €10.',
   },
-  { title: 'See the euros.', body: '1 credit = €0.10, VAT included. Every price shows both.' },
+  { title: 'See the euros.', body: 'Standard top-up price: €0.10 per credit, VAT included. Buy 300 or more to save 5%, or 1,000 to save 10%.' },
   {
     title: 'Spend them.',
     body: 'We use your included credits first, then the credits you bought, oldest first. Checkout shows exactly which ones.',
   },
   {
     title: 'Keep them.',
-    body: "Credits you buy don't expire. Included credits roll over up to two months' worth while you're subscribed.",
+    body: "Unused included credits roll over without a cap. Already earned and bought credits stay available when you downgrade or cancel.",
   },
   {
     title: 'Change your mind.',
@@ -65,6 +65,10 @@ export const CREDITS_EXPLAINER = [
   {
     title: 'Where your credits go.',
     body: 'Creators earn €0.05 for every credit you spend on their work, paid monthly in euros.',
+  },
+  {
+    title: 'Complete a pack.',
+    body: 'Valid purchases of individual files reduce the remaining pack price. You never pay for the same purchase twice.',
   },
   {
     title: 'Closed loop.',
@@ -79,15 +83,13 @@ export const WALLET_COPY = {
   balance: '{total} credits',
   euroLine: '€{total_eur} at Market prices',
   includedRow: 'Included · {included}',
-  includedHint: 'Rolls over up to {cap}',
+  includedHint: 'Unlimited rollover',
   boughtRow: 'Bought · {bought}',
   boughtHint: "Don't expire",
   nextGrant: '+{monthly} included on {date}',
   refundHint: '{n} bought credits refundable until {date}',
   welcomeHint: '{n} welcome credits for Cadencea Originals · until {date}',
-  atCap: "You're at your rollover limit ({cap}). Spend some before {date} so your next {monthly} aren't capped.",
-  nearCap: "You're near your rollover limit ({cap}), so only {n} of your next {monthly} would be added. Spend some before {date} to get them all.",
-  freePlan: 'No included credits on Free. Paid plans include 10–50 a month, or top up from €10.',
+  freePlan: 'No included credits on Free. Paid plans include 5–20 a month, or top up from €10.',
   detectLine: 'Detect key, BPM and tags: free on every plan',
   primaryButton: 'Top up on cadencea.app',
   secondaryButton: 'History',
@@ -112,19 +114,23 @@ export const CREDITS_FAQ = [
   },
   {
     q: 'How do I get credits?',
-    a: 'Basic includes 10 credits a month, Standard 30 and Pro 50. Every new account gets 30 welcome credits for Cadencea Originals. Anyone, on any plan, can top up from €10.',
+    a: 'Free includes 0 credits, Basic 5, Standard 10 and Pro 20 a month. There is no welcome grant. Anyone, on any plan, can buy top-ups, with 5% off from 300 credits and 10% off at 1,000.',
   },
   {
     q: 'Do my credits expire?',
-    a: "Credits you buy don't expire. Included credits roll over up to two months' worth while you're subscribed. If you cancel, they stay usable for 30 days after your last paid day. Welcome credits last 60 days. We always spend included credits before the ones you bought.",
+    a: "Unused included credits roll over without a cap. Already earned and bought credits remain available after downgrading or cancelling. We spend included credits before bought credits.",
   },
   {
     q: 'Can I get a refund?',
-    a: "Unspent credits from a top-up are refunded to your card in full within 14 days. A purchase you haven't downloaded can be returned within 14 days. After download, purchases are final unless the files are broken, misdescribed or taken down for rights reasons. If you delete your account, we refund the credits you bought and haven't spent.",
+    a: "Unspent credits from a top-up are refundable to your card within 14 days at the rate you actually paid, including any bulk discount. A purchase you haven't downloaded can be returned within 14 days. After download, purchases are final unless the files are broken, misdescribed or taken down for rights reasons. If you delete your account, we refund the credits you bought and haven't spent.",
   },
   {
     q: "Why can't I use credits for beats, songs or fan support?",
     a: 'Credits buy tools for making music, and money buys music. Beat leases, songs and fan support are paid by card at one all-in price, and the artist keeps 90% after card fees (and VAT, if it applies).',
+  },
+  {
+    q: 'Do earlier sample purchases count toward the full pack?',
+    a: 'Yes. We deduct what you paid for files in the current pack from its price, never below zero. Returned purchases do not count. For a 500-credit pack, 30 credits of valid earlier purchases leave 470 to pay.',
   },
   {
     q: 'What happens if the Market closes?',

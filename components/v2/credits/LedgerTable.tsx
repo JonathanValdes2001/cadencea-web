@@ -30,7 +30,11 @@ function Change({ entry }: { entry: LedgerEntry }) {
       <span className={`block font-semibold tabular-nums ${entry.credits > 0 ? 'text-price' : 'text-ink'}`}>
         {signedCredits(entry.credits)}
       </span>
-      <span className="block text-xs tabular-nums text-ink-muted">{signedEur(entry.eur_cents)}</span>
+      <span className="block text-xs tabular-nums text-ink-muted">
+        {entry.paid_eur_cents !== undefined
+          ? `${entry.type === 'topup' ? 'Paid' : 'Refunded'} ${formatEurCents(entry.paid_eur_cents)}`
+          : signedEur(entry.eur_cents)}
+      </span>
     </>
   );
 }

@@ -108,6 +108,27 @@ export const LIBRARY_SEED: MarketLibrary = {
 /** The entry Maya currently owns for a slug (or slug + file), ignoring returned ones. */
 export function ownedEntry(library: MarketLibrary, slug: string, fileId: string | null = null): LibraryEntry | null {
   return (
-    library.entries.find((e) => e.slug === slug && e.fileId === fileId && e.returnedAt === null) ?? null
+    library.entries.find((e) => e.slug === slug && e.returnedAt === null && (e.fileId === fileId || (fileId !== null && e.fileId === null))) ?? null
   );
+}
+
+/** Credit valid purchases toward this pack version, counting each current file once. */
+export function packCompletionPrice(
+  library: MarketLibrary,
+  args: { slug: string; version: number; credits: number; files: readonly { id: string; credits: number }[] },
+): { credits: number; priorCredits: number; ownedCount: number } {
+  const files = new Map(args.files.map((file) => [file.id, file.credits]));
+  const owned = new Set<string>();
+  let priorCredits = 0;
+  for (const entry of library.entries) {
+    if (entry.slug !== args.slug || entry.version !== args.version || entry.returnedAt !== null || entry.fileId === null || !files.has(entry.fileId) || owned.has(entry.fileId)) continue;
+    owned.add(entry.fileId);
+    if (entry.pricePaid.kind === 'credits') priorCredits += entry.pricePaid.credits;
+  }
+  const remainingFilesPrice = args.files.filter((file) => !owned.has(file.id)).reduce((sum, file) => sum + file.credits, 0);
+  return {
+    credits: owned.size ? Math.max(0, Math.min(args.credits - priorCredits, remainingFilesPrice)) : args.credits,
+    priorCredits,
+    ownedCount: owned.size,
+  };
 }

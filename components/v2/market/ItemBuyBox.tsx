@@ -19,6 +19,7 @@ import {
   isFirstParty,
   priceTerms,
   purchaseItemFor,
+  packPurchaseQuote,
 } from '@/lib/v2-demo/market/display';
 import type { MarketListing } from '@/lib/v2-demo/market/types';
 import { SPLITS_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
@@ -36,7 +37,8 @@ function CreditBuyBox({ listing }: { listing: MarketListing }) {
   const [confirming, setConfirming] = useState(false);
 
   const owned = ownedEntry(library, listing.slug);
-  const credits = creditPrice(listing.price) ?? 0;
+  const quote = packPurchaseQuote(listing, library);
+  const credits = quote.credits;
   const firstParty = isFirstParty(listing.sellerHandle);
   const plan = previewSpend(wallet, credits, { firstParty });
   const splits = listing.splitTerms;
@@ -50,7 +52,8 @@ function CreditBuyBox({ listing }: { listing: MarketListing }) {
       title: listing.title,
       releaseId: listing.releaseId,
       version: listing.version,
-      credits,
+      credits: creditPrice(listing.price) ?? 0,
+      packFiles: quote.files,
       item: purchaseItemFor(listing),
       splitTerms: splits ?? undefined,
     });
@@ -63,7 +66,12 @@ function CreditBuyBox({ listing }: { listing: MarketListing }) {
 
   return (
     <div className="space-y-4">
-      <Price price={listing.price} size="lg" splitTerms={priceTerms(listing)} />
+      <Price price={listing.price.kind === 'credits' ? { kind: 'credits', credits } : listing.price} size="lg" splitTerms={priceTerms(listing)} />
+      {!owned && quote.ownedCount > 0 && (
+        <p className="text-sm text-ink-muted">
+          You own {quote.ownedCount} {quote.ownedCount === 1 ? 'file' : 'files'}. {quote.priorCredits} credits from earlier purchases count toward this pack.
+        </p>
+      )}
       {palette && (
         <div>
           <ul aria-hidden="true" className="flex gap-2">
@@ -104,7 +112,7 @@ function CreditBuyBox({ listing }: { listing: MarketListing }) {
           ) : (
             <div>
               <Button fullWidth size="lg" disabled={Boolean(splits) && !acknowledged} onClick={() => setConfirming(true)}>
-                {credits === 0 ? ITEM_COPY.getPack : fill(CHECKOUT_COPY.buyFor, { credits, eur })}
+                {quote.ownedCount > 0 ? `Complete pack for ${credits} credits (€${eur})` : credits === 0 ? ITEM_COPY.getPack : fill(CHECKOUT_COPY.buyFor, { credits, eur })}
               </Button>
               {credits > 0 && (
                 <p className="mt-2 text-sm text-ink-muted tabular-nums">
@@ -113,7 +121,6 @@ function CreditBuyBox({ listing }: { listing: MarketListing }) {
               )}
             </div>
           )}
-          {firstParty && <p className="text-sm text-ink-muted">{ITEM_COPY.welcomeApply}</p>}
         </>
       )}
 

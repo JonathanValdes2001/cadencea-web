@@ -6,7 +6,7 @@ import Price from '@/components/ui/Price';
 import { ownedEntry } from '@/lib/v2-demo/credits/library-seed';
 import { useMarketLibrary } from '@/lib/v2-demo/credits/store';
 import { ITEM_COPY } from '@/lib/v2-demo/market/copy';
-import { creditPrice, fromEurCents, priceTerms } from '@/lib/v2-demo/market/display';
+import { creditPrice, fromEurCents, priceTerms, packPurchaseQuote } from '@/lib/v2-demo/market/display';
 import type { MarketListing } from '@/lib/v2-demo/market/types';
 
 /**
@@ -27,10 +27,11 @@ export default function MobileBuyBar({ listing, targetId }: { listing: MarketLis
   }, [targetId]);
 
   const owned = ownedEntry(library, listing.slug) !== null;
+  const quote = packPurchaseQuote(listing, library);
   let label: string;
   if (owned) label = ITEM_COPY.barOwned;
   else if (listing.type === 'beat') label = ITEM_COPY.barChoose;
-  else label = creditPrice(listing.price) === 0 ? ITEM_COPY.barGet : ITEM_COPY.barBuy;
+  else label = quote.ownedCount > 0 ? 'Complete pack' : creditPrice(listing.price) === 0 ? ITEM_COPY.barGet : ITEM_COPY.barBuy;
 
   const goToBuyBox = () => {
     const target = document.getElementById(targetId);
@@ -49,7 +50,7 @@ export default function MobileBuyBar({ listing, targetId }: { listing: MarketLis
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
         <Price
-          price={listing.price}
+          price={listing.price.kind === 'credits' ? { kind: 'credits', credits: quote.credits } : listing.price}
           fromEurCents={from ?? undefined}
           splitTerms={priceTerms(listing)}
           size="sm"

@@ -5,7 +5,7 @@
  * ../clock.ts), never read from the machine.
  */
 import type { BoughtLot, IncludedLot, LedgerEntry, LotDraw, Wallet } from './types.ts';
-import { CREDITS } from './config.ts';
+import { CREDITS, topUpQuote } from './config.ts';
 import { DEMO_NOW, addDays } from '../clock.ts';
 
 export interface Balances {
@@ -46,7 +46,8 @@ export type WalletError =
   | 'nothing_to_refund'
   | 'already_returned'
   | 'downloaded'
-  | 'return_window_closed';
+  | 'return_window_closed'
+  | 'included_in_pack';
 
 export type WalletResult =
   | { ok: true; wallet: Wallet; entry: LedgerEntry }
@@ -84,7 +85,8 @@ export function balances(wallet: Wallet, now: string = DEMO_NOW): Balances {
 
 /** At the rollover limit (§3): the next monthly grant would be capped. */
 export function atCap(wallet: Wallet, now: string = DEMO_NOW): boolean {
-  return balances(wallet, now).monthly >= wallet.buckets.included.cap;
+  const cap = wallet.buckets.included.cap;
+  return cap !== null && balances(wallet, now).monthly >= cap;
 }
 
 /**
@@ -93,6 +95,7 @@ export function atCap(wallet: Wallet, now: string = DEMO_NOW): boolean {
  */
 export function nextGrantAmount(wallet: Wallet, now: string = DEMO_NOW): number {
   const monthly = wallet.plan.monthly_credits;
+  if (wallet.buckets.included.cap === null) return monthly;
   const room = wallet.buckets.included.cap - balances(wallet, now).monthly;
   return Math.max(0, Math.min(monthly, room));
 }
@@ -161,26 +164,24 @@ export function previewSpend(
 
 /**
  * "Checkout suggests the smallest top-up that covers it" (§4, WEB-V2-SPEC §4.4):
- * the shortfall in euros rounded up to the next €5, at least €10. Null when more
- * than €100 is missing ("Top up in more than one step").
+ * the shortfall rounded up to the next 50 credits, at least 100,
+ * then priced with the bulk discount. Null when more than 1,000 credits are missing ("Top up in more than one step").
  */
 export function suggestedTopUpEurCents(shortfallCredits: number): number | null {
-  const { minEurCents, maxEurCents, stepEurCents } = CREDITS.topUp.exact;
-  const needed = shortfallCredits * CREDITS.eurCentsPerCredit;
-  const rounded = Math.max(minEurCents, Math.ceil(needed / stepEurCents) * stepEurCents);
-  return rounded > maxEurCents ? null : rounded;
+  const { minCredits, maxCredits, stepCredits } = CREDITS.topUp.exact;
+  const rounded = Math.max(minCredits, Math.ceil(shortfallCredits / stepCredits) * stepCredits);
+  return rounded > maxCredits ? null : topUpQuote(rounded).eurCents;
 }
 
-/** Why a top-up of `eurCents` isn't allowed, or null when it is (§4, §5.4). */
-export function topUpError(wallet: Wallet, eurCents: number): WalletError | null {
-  const { minEurCents, maxEurCents, stepEurCents } = CREDITS.topUp.exact;
+/** Why a top-up of this many credits isn't allowed, or null when it is. */
+export function topUpError(wallet: Wallet, credits: number): WalletError | null {
+  const { minCredits, maxCredits, stepCredits } = CREDITS.topUp.exact;
   const validAmount =
-    Number.isInteger(eurCents) &&
-    eurCents >= minEurCents &&
-    eurCents <= maxEurCents &&
-    (eurCents - minEurCents) % stepEurCents === 0;
+    Number.isInteger(credits) &&
+    credits >= minCredits &&
+    credits <= maxCredits &&
+    (credits - minCredits) % stepCredits === 0;
   if (!validAmount) return 'invalid_amount';
-  const credits = eurCents / CREDITS.eurCentsPerCredit;
   if (balances(wallet).bought + credits > CREDITS.boughtCap) return 'over_cap';
   return null;
 }
@@ -239,11 +240,11 @@ export function spend(
 }
 
 /** Adds a top-up to the Bought wallet, refundable for 14 days (§4, §5.3). */
-export function topUp(wallet: Wallet, args: { eurCents: number; at: string }): WalletResult {
-  const { eurCents, at } = args;
-  const error = topUpError(wallet, eurCents);
+export function topUp(wallet: Wallet, args: { credits: number; at: string }): WalletResult {
+  const { credits, at } = args;
+  const error = topUpError(wallet, credits);
   if (error) return { ok: false, error };
-  const credits = eurCents / CREDITS.eurCentsPerCredit;
+  const { eurCents } = topUpQuote(credits);
   const next = structuredClone(wallet);
   const lotId = `buy_demo_${next.buckets.bought.lots.length + 1}`;
   next.buckets.bought.lots.push({
@@ -265,14 +266,22 @@ export function topUp(wallet: Wallet, args: { eurCents: number; at: string }): W
       type: 'topup',
       wallet: 'bought',
       credits,
-      eur_cents: eurCents,
+      eur_cents: credits * CREDITS.eurCentsPerCredit,
       paid_eur_cents: eurCents,
       lots: [{ lot_id: lotId, credits }],
       ref: { checkout: `cs_demo_${lotId}` },
-      memo: `Top-up €${eurCents / 100}`,
+      memo: `Top-up ${credits} credits for €${(eurCents / 100).toFixed(2)}`,
     },
     at,
   );
+}
+
+/** Refund at the lot's actual purchase rate, never more than the original payment. */
+export function topUpRefundEurCents(lot: BoughtLot): number {
+  return Math.max(0, Math.min(
+    Math.round(lot.remaining * lot.paid_eur_cents / lot.credits),
+    lot.paid_eur_cents - (lot.refunded_eur_cents ?? 0),
+  ));
 }
 
 /** Why a top-up lot can't be refunded now, or null when it can. */
@@ -292,6 +301,8 @@ export function refundTopUp(wallet: Wallet, args: { lotId: string; at: string })
   const next = structuredClone(wallet);
   const lot = next.buckets.bought.lots.find((l) => l.lot_id === lotId) as BoughtLot;
   const credits = lot.remaining;
+  const refundedEurCents = topUpRefundEurCents(lot);
+  lot.refunded_eur_cents = (lot.refunded_eur_cents ?? 0) + refundedEurCents;
   lot.remaining = 0;
   lot.status = 'refunded';
   return finish(
@@ -304,7 +315,7 @@ export function refundTopUp(wallet: Wallet, args: { lotId: string; at: string })
       wallet: 'bought',
       credits: -credits,
       eur_cents: -credits * CREDITS.eurCentsPerCredit,
-      paid_eur_cents: credits * CREDITS.eurCentsPerCredit,
+      paid_eur_cents: refundedEurCents,
       lots: [{ lot_id: lotId, credits: -credits }],
       memo: `Refunded: ${credits} unspent top-up credits`,
     },

@@ -1,6 +1,7 @@
 /**
- * Maya Lind's demo wallet: the JSON of docs/v2/CREDITS-MODEL.md §10, verbatim,
- * typed. 29 included + 260 bought = 289 credits (€28.90) on Standard. The /credits
+ * Maya Lind's historical demo wallet from CREDITS-MODEL §10,
+ * with the current allowance and rollover policy. Historical grants stay intact.
+ * 29 included + 260 bought = 289 credits (€28.90) on Standard. The /credits
  * page, the Navbar chip and Market purchases all start from it (WEB-V2-SPEC §2.5).
  */
 import type { Wallet } from './types.ts';
@@ -15,8 +16,8 @@ export const WALLET_SEED: Wallet = {
     "id": "standard",
     "name": "Standard",
     "billing": "monthly",
-    "monthly_credits": 30,
-    "rollover_cap": 60,
+    "monthly_credits": 10,
+    "rollover_cap": null,
     "next_grant_at": "2026-11-03T00:00:00Z",
     "introductory": true
   },
@@ -24,7 +25,7 @@ export const WALLET_SEED: Wallet = {
   "buckets": {
     "included": {
       "label": "Included",
-      "cap": 60,
+      "cap": null,
       "cap_counts": "monthly_grant",
       "lots": [
         { "lot_id": "inc_welcome", "source": "welcome", "scope": "cadencea_originals", "granted": 30, "remaining": 0, "granted_at": "2026-08-03T10:12:00Z", "expires_at": "2026-10-02T10:12:00Z", "status": "expired" },
