@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { isPreviewSite } from '@/lib/site-channel.mjs';
+import { parkedRoutesOpen } from '@/lib/parked-features.mjs';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Container, { ShowroomGlow } from '@/components/ui/Container';
@@ -11,7 +11,7 @@ import StreamPhones from '@/components/v2/stream/StreamPhones';
 import StreamPrinciples from '@/components/v2/stream/StreamPrinciples';
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   return { title: 'Cadencea Stream (concept)' };
 }
 
@@ -39,7 +39,7 @@ function streamDemoUrl(): string | null {
 export default function StreamPage() {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   const demoUrl = streamDemoUrl();
 
   return (

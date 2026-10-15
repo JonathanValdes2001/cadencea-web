@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { isPreviewSite } from '@/lib/site-channel.mjs';
+import { parkedRoutesOpen } from '@/lib/parked-features.mjs';
 import Container from '@/components/ui/Container';
 import PersonaBanner from '@/components/v2/common/PersonaBanner';
 import BalanceCards from '@/components/v2/credits/BalanceCards';
@@ -11,7 +11,7 @@ import TopUpPanel from '@/components/v2/credits/TopUpPanel';
 import { WALLET_COPY } from '@/lib/v2-demo/credits/copy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   return { title: 'Credits (preview)' };
 }
 
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function CreditsPage() {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   return (
     <Container className="py-10 lg:py-14">
       <header className="max-w-3xl">

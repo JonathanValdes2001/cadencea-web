@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
+import { parkedRoutesOpen } from '@/lib/parked-features.mjs';
 import ReleaseDetail from '@/components/v2/studio/ReleaseDetail';
 import { SEED_STATE } from '@/lib/v2-demo/release-lifecycle/seeds';
 
@@ -15,7 +16,7 @@ function seedTitle(releaseId: string): string | null {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   const title = seedTitle((await params).releaseId);
   return { title: title ? `${title} · Studio (preview)` : 'Studio (preview)' };
 }
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function StudioReleasePage({ params }: { params: Params }) {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   const { releaseId } = await params;
   return <ReleaseDetail releaseId={releaseId} demo={isPreviewSite()} />;
 }

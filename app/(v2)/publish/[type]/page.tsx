@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { isPreviewSite } from '@/lib/site-channel.mjs';
+import { parkedRoutesOpen } from '@/lib/parked-features.mjs';
 import ComingLaterType from '@/components/v2/publish/ComingLaterType';
 import PublishScreen from '@/components/v2/publish/PublishScreen';
 import PublishWizard from '@/components/v2/publish/PublishWizard';
@@ -25,7 +25,7 @@ function resolve(slug: string): { kind: 'wizard'; type: Extract<ReleaseType, 'so
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   const resolved = resolve((await params).type);
   if (!resolved) notFound();
   const title =
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function PublishTypePage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   const resolved = resolve((await params).type);
   if (!resolved) notFound();
   if (resolved.kind === 'later') return <ComingLaterType type={resolved.type} />;

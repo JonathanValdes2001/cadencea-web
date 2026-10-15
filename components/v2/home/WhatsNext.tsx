@@ -2,10 +2,9 @@ import React from 'react';
 import Link from 'next/link';
 import Badge from '@/components/ui/Badge';
 import Container, { ShowroomGlow } from '@/components/ui/Container';
-import CoverArt from '@/components/ui/CoverArt';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { ArrowRight, Waveform } from '@/components/ui/Icons';
-import { PayoutBar } from '@/components/v2/stream/PayoutBreakdown';
+import { PluginKnobs } from '@/components/v2/plugins/PluginWindow';
 
 /** Detect: the A Minor suggestion with its three-segment meter (DECISIONS.md D4). */
 function DetectVisual() {
@@ -27,31 +26,11 @@ function DetectVisual() {
   );
 }
 
-/** Market: three overlapping generated covers. */
-function MarketVisual() {
-  const covers = [
-    { seed: 'whats-next-samples', kind: 'sample_pack' as const, tilt: '-rotate-6 translate-x-3' },
-    { seed: 'whats-next-splits', kind: 'splits_pack' as const, tilt: 'z-10 -translate-y-1' },
-    { seed: 'whats-next-beat', kind: 'beat' as const, tilt: 'rotate-6 -translate-x-3' },
-  ];
+/** Plugins: a row of dials, nothing named; there is no plugin to show yet. */
+function PluginsVisual() {
   return (
     <div className="flex h-full items-center justify-center">
-      {covers.map((c) => (
-        <div key={c.seed} className={`w-20 overflow-hidden rounded-md shadow-brand-glow ring-1 ring-white/10 ${c.tilt}`}>
-          <CoverArt seed={c.seed} kind={c.kind} decorative rounded="none" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Stream: where a NOK 49 subscription goes, as the /stream bar draws it. */
-function StreamVisual() {
-  return (
-    <div className="flex h-full flex-col justify-center gap-2 px-5">
-      <p className="text-xs font-semibold text-dark-text">Where your NOK 49 goes</p>
-      <PayoutBar onDark className="h-3" />
-      <p className="text-xs text-dark-muted">The artists&rsquo; share follows what you played.</p>
+      <PluginKnobs />
     </div>
   );
 }
@@ -63,21 +42,16 @@ const ITEMS = [
     // The anchor exists only on the preview, like this band.
     href: '/cadenceavault#detect',
     cta: 'See Detect',
+    badge: 'Preview',
     visual: <DetectVisual />,
   },
   {
-    title: 'Market',
-    body: 'Sample packs, Splits, presets and beats from producers, published straight from their vault.',
-    href: '/market',
-    cta: 'See the Market',
-    visual: <MarketVisual />,
-  },
-  {
-    title: 'Cadencea Stream',
-    body: 'A streaming concept where listeners pay the artists they actually play.',
-    href: '/stream',
-    cta: 'See the Stream concept',
-    visual: <StreamVisual />,
+    title: 'Cadencea plugins',
+    body: 'Audio plugins from the team behind Vault. They are not available yet.',
+    href: '/vst-plugins',
+    cta: 'About the plugins',
+    badge: 'Coming soon',
+    visual: <PluginsVisual />,
   },
 ];
 
@@ -90,9 +64,9 @@ export default function WhatsNext({ className = '' }: { className?: string }) {
         <SectionHeader
           onDark
           eyebrow="Coming in Cadencea 2.0"
-          title="Detect, a Market and a stage for human-made music."
+          title="Detect, and plugins from Cadencea."
         />
-        <ul className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <ul className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
           {ITEMS.map((item) => (
             <li key={item.title}>
               <Link
@@ -104,7 +78,7 @@ export default function WhatsNext({ className = '' }: { className?: string }) {
                 </div>
                 <div className="flex flex-1 flex-col p-6">
                   <Badge tone="demo" className="self-start">
-                    Preview
+                    {item.badge}
                   </Badge>
                   <h3 className="mt-4 text-base font-semibold text-dark-text md:text-lg">{item.title}</h3>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-dark-muted">{item.body}</p>

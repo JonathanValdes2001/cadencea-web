@@ -4,8 +4,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Faq from '@/components/ui/Faq';
-import { useLazyModule } from '@/components/useLazyModule';
-import { useShowV2 } from '@/components/v2/common/V2Flag';
 import { subscriptionCheckout } from '@/lib/subscription-checkout.mjs';
 import {
   api,
@@ -131,11 +129,6 @@ function activePaidPlan(status: SubscriptionStatusResponse): string | null {
 export default function PricingPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const showV2 = useShowV2();
-  // Preview only (WEB-V2-SPEC §5.5): production doesn't announce the Market
-  // yet, not even in its JavaScript, so its preview pieces are one chunk that
-  // only the preview loads.
-  const preview = useLazyModule(() => import('@/components/v2/credits/PricingPreview'), showV2);
   const [isYearly, setIsYearly] = useState(false);
   const [backendPlans, setBackendPlans] =
     useState<BillingPlansResponse | null>(null);
@@ -334,7 +327,6 @@ export default function PricingPage() {
                         <span>{f}</span>
                       </li>
                     ))}
-                    {showV2 && preview && <preview.PlanCreditsLine plan={plan.name} check={<Check />} />}
                   </ul>
 
                   {paidPlan && !isFree && plan.name.toLowerCase() === paidPlan ? (
@@ -388,8 +380,6 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {showV2 && preview && <preview.PricingCreditsSection />}
-
       {/* Included features */}
       <section>
         <div className="mx-auto max-w-7xl px-6 py-14 sm:py-20 lg:py-24 lg:px-8">
@@ -420,11 +410,7 @@ export default function PricingPage() {
           <h2 className="text-3xl font-bold tracking-tight text-ink md:text-4xl">
             Pricing questions.
           </h2>
-          {showV2 && preview ? (
-            <preview.PricingFaqWithMarket className="mt-10" items={pricingFaq} />
-          ) : (
-            <Faq className="mt-10" items={pricingFaq} />
-          )}
+          <Faq className="mt-10" items={pricingFaq} />
           <p className="mt-16 text-sm text-ink-muted">
             Studio or team?{' '}
             <a href="/contact" className="font-medium text-accent hover:text-accent-hover">

@@ -5,8 +5,7 @@ import Badge from '@/components/ui/Badge';
 import Container from '@/components/ui/Container';
 import { ArrowRight } from '@/components/ui/Icons';
 import VaultMock from '@/components/v2/home/VaultMock';
-import CoverMosaic from '@/components/v2/market/CoverMosaic';
-import { StreamPhonePreview } from '@/components/v2/stream/StreamPhones';
+import PluginWindow from '@/components/v2/plugins/PluginWindow';
 import {
   availabilityLabel,
   RELEASE_FEED_REVALIDATE_S,
@@ -26,7 +25,7 @@ type Product = {
   name: string;
   description: string;
   href: string;
-  /** The subtitle: availability for a shipped app, a "Preview" badge for a v2 concept. */
+  /** The subtitle: availability for a shipped app, a "Coming soon" badge for what isn't out yet. */
   status: React.ReactNode;
   media: React.ReactNode;
 };
@@ -59,30 +58,17 @@ export default async function SoftwarePage() {
   ];
 
   if (preview) {
-    products.push(
-      {
-        name: 'Cadencea Market',
-        description: 'Sounds, Splits, presets and beats from producers, published from their vault.',
-        href: '/market',
-        status: <Badge tone="demo">Preview</Badge>,
-        media: (
-          <div className="absolute inset-x-8 top-6">
-            <CoverMosaic label={false} />
-          </div>
-        ),
-      },
-      {
-        name: 'Cadencea Stream',
-        description: 'A concept for streaming human-made music, where listeners pay the artists they play.',
-        href: '/stream',
-        status: <Badge tone="demo">Preview</Badge>,
-        media: (
-          <div className="absolute left-1/2 top-6 -translate-x-1/2">
-            <StreamPhonePreview />
-          </div>
-        ),
-      },
-    );
+    products.push({
+      name: 'Cadencea plugins',
+      description: 'Audio plugins from the team behind Vault. They are not available yet.',
+      href: '/vst-plugins',
+      status: <Badge tone="neutral">Coming soon</Badge>,
+      media: (
+        <div className="absolute inset-x-10 top-6">
+          <PluginWindow />
+        </div>
+      ),
+    });
   }
 
   return (
