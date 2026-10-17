@@ -6,7 +6,7 @@ type Col = { title: string; links: { href: string; label: string }[] };
 
 /**
  * `showV2` comes from RootLayout's server-side isPreviewSite(): the preview adds
- * Market, Stream and Credits to Product and a Creators column.
+ * the Plugins page to Product. Parked features are not linked from here.
  */
 function columnsFor(showV2: boolean): Col[] {
   return [
@@ -16,26 +16,9 @@ function columnsFor(showV2: boolean): Col[] {
         { href: '/cadenceavault', label: 'Cadencea Vault' },
         { href: '/pricing', label: 'Pricing' },
         { href: '/software', label: 'Software' },
-        ...(showV2
-          ? [
-              { href: '/market', label: 'Market' },
-              { href: '/stream', label: 'Stream' },
-              { href: '/credits', label: 'Credits' },
-            ]
-          : []),
+        ...(showV2 ? [{ href: '/vst-plugins', label: 'Plugins' }] : []),
       ],
     },
-    ...(showV2
-      ? [
-          {
-            title: 'Creators',
-            links: [
-              { href: '/publish', label: 'Publish' },
-              { href: '/studio', label: 'Studio' },
-            ],
-          },
-        ]
-      : []),
     {
       title: 'Company',
       links: [
@@ -59,9 +42,7 @@ const Footer = ({ showV2 }: { showV2: boolean }) => {
   return (
     <footer className="on-dark bg-dark text-dark-muted">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-        <div
-          className={`grid grid-cols-2 gap-12 ${showV2 ? 'md:grid-cols-3 lg:grid-cols-5' : 'md:grid-cols-4'}`}
-        >
+        <div className="grid grid-cols-2 gap-12 md:grid-cols-4">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="inline-flex items-center" aria-label="Cadencea home">

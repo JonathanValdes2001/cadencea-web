@@ -55,25 +55,32 @@ off by themselves and `robots.txt` allows crawling.
 
 ## v2-only pages and how they're gated
 
-The new v2 pages (Market, Publish, Studio, Credits, the Stream teaser) exist
-only on previews, so merging this branch early can't publish them:
+The v2 pages (Market, Publish, Studio, Credits, the Stream teaser) are parked
+since the 2026-10-15 re-scope: hidden, not deleted. See
+[`PARKED-FEATURES.md`](PARKED-FEATURES.md) for what is hidden and how to reopen
+it. They return 404 on every deployment, previews included, and a parked route
+is served only when both the v2 preview gate and the `PARKED_FEATURES_OPEN`
+switch (`lib/parked-features.mjs`) are open, so launching v2 cannot publish one.
 
 - **Routes.** They live in the `app/(v2)/` route group. Its server layout calls
-  `notFound()` unless `isPreviewSite()` is true, and so does every page in it
+  `notFound()` unless `parkedRoutesOpen()` is true, and so does every page in it
   and its `generateMetadata`: Next renders a page alongside its layout, so a
-  layout-only gate would still stream the page's content inside production's
-  404. `tests/v2-preview-gate.test.mjs` checks all three.
+  layout-only gate would still stream the page's content inside the 404.
+  `middleware.ts` rewrites the same paths to a 404 before anything renders.
+  `tests/v2-preview-gate.test.mjs` checks all of it.
 - **Read at runtime.** `RootLayout` awaits `headers()`, so every route renders
   per request and the gate reads `VERCEL_ENV` (or `SITE_CHANNEL`) when the page
   is served. A local production check needs `SITE_CHANNEL=production` for both
-  `npm run build` and `npm start`; otherwise the gate stays open.
+  `npm run build` and `npm start`; otherwise the preview gate stays open.
 - **Navigation.** `RootLayout` computes `isPreviewSite()` once and passes it as
   `showV2` to the `Navbar` and `Footer` and through `V2FlagProvider`
-  (`useShowV2()`) to client components. Client code never calls
+  (`useShowV2()`) to client components. On a preview the navigation adds the
+  Plugins page; nothing links to a parked route. Client code never calls
   `isPreviewSite()`: `VERCEL_ENV` doesn't exist in the browser, so it would
   always answer "preview".
-- **Redirects.** On previews `next.config.ts` sends `/vst-plugins` and `/cart` to
-  `/market` (307). The rule is evaluated at build time; production keeps both pages.
+- **Plugins and the cart.** `/vst-plugins` renders a plain "Cadencea plugins are
+  coming" page on every deployment (no products, prices or dates). `/cart` is
+  deleted and answers 404. Neither redirects to the Market.
 - **Demo data only.** Everything under `app/(v2)/`, `components/ui/`,
   `components/v2/` and `lib/v2-demo/` is local demo data with no API, Supabase
   or payment calls (`tests/v2-no-network.test.mjs`). Demo changes are kept in

@@ -1,5 +1,5 @@
 import React, { useId } from 'react';
-import { PREFILL_COPY } from '@/lib/v2-demo/release-lifecycle/copy';
+import { PREFILL_COPY } from '@/lib/v2-demo/prefill-copy';
 import { Minus, Plus } from './Icons';
 import Tooltip from './Tooltip';
 

@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Button from '@/components/ui/Button';
 import Logo from '@/components/ui/Logo';
-import CreditsChip, { CreditsTotal } from '@/components/v2/common/CreditsChip';
 import { Chevron, Close, Menu } from '@/components/ui/Icons';
 
 const productionLinks = [
@@ -16,8 +15,7 @@ const productionLinks = [
 
 const previewLinks = [
   { href: '/cadenceavault', label: 'Cadencea Vault' },
-  { href: '/market', label: 'Market' },
-  { href: '/stream', label: 'Stream' },
+  { href: '/vst-plugins', label: 'Plugins' },
   { href: '/pricing', label: 'Pricing' },
 ];
 
@@ -25,8 +23,8 @@ const isActive = (pathname: string, href: string) => pathname === href || pathna
 
 /**
  * `showV2` comes from RootLayout's server-side preview check; the preview adds
- * the Market, Stream, the demo credits chip, Publish and the demo Studio and
- * Credits links. Production shows only Cadencea Vault and Pricing.
+ * the Plugins page. Production shows only Cadencea Vault and Pricing. Parked
+ * features are not linked from here.
  */
 const Navbar = ({ showV2 }: { showV2: boolean }) => {
   const { user, profile, loading, signOut } = useAuth();
@@ -129,15 +127,6 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
 
           {/* Desktop auth */}
           <div className="hidden md:flex md:items-center md:gap-4">
-            {showV2 && (
-              // The demo group, set apart from sign-in so "Publish" doesn't read as an account button.
-              <div className="flex items-center gap-3 border-r border-white/10 pr-4">
-                <CreditsChip />
-                <Button href="/publish" variant="onDarkOutline" size="sm">
-                  Publish
-                </Button>
-              </div>
-            )}
             {loading ? (
               <div className="flex items-center gap-2 text-sm text-dark-muted">
                 <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/10 border-t-brand-400" />
@@ -171,17 +160,6 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                     <Link href="/account/subscription" className={menuItem} onClick={closeUserMenu}>
                       Subscription
                     </Link>
-                    {showV2 && (
-                      <>
-                        <div className="my-1 border-t border-white/10" />
-                        <Link href="/studio" className={menuItem} onClick={closeUserMenu}>
-                          Studio (demo)
-                        </Link>
-                        <Link href="/credits" className={menuItem} onClick={closeUserMenu}>
-                          Credits (demo)
-                        </Link>
-                      </>
-                    )}
                     <div className="my-1 border-t border-white/10" />
                     <button
                       type="button"
@@ -240,20 +218,6 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                 );
               })}
             </div>
-
-            {showV2 && (
-              <div className="mt-4 flex flex-col gap-1 border-t border-white/10 pt-4">
-                <Link href="/studio" className={mobileItem} onClick={closeMobileMenu}>
-                  Studio (demo)
-                </Link>
-                <Link href="/credits" className={`${mobileItem} tabular-nums`} onClick={closeMobileMenu}>
-                  Credits · <CreditsTotal /> (demo)
-                </Link>
-                <Link href="/publish" className={mobileItem} onClick={closeMobileMenu}>
-                  Publish
-                </Link>
-              </div>
-            )}
 
             <div className="mt-4 border-t border-white/10 pt-4">
               {loading ? (

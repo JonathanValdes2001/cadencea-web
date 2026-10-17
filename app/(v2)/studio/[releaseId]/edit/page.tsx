@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { isPreviewSite } from '@/lib/site-channel.mjs';
+import { parkedRoutesOpen } from '@/lib/parked-features.mjs';
 import PublishScreen from '@/components/v2/publish/PublishScreen';
 import PublishWizard from '@/components/v2/publish/PublishWizard';
 import { fill } from '@/lib/v2-demo/format';
@@ -14,7 +14,7 @@ type SearchParams = Promise<{ step?: string | string[] }>;
 const STEPS: readonly WizardStepId[] = ['source', 'details', 'contents', 'cover_preview', 'license_price', 'review_submit'];
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   const release = SEED_STATE.releases[(await params).releaseId];
   const current = release?.currentRevisionId ? SEED_STATE.revisions[release.currentRevisionId] : null;
   return { title: current ? `${fill(WIZARD_COPY.h1Edit, { title: current.payload.title })} (preview)` : 'Edit release (preview)' };
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function EditReleasePage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   const { releaseId } = await params;
   const { step } = await searchParams;
   const startStep = typeof step === 'string' && (STEPS as readonly string[]).includes(step) ? (step as WizardStepId) : null;

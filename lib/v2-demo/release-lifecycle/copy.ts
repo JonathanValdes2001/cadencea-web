@@ -544,17 +544,8 @@ export const SPLITS_COPY = {
   buyerAck: 'I understand these loops are royalty-split, not royalty-free, and I accept the terms above.',
 } as const;
 
-/**
- * [`prefill.*`] `{level}` is High, Medium or Low (DECISIONS.md D4). The chip
- * labels follow PUBLISH-PROCEDURE §2, which overrides RL's "Detected (confirm)".
- */
-export const PREFILL_COPY = {
-  fromProject: 'From your project',
-  detected: 'Detected, please confirm',
-  needsInput: 'Needs your input',
-  looksRight: 'Looks right',
-  detectedNote: 'Detected by Cadencea · {level} confidence. Check it before you submit.',
-} as const;
+/** [`prefill.*`] Lives in ../prefill-copy.ts so the shared Field component doesn't import this file. */
+export { PREFILL_COPY } from '../prefill-copy.ts';
 
 /* §9.8 Wizard labels [`wizard.*`] and §5.2 step labels ------------------- */
 

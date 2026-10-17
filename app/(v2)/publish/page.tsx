@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { isPreviewSite } from '@/lib/site-channel.mjs';
+import { parkedRoutesOpen } from '@/lib/parked-features.mjs';
 import PublishScreen from '@/components/v2/publish/PublishScreen';
 import PublishWizard from '@/components/v2/publish/PublishWizard';
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   return { title: 'Publish (preview)' };
 }
 
@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function PublishPage() {
   // Repeats the (v2) layout gate (so does generateMetadata): Next renders a page
   // alongside its layout, so without it the page would ride along in production's 404.
-  if (!isPreviewSite()) notFound();
+  if (!parkedRoutesOpen()) notFound();
   return (
     <PublishScreen shortcuts>
       <PublishWizard mode="new" type={null} projectId={null} />

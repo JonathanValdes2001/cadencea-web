@@ -2,8 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
-// WEB-V2-SPEC §0.4 and §5.5: the pricing page's checkout stays equivalent and
-// every credits line on it is preview-only. The API matches plans by display
+// WEB-V2-SPEC §0.4: the pricing page's checkout stays equivalent, and (re-scope
+// 2026-10-15) it carries no credits lines. The API matches plans by display
 // name, so a renamed plan or a moved price silently breaks checkout.
 
 const root = new URL('../', import.meta.url)
@@ -44,72 +44,24 @@ test('no highlighted plan: free uses the outline button, paid plans the primary 
   assert.match(page, /isFree\s*\?\s*'border border-ink text-ink hover:bg-elevated'\s*:\s*'bg-accent text-white hover:bg-accent-hover'/)
 })
 
-test('the pricing page never reads the site channel itself', async () => {
+test('the pricing page reads no site channel, preview flag or lazy module', async () => {
   const page = await read('app/pricing/page.tsx')
-  assert.doesNotMatch(page, /site-channel|isPreviewSite/)
-  // It gets the server-computed flag from V2FlagProvider, once.
-  assert.equal(page.match(/useShowV2\(\)/g)?.length, 1)
+  assert.doesNotMatch(page, /site-channel|isPreviewSite|useShowV2|showV2|useLazyModule|import\(/)
 })
 
-/**
- * Removes every expression gated on showV2 (`showV2 && …` up to the end of the
- * enclosing JSX expression, and the consequent of `showV2 ? … : …`). Quoted
- * strings are skipped so brackets inside them don't count.
- */
-function stripShowV2Gates(source) {
-  const open = '([{'
-  const close = ')]}'
-  let out = source
-  for (;;) {
-    const match = /showV2\s*(&&|\?)/.exec(out)
-    if (!match) return out
-    let depth = 0
-    let i = match.index + match[0].length
-    for (; i < out.length; i++) {
-      const ch = out[i]
-      if (ch === "'" || ch === '"' || ch === '`') {
-        const end = out.indexOf(ch, i + 1)
-        i = end === -1 ? out.length : end
-        continue
-      }
-      if (open.includes(ch)) depth++
-      else if (close.includes(ch)) {
-        if (depth === 0) break
-        depth--
-      } else if (depth === 0 && (ch === ';' || ch === ',' || (match[1] === '?' && ch === ':'))) break
-    }
-    out = out.slice(0, match.index) + out.slice(i)
-  }
-}
-
-test('every credits line on /pricing sits behind showV2', async () => {
-  const page = await read('app/pricing/page.tsx')
-  const withoutImports = page.replace(/^import .*$/gm, '')
-  // The preview chunk is loaded only when showV2 is true...
-  assert.match(page, /useLazyModule\(\(\) => import\('@\/components\/v2\/credits\/PricingPreview'\), showV2\)/)
-  // ...and every use of it sits behind showV2 as well.
-  const ungated = stripShowV2Gates(withoutImports.replace(/^\s*const preview = useLazyModule\(.*$/m, ''))
-  for (const marker of ['preview.PlanCreditsLine', 'preview.PricingCreditsSection', 'preview.PricingFaqWithMarket']) {
-    assert.ok(withoutImports.includes(marker), `${marker} is used`)
-    assert.ok(!ungated.includes(marker), `${marker} is used outside a showV2 gate`)
-  }
-  assert.doesNotMatch(ungated, /credits/i, 'credits copy outside a showV2 gate')
-  assert.match(page, /\{showV2 && preview && <preview\.PricingCreditsSection \/>\}/)
-})
-
-// WEB-V2-SPEC §5.5: production doesn't announce the Market, not even in its
-// JavaScript. The pricing page loads its preview pieces only with
-// useLazyModule (a plain import() after mount, only on the preview). Not
-// next/dynamic, whose server-rendered chunks get preload links without the CSP
-// nonce, and not React.lazy, which adds a Suspense boundary.
-test('the pricing page imports no v2 credits code statically', async () => {
+// Re-scope 2026-10-15: credits are parked with the Market, so /pricing carries
+// no credits copy at all (no per-plan "monthly included credits", no credits
+// section, no Market FAQ item), and no v2 code: not statically, not through a
+// lazy chunk. The parked pieces stay in components/v2/credits/ for later.
+test('the pricing page has no credits copy and imports no v2 code', async () => {
   const source = await read('app/pricing/page.tsx')
+  assert.doesNotMatch(source, /credit|wallet|top-?up|Market|preview\./i)
   for (const line of source.match(/^import .*$/gm) ?? []) {
-    assert.doesNotMatch(line, /lib\/v2-demo|components\/v2\/credits/, line)
+    assert.doesNotMatch(line, /lib\/v2-demo|components\/v2|useLazyModule/, line)
   }
-  assert.match(source, /useLazyModule\(\(\) => import\('@\/components\/v2\/credits\/PricingPreview'\), showV2\)/)
-  assert.doesNotMatch(source, /next\/dynamic|React\.lazy|lazy\(/)
-  assert.doesNotMatch(source, /Market credits|What are Market credits/, 'the Market FAQ copy lives in the lazy chunk')
+  assert.doesNotMatch(source, /next\/dynamic|React\.lazy|lazy\(/)
+  // The plans themselves carry only storage and support.
+  assert.doesNotMatch(source, /Basic 10|Standard 30|Pro 50|included credits/i)
 })
 
 test('the pricing layout carries the page metadata', async () => {
