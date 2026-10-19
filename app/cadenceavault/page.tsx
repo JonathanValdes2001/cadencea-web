@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import AndroidDownload from '@/components/AndroidDownload';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 
 const heroChips = ['Original-quality files', 'Works with any DAW', 'Local project library'];
@@ -169,6 +170,12 @@ export default async function CadenceaVault() {
                   Choose Intel for older Intel-based Macs.
                 </p>
               )}
+              <p className="mt-4 text-sm text-dark-muted">
+                On your phone?{' '}
+                <a href="#android" className="text-[#c4b5fd] underline underline-offset-4 hover:text-white">
+                  Get the Android companion app
+                </a>
+              </p>
             </div>
 
             {/* Flagship screenshot */}
@@ -209,6 +216,8 @@ export default async function CadenceaVault() {
           </div>
         </section>
       </div>
+
+      <AndroidDownload />
 
       {/* Features */}
       <section className="border-b border-line">

@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: 'What platforms is Cadencea Vault available on?',
-    a: 'Cadencea Vault is available on Windows and macOS. Separate macOS installers are available for Apple Silicon and Intel Macs. Linux is coming later.',
+    a: 'Cadencea Vault is available on Windows and macOS. An Android companion app lets you browse and play your cloud projects on your phone. Separate macOS installers are available for Apple Silicon and Intel Macs. Linux is coming later.',
   },
   {
     q: 'Is my data secure?',
