@@ -2,6 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import AndroidDownload from '@/components/AndroidDownload';
+import AndroidIcon from '@/components/AndroidIcon';
+import { androidRelease } from '@/lib/cadencea-mobile-release';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 
 const heroChips = ['Original-quality files', 'Works with any DAW', 'Local project library'];
@@ -163,6 +165,11 @@ export default async function CadenceaVault() {
                   href={macX64DownloadUrl}
                 />
                 <DownloadButton platform="Linux" available={false} />
+                <a href={androidRelease.downloadUrl} className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-sm border border-[#3ddc84]/50 bg-[#3ddc84]/10 px-6 py-3 text-base font-semibold text-[#7aefb0] transition-colors hover:bg-[#3ddc84]/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3ddc84]">
+                  <AndroidIcon className="h-7 w-7 shrink-0" />
+                  Download for Android
+                  <span className="rounded border border-[#3ddc84]/30 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide">APK</span>
+                </a>
               </div>
               {macAvailable && (
                 <p className="mt-4 text-sm text-dark-muted">
@@ -170,12 +177,6 @@ export default async function CadenceaVault() {
                   Choose Intel for older Intel-based Macs.
                 </p>
               )}
-              <p className="mt-4 text-sm text-dark-muted">
-                On your phone?{' '}
-                <a href="#android" className="text-[#c4b5fd] underline underline-offset-4 hover:text-white">
-                  Get the Android companion app
-                </a>
-              </p>
             </div>
 
             {/* Flagship screenshot */}
