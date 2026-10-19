@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import AndroidDownload from '@/components/AndroidDownload';
 import AndroidIcon from '@/components/AndroidIcon';
 import { androidRelease } from '@/lib/cadencea-mobile-release';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
@@ -217,8 +216,6 @@ export default async function CadenceaVault() {
           </div>
         </section>
       </div>
-
-      <AndroidDownload />
 
       {/* Features */}
       <section className="border-b border-line">
