@@ -486,6 +486,9 @@ function AllPluginsPlan({ yearly }: { yearly: boolean }) {
             <span className="text-4xl font-bold tracking-tight text-ink">{yearly ? '€49.99' : '€4.99'}</span>
             <span className="text-sm text-ink-muted">/ {yearly ? 'year' : 'month'}</span>
           </div>
+          {yearly && (
+            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-price">Save €9.89</p>
+          )}
           <ul className="mb-10 mt-8 flex flex-col gap-3 text-sm text-ink">
             {[
               'Every plugin, Mini and Complex',
