@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
@@ -8,6 +8,7 @@ import Logo from '@/components/ui/Logo';
 import { CheckboxField, TextField } from '@/components/ui/Field';
 import { useAuth } from '@/lib/auth-context';
 import { AUTH_MESSAGES, looksLikeEmail, signUpErrorMessage } from '@/lib/auth-messages.mjs';
+import { safePostLoginPath } from '@/lib/auth-route-policy.mjs';
 
 type FieldName = 'firstName' | 'lastName' | 'username' | 'email' | 'password' | 'confirmPassword' | 'agreeTerms';
 
@@ -30,6 +31,14 @@ export default function Signup() {
   const [sentTo, setSentTo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  // ?redirect= (e.g. from "Get for free" on a plugin page): where to go once
+  // signed in, validated like the sign-in page's.
+  const [redirectPath, setRedirectPath] = useState('/');
+
+  useEffect(() => {
+    setRedirectPath(safePostLoginPath(new URLSearchParams(window.location.search).get('redirect')));
+  }, []);
+  const redirectQuery = redirectPath !== '/' ? `?redirect=${encodeURIComponent(redirectPath)}` : '';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -79,7 +88,7 @@ export default function Signup() {
         console.warn('[signup] Sign-up failed:', error.message);
         setFormError(signUpErrorMessage(error));
       } else if (session) {
-        router.push('/');
+        router.push(redirectPath);
       } else {
         setSentTo(formData.email.trim());
       }
@@ -100,7 +109,7 @@ export default function Signup() {
           <h1 className="mt-8 text-3xl font-bold tracking-tight md:text-4xl">Create your free account.</h1>
           <p className="mt-3 text-sm text-ink-muted">
             One account for Cadencea Vault and this website. Already have one?{' '}
-            <Link href="/login" className="font-medium text-accent-ink hover:text-accent-hover">
+            <Link href={`/login${redirectQuery}`} className="font-medium text-accent-ink hover:text-accent-hover">
               Sign in
             </Link>
           </p>
@@ -114,7 +123,7 @@ export default function Signup() {
                 We sent a confirmation link to {sentTo}. Open it, then sign in.
               </p>
               <Link
-                href="/login"
+                href={`/login${redirectQuery}`}
                 className="mt-4 inline-flex items-center text-sm font-medium text-accent-ink hover:text-accent-hover"
               >
                 Go to sign in →
