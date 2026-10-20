@@ -187,12 +187,13 @@ const LIVE_SURFACES = [
   'app/software/page.tsx',
   'app/cadenceavault/page.tsx',
   'app/vst-plugins/page.tsx',
-  'app/vst-plugins/athena/page.tsx',
+  'app/vst-plugins/[slug]/page.tsx',
   'app/cart/page.tsx',
   'app/account/page.tsx',
   'app/activate/[productId]/page.tsx',
   'components/plugins/PluginsComingSoon.tsx',
-  'components/plugins/AthenaEditions.tsx',
+  'components/plugins/EditionCard.tsx',
+  'components/plugins/StoreGrid.tsx',
   'components/plugins/CartView.tsx',
   'components/plugins/CartButton.tsx',
   'components/plugins/AccountOverview.tsx',
@@ -336,8 +337,8 @@ test('/vst-plugins is the store behind its go-live switch, never a redirect to t
 test('the product page and /cart are plugin-store routes that 404 while the store is closed', async () => {
   assert.equal(existsSync(new URL('app/(v2)/cart', root)), false, 'the cart is not a parked v2 page')
   assert.equal(isParkedPath('/cart'), false)
-  assert.equal(isParkedPath('/vst-plugins/athena'), false)
-  for (const file of ['app/cart/page.tsx', 'app/vst-plugins/athena/page.tsx']) {
+  assert.equal(isParkedPath('/vst-plugins/athena-eq-complex'), false)
+  for (const file of ['app/cart/page.tsx', 'app/vst-plugins/[slug]/page.tsx']) {
     const source = await read(file)
     assert.doesNotMatch(source, /^\s*['"]use client['"]/, `${file} must stay a server component`)
     // Page and metadata both check the gate (Next renders them in parallel).

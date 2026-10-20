@@ -7,7 +7,6 @@ import Container, { ShowroomGlow } from '@/components/ui/Container';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { Check } from '@/components/ui/Icons';
 import DownloadButton from '@/components/vault/DownloadButton';
-import VaultMock from '@/components/v2/home/VaultMock';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
 
@@ -17,7 +16,6 @@ export const metadata: Metadata = {
     'Organize every DAW project, see BPM, key and tags at a glance, and push bit-for-bit copies to the cloud. Free for Windows and macOS.',
 };
 
-const heroChips = ['Lossless, bit for bit', 'Works with any DAW', 'Works offline'];
 
 const showcases = [
   {
@@ -125,24 +123,6 @@ export default async function CadenceaVault() {
     return system;
   });
 
-  // With nothing to download, the status card under the lead says so instead.
-  let availability = '';
-  if (windowsDownloadUrl && macAvailable) {
-    availability = 'For Windows 10+ and macOS 12+ on Apple Silicon and Intel.';
-  } else if (windowsDownloadUrl) {
-    availability = 'For Windows 10+. The macOS download is temporarily unavailable.';
-  } else if (macAvailable) {
-    availability = 'For macOS 12+ on Apple Silicon and Intel. The Windows download is temporarily unavailable.';
-  }
-
-  const betaNote = (
-    <>
-      These are CadenceaVault Beta builds. The beta installs next to Cadencea Vault, keeps its own local settings and
-      signs in with your normal Cadencea account. It uses the same cloud, so pushes, shares and deletes are real. Use a
-      separate test vault folder; the beta won&rsquo;t open the folder your main app uses.
-    </>
-  );
-
   return (
     <div className="bg-canvas text-ink">
       {/* ============================================================
@@ -157,58 +137,19 @@ export default async function CadenceaVault() {
         <section className="relative">
           <Container className="pt-20 lg:pt-28">
             <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-300">
-                {preview ? 'CadenceaVault Beta · Desktop app' : 'Cadencea Vault · Desktop app'}
-              </p>
-              <h1 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-                Every session, organized and backed up bit for bit.
+              <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+                Organize, share and back up your music projects.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
-                Cadencea Vault reads the project folders you already have, shows each one with its BPM, key, tags and
-                artwork, and pushes a lossless copy to the cloud when you&rsquo;re ready.
-                {availability && ` ${availability}`}
-              </p>
-
-              <ul className="mt-8 flex flex-wrap items-center gap-2.5">
-                {heroChips.map((chip) => (
-                  <li
-                    key={chip}
-                    className="inline-flex items-center gap-1.5 rounded-sm border border-brand-400/30 bg-brand-400/10 px-2.5 py-1 text-xs font-medium text-brand-300"
-                  >
-                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand-400" />
-                    {chip}
-                  </li>
-                ))}
-              </ul>
 
               <div id="download" className="scroll-mt-24">
                 {noneAvailable ? (
                   <>
-                    <div className="mt-10 max-w-xl rounded-md border border-white/10 bg-white/5 p-5">
-                      <p className="text-base font-semibold text-dark-text">
-                        {preview ? 'Beta builds are coming' : 'Downloads are temporarily unavailable'}
-                      </p>
-                      <p className="mt-1 text-sm text-dark-muted">
-                        Windows · macOS (Apple Silicon and Intel) · Linux planned
-                      </p>
-                      <p className="mt-3 text-sm leading-relaxed text-dark-muted">
-                        {preview ? 'The beta builds aren’t published yet. Check back soon.' : 'Please check back soon.'}{' '}
-                        Questions? Contact{' '}
-                        <a href="mailto:support@cadencea.app" className="font-medium text-brand-300 hover:text-brand-200">
-                          support@cadencea.app
-                        </a>
-                        .
-                      </p>
-                    </div>
-                    {preview && <p className="mt-4 max-w-xl text-xs leading-relaxed text-dark-muted">{betaNote}</p>}
+                    <p className="mt-10 text-sm text-dark-muted">
+                      Downloads are temporarily unavailable. Please check back soon.
+                    </p>
                   </>
                 ) : (
                   <>
-                    {preview && (
-                      <p className="mt-10 max-w-2xl rounded-md border border-brand-400/30 bg-brand-950 px-4 py-3 text-sm leading-relaxed text-brand-100">
-                        {betaNote}
-                      </p>
-                    )}
                     <div className="mt-10 flex flex-wrap gap-3">
                       <DownloadButton platform="Windows" variant="primary" href={windowsDownloadUrl} />
                       <DownloadButton platform="Mac (Apple Silicon)" variant="onDark" href={macArm64DownloadUrl} />
@@ -237,26 +178,12 @@ export default async function CadenceaVault() {
               </div>
             </div>
 
-            {/* Flagship visual: a code-built library of fictional projects (the old screenshot showed a real
-                account's name, email and third-party artwork; WEB-V2-SPEC §9.1 tracks clean reshoots). */}
-            <div className="relative isolate mx-auto mt-16 max-w-4xl lg:mt-20">
-              <FrameGlow />
-              <VaultMock />
-            </div>
           </Container>
         </section>
 
         {/* Product showcase — alternating rows */}
         <section className="relative">
           <Container className="pb-24 pt-24 lg:pb-32 lg:pt-32">
-            <SectionHeader
-              onDark
-              eyebrow="A closer look"
-              title="Built around the way you work."
-              subtitle="Every view is designed to keep your catalog organized and your next idea close at hand."
-              className="mb-16 lg:mb-20"
-            />
-
             <div className="space-y-24 lg:space-y-32">
               {showcases.map((s, i) => (
                 <ShowcaseRow

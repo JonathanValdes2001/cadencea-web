@@ -23,8 +23,10 @@ export interface PluginScreenshot {
 
 export interface PluginProduct {
   id: string;
-  /** The family page: /vst-plugins/<slug>. */
+  /** The product's own page: /vst-plugins/<slug>. */
   slug: string;
+  /** What kind of plugin it is; the store's Type filter. */
+  category: string;
   tier: PluginTier;
   /** Full product name, as in the DAW. */
   name: string;
@@ -40,6 +42,7 @@ export interface PluginProduct {
 }
 
 export const ATHENA_ACCENT = '#ddb45c';
+export const LOKI_ACCENT = '#58de78';
 
 /** The seats every launch license has (S0 decision 4). */
 export const SEATS_PER_LICENSE = 3;
@@ -47,7 +50,8 @@ export const SEATS_PER_LICENSE = 3;
 export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
   {
     id: 'cadencea.athena-complex',
-    slug: 'athena',
+    slug: 'athena-eq-complex',
+    category: 'EQ',
     tier: 'complex',
     name: 'ATHENA EQ Complex',
     family: 'ATHENA EQ',
@@ -84,7 +88,8 @@ export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
   },
   {
     id: 'cadencea.athena-mini',
-    slug: 'athena',
+    slug: 'athena-eq-mini',
+    category: 'EQ',
     tier: 'mini',
     name: 'ATHENA EQ Mini',
     family: 'ATHENA EQ',
@@ -117,6 +122,81 @@ export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
       purchasable: false,
     },
   },
+  {
+    id: 'cadencea.loki-complex',
+    slug: 'loki-delay-complex',
+    category: 'Delay',
+    tier: 'complex',
+    name: 'LOKI Delay Complex',
+    family: 'LOKI Delay',
+    edition: 'Complex',
+    tagline: 'A dark digital, tape and BBD echo with six taps, four Sorcery effects on the repeats and the Ragnarök build.',
+    features: [
+      'Everything in LOKI Delay Mini',
+      'Six taps on a sixteen-step lap',
+      'Sorcery on the repeats: Shapeshift, Haze, Mirror and Serpent',
+      'Ragnarök: hold it and the repeats build into a storm',
+      'Drive, Width and Freeze',
+      '24 factory presets',
+      'Zero latency',
+    ],
+    screenshot: {
+      src: '/plugins/loki/loki-complex-default.png',
+      width: 2000,
+      height: 1760,
+      alt: 'LOKI Delay Complex: the echo display, delay, feedback and character controls, the taps, Sorcery and Ragnarök',
+    },
+    accent: LOKI_ACCENT,
+    fallback: {
+      id: 'cadencea.loki-complex',
+      name: 'LOKI Delay Complex',
+      type: 'effect',
+      isFree: false,
+      priceMinor: 4999,
+      currency: 'EUR',
+      maxActivations: SEATS_PER_LICENSE,
+      trialDays: null,
+      purchasable: false,
+    },
+  },
+  {
+    id: 'cadencea.loki-mini',
+    slug: 'loki-delay-mini',
+    category: 'Delay',
+    tier: 'mini',
+    name: 'LOKI Delay Mini',
+    family: 'LOKI Delay',
+    edition: 'Mini',
+    tagline: 'A dark digital, tape and BBD echo with tempo sync, tap tempo, LoFi, modulation and ducking. Free.',
+    features: [
+      'Five character voices: Clean, Warm, Tape, BBD and Broken',
+      'Sync to the host, set your own BPM, or set the time in milliseconds',
+      'Tap tempo',
+      'Feedback up to 200 %, with an endless loop past 100 %',
+      'LoFi, modulation, and high-pass and low-pass filters you can link',
+      'Ducking and ping-pong',
+      '14 factory presets',
+      'Zero latency',
+    ],
+    screenshot: {
+      src: '/plugins/loki/loki-mini-default.png',
+      width: 2000,
+      height: 1120,
+      alt: 'LOKI Delay Mini: the echo display with delay, feedback, modulation, filters, character and duck controls',
+    },
+    accent: LOKI_ACCENT,
+    fallback: {
+      id: 'cadencea.loki-mini',
+      name: 'LOKI Delay Mini',
+      type: 'effect',
+      isFree: true,
+      priceMinor: 0,
+      currency: 'EUR',
+      maxActivations: SEATS_PER_LICENSE,
+      trialDays: null,
+      purchasable: false,
+    },
+  },
 ];
 
 /** The fallback store list, in display order (ATHENA first; Complex before Mini). */
@@ -126,14 +206,14 @@ export function pluginById(id: string): PluginProduct | undefined {
   return PLUGIN_PRODUCTS.find((product) => product.id === id);
 }
 
-export function pluginBySlugAndTier(slug: string, tier: PluginTier): PluginProduct | undefined {
-  return PLUGIN_PRODUCTS.find((product) => product.slug === slug && product.tier === tier);
+export function pluginBySlug(slug: string): PluginProduct | undefined {
+  return PLUGIN_PRODUCTS.find((product) => product.slug === slug);
 }
 
-/** The product page and anchor for a product id: /vst-plugins/athena#complex. */
+/** A product's own page: /vst-plugins/athena-eq-complex. */
 export function productPageHref(id: string): string {
   const product = pluginById(id);
-  return product ? `/vst-plugins/${product.slug}#${product.tier}` : '/vst-plugins';
+  return product ? `/vst-plugins/${product.slug}` : '/vst-plugins';
 }
 
 /** The local copy paired with the listed (API or fallback) price. */
@@ -141,10 +221,13 @@ export function withListing(listed: readonly ListedProduct[], id: string): Liste
   return listed.find((product) => product.id === id);
 }
 
-/** Formats and platforms, identical for both ATHENA editions (S0 decision 2). */
-export const ATHENA_REQUIREMENTS = [
+/** Formats and platforms, the same for every plugin (S0 decision 2). */
+export const PLUGIN_REQUIREMENTS = [
   { label: 'Windows', value: 'Windows 10 or later, 64-bit (x64). VST3 and CLAP.' },
   { label: 'macOS', value: 'macOS 12 or later, universal (Apple Silicon and Intel). VST3, CLAP and Audio Unit.' },
   { label: 'Install and activate', value: 'Cadencea Vault, free for Windows and macOS, signed in with your Cadencea account.' },
   { label: 'Computers', value: `Up to ${SEATS_PER_LICENSE} computers per license. Free a computer any time in Cadencea Vault or on your account page.` },
 ] as const;
+
+/** @deprecated Use PLUGIN_REQUIREMENTS. */
+export const ATHENA_REQUIREMENTS = PLUGIN_REQUIREMENTS;

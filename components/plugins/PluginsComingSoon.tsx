@@ -2,7 +2,6 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Container, { ShowroomGlow } from '@/components/ui/Container';
 import SectionHeader from '@/components/ui/SectionHeader';
-import PluginWindow from '@/components/v2/plugins/PluginWindow';
 
 /** /vst-plugins metadata while the store is closed (production before go-live). */
 export const comingSoonMetadata = {
@@ -33,7 +32,7 @@ export default function PluginsComingSoon() {
     <div className="bg-canvas text-ink">
       <section className="on-dark relative isolate overflow-hidden bg-showroom py-14 text-dark-text sm:py-20 lg:py-24">
         <ShowroomGlow />
-        <Container className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:gap-16">
+        <Container>
           <div>
             <Badge tone="dark" size="md" className="border border-white/15">
               Coming soon
@@ -55,7 +54,6 @@ export default function PluginsComingSoon() {
               </Button>
             </div>
           </div>
-          <PluginWindow className="mx-auto w-full max-w-md lg:max-w-none" />
         </Container>
       </section>
 

@@ -27,7 +27,7 @@ test('keeps token links and public commerce pages reachable', () => {
     '/accounts',
     '/billing/cancel',
     '/vst-plugins',
-    '/vst-plugins/athena',
+    '/vst-plugins/athena-eq-complex',
     '/cart',
     '/activate/cadencea.athena-complex',
     '/pricing',

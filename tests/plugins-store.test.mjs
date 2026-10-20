@@ -282,9 +282,9 @@ test('/account and /activate stay live whatever the switch says', async () => {
 test('product copy makes no claim the spec does not', async () => {
   const sources = [
     await read('lib/plugins/products.ts'),
-    await read('app/vst-plugins/athena/page.tsx'),
+    await read('app/vst-plugins/[slug]/page.tsx'),
     await read('app/vst-plugins/page.tsx'),
-    await read('components/plugins/AthenaEditions.tsx'),
+    await read('components/plugins/EditionCard.tsx'),
     await read('components/plugins/HowItWorks.tsx'),
   ].join('\n')
   assert.doesNotMatch(sources, /free updates|updates forever|lifetime updates|\bCPU\b|AAX|Linux|free trial|\d+-day/i)
