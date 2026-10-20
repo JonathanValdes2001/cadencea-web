@@ -199,11 +199,6 @@ export default async function CadenceaVault() {
                         </a>
                         .
                       </p>
-                      {preview && (
-                        <Button href="#plugins" variant="onDark" size="md" className="mt-5" prefetch={false}>
-                          See what&rsquo;s in 2.0
-                        </Button>
-                      )}
                     </div>
                     {preview && <p className="mt-4 max-w-xl text-xs leading-relaxed text-dark-muted">{betaNote}</p>}
                   </>
@@ -282,24 +277,13 @@ export default async function CadenceaVault() {
                 </ShowcaseRow>
               ))}
               {preview && (
-                // Detect is held back from 2.0 until it passes its accuracy bar
-                // (Vault src/config/detect.js); 2.0 leads with Plugins instead.
-                <ShowcaseRow
-                  id="plugins"
-                  eyebrow="New in 2.0 · Plugins"
-                  title="Your Cadencea plugins, in the same app as your projects."
-                  desc="Plugins you get on cadencea.app show up in Cadencea Vault. Install, update and activate them in one click, and move a license between computers yourself. Start with ATHENA EQ Mini, free with your account."
-                  points={['VST3, CLAP and Audio Unit', 'Up to 3 computers per license', 'Free plugins included']}
-                  reverse
-                >
-                  <ScreenshotFrame
-                    src="/plugins/athena/athena-complex-dynamic.png"
-                    alt="ATHENA EQ Complex"
-                    width={2160}
-                    height={1320}
-                    sizes="(min-width: 1024px) 600px, 100vw"
-                  />
-                </ShowcaseRow>
+                <div id="plugins" className="mx-auto max-w-2xl py-6 text-center">
+                  <h3 className="text-xl font-semibold">Your plugin licenses live here too</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-dark-muted">
+                    Cadencea Vault is the license manager for Cadencea plugins: install them, activate them and move a
+                    license between computers, all with the account you already use.
+                  </p>
+                </div>
               )}
             </div>
           </Container>
