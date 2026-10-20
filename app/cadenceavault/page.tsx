@@ -8,7 +8,6 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { Check } from '@/components/ui/Icons';
 import DownloadButton from '@/components/vault/DownloadButton';
 import VaultMock from '@/components/v2/home/VaultMock';
-import DetectCard from '@/components/v2/vault/DetectCard';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
 
@@ -201,7 +200,7 @@ export default async function CadenceaVault() {
                         .
                       </p>
                       {preview && (
-                        <Button href="#detect" variant="onDark" size="md" className="mt-5" prefetch={false}>
+                        <Button href="#plugins" variant="onDark" size="md" className="mt-5" prefetch={false}>
                           See what&rsquo;s in 2.0
                         </Button>
                       )}
@@ -283,17 +282,23 @@ export default async function CadenceaVault() {
                 </ShowcaseRow>
               ))}
               {preview && (
+                // Detect is held back from 2.0 until it passes its accuracy bar
+                // (Vault src/config/detect.js); 2.0 leads with Plugins instead.
                 <ShowcaseRow
-                  id="detect"
-                  eyebrow="New in 2.0 · Detect"
-                  title="Key, BPM and tag suggestions, on your computer."
-                  desc="Detect listens to a project's audio on your computer and suggests a key and BPM, each marked High, Medium or Low confidence, with alternates. It also suggests tags from your own library and file names. Nothing changes until you accept it, field by field, and it's free on every plan."
-                  points={['Free · runs on your computer', 'Confidence and alternates', 'You approve every change']}
+                  id="plugins"
+                  eyebrow="New in 2.0 · Plugins"
+                  title="Your Cadencea plugins, in the same app as your projects."
+                  desc="Plugins you get on cadencea.app show up in Cadencea Vault. Install, update and activate them in one click, and move a license between computers yourself. Start with ATHENA EQ Mini, free with your account."
+                  points={['VST3, CLAP and Audio Unit', 'Up to 3 computers per license', 'Free plugins included']}
                   reverse
                 >
-                  <div className="mx-auto max-w-md">
-                    <DetectCard />
-                  </div>
+                  <ScreenshotFrame
+                    src="/plugins/athena/athena-complex-dynamic.png"
+                    alt="ATHENA EQ Complex"
+                    width={2160}
+                    height={1320}
+                    sizes="(min-width: 1024px) 600px, 100vw"
+                  />
                 </ShowcaseRow>
               )}
             </div>
