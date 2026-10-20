@@ -468,7 +468,7 @@ function AllPluginsPlan() {
               'Every plugin, Mini and Complex',
               'Every plugin we release next',
               'Up to 3 computers',
-              'Launch price: keep €4.99 for as long as you stay subscribed',
+              'VAT included',
             ].map((f) => (
               <li key={f} className="flex items-start gap-2">
                 <Check />
