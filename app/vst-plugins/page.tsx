@@ -30,7 +30,7 @@ export default async function PluginsPage() {
 
   return (
     <div className="bg-canvas text-ink">
-      <section className="py-14 sm:py-20 lg:py-24">
+      <section className="pb-14 pt-8 sm:pb-20 sm:pt-10 lg:pb-24">
         <Container>
           <h1 className="sr-only">Plugins</h1>
           <StoreGrid cards={cards} />
