@@ -219,8 +219,8 @@ export async function createPluginCheckout(productIds: readonly string[]): Promi
 }
 
 /** Starts a Stripe Checkout for the All Plugins subscription. Returns the hosted Checkout URL. */
-export async function createAllPluginsCheckout(): Promise<string> {
-  const data = await accessFetch<{ url: string }>('/v1/access/checkout/all-plugins', { method: 'POST' });
+export async function createAllPluginsCheckout(interval: 'month' | 'year'): Promise<string> {
+  const data = await accessFetch<{ url: string }>('/v1/access/checkout/all-plugins', { method: 'POST', body: { interval } });
   return checkoutUrl(data);
 }
 

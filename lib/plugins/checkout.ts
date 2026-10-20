@@ -40,10 +40,10 @@ export async function startCheckout(items: readonly CartItem[]): Promise<Checkou
   }
 }
 
-/** The All Plugins subscription: the same flow, from the pricing page. */
-export async function startAllPluginsCheckout(): Promise<CheckoutResult> {
+/** The All Plugins subscription, billed monthly or yearly: the same flow, from the pricing page. */
+export async function startAllPluginsCheckout(interval: 'month' | 'year'): Promise<CheckoutResult> {
   try {
-    return { status: 'redirect', url: await createAllPluginsCheckout() };
+    return { status: 'redirect', url: await createAllPluginsCheckout(interval) };
   } catch (error) {
     return failed(error);
   }

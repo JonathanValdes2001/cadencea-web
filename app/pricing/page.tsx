@@ -383,7 +383,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {storeOpen && <AllPluginsPlan />}
+      {storeOpen && <AllPluginsPlan yearly={isYearly} />}
 
       {/* Included features */}
       <section>
@@ -453,7 +453,8 @@ function Check() {
  * 2026-10-20). Separate from the storage plans. Checkout comes with the payment step (launch plan
  * S5); until then the button says when it opens.
  */
-function AllPluginsPlan() {
+// Follows the page's Monthly/Yearly switch above the storage plans.
+function AllPluginsPlan({ yearly }: { yearly: boolean }) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [busy, setBusy] = useState(false);
@@ -466,7 +467,7 @@ function AllPluginsPlan() {
     }
     setBusy(true);
     setMessage(null);
-    const result = await startAllPluginsCheckout();
+    const result = await startAllPluginsCheckout(yearly ? 'year' : 'month');
     if (result.status === 'redirect') {
       window.location.assign(result.url);
       return;
@@ -482,8 +483,8 @@ function AllPluginsPlan() {
           <h3 className="text-lg font-semibold tracking-tight text-ink">All Plugins</h3>
           <p className="mt-1 text-xs font-medium uppercase tracking-widest text-ink-subtle">Every Cadencea plugin</p>
           <div className="mt-6 flex items-baseline gap-1">
-            <span className="text-4xl font-bold tracking-tight text-ink">€4.99</span>
-            <span className="text-sm text-ink-muted">/ month</span>
+            <span className="text-4xl font-bold tracking-tight text-ink">{yearly ? '€49.99' : '€4.99'}</span>
+            <span className="text-sm text-ink-muted">/ {yearly ? 'year' : 'month'}</span>
           </div>
           <ul className="mb-10 mt-8 flex flex-col gap-3 text-sm text-ink">
             {[

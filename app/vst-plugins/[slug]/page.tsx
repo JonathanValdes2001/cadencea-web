@@ -85,7 +85,7 @@ export default async function PluginPage({ params }: Props) {
               <p className="mt-4 text-sm text-ink-muted">
                 Or get every plugin with{' '}
                 <Link href="/pricing#all-plugins" className="font-medium text-accent-ink hover:text-accent-hover">
-                  All Plugins: €4.99 a month
+                  All Plugins: €4.99 a month or €49.99 a year
                 </Link>
                 .
               </p>
