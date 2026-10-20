@@ -287,8 +287,8 @@ test('product copy makes no claim the spec does not', async () => {
     await read('components/plugins/EditionCard.tsx'),
     await read('components/plugins/HowItWorks.tsx'),
   ].join('\n')
-  assert.doesNotMatch(sources, /free updates|updates forever|lifetime updates|\bCPU\b|AAX|Linux|free trial|\d+-day/i)
-  for (const fact of ['VST3', 'CLAP', 'Audio Unit', 'Windows 10', 'macOS 12', '24 bands', '8 bands', 'Zero latency', 'EQ Match']) {
+  assert.doesNotMatch(sources, /free updates|updates forever|lifetime updates|\bCPU\b|AAX|Linux|free trial|\d+-day|zero.?latency/i)
+  for (const fact of ['VST3', 'CLAP', 'Audio Unit', 'Windows 10', 'macOS 12', '24 bands', '8 bands', 'EQ Match']) {
     assert.ok(sources.includes(fact), fact)
   }
 })

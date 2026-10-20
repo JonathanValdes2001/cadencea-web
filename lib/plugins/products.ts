@@ -65,7 +65,6 @@ export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
       'Auto gain keeps the level while you shape the tone',
       'Real-time analyzer in the Aegis display',
       'EQ Match: make your track’s tonal balance meet a reference',
-      'Zero latency',
     ],
     screenshot: {
       src: '/plugins/athena/athena-complex-dynamic.png',
@@ -100,7 +99,6 @@ export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
       'Low cut, low shelf, bell, notch, high shelf and high cut on any band',
       'Gain scale: turn every move up or down at once',
       'Output gain',
-      'Zero latency',
       'The same filters as ATHENA EQ Complex',
     ],
     screenshot: {
@@ -138,7 +136,6 @@ export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
       'Ragnarök: hold it and the repeats build into a storm',
       'Drive, Width and Freeze',
       '24 factory presets',
-      'Zero latency',
     ],
     screenshot: {
       src: '/plugins/loki/loki-complex-default.png',
@@ -176,7 +173,6 @@ export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
       'LoFi, modulation, and high-pass and low-pass filters you can link',
       'Ducking and ping-pong',
       '14 factory presets',
-      'Zero latency',
     ],
     screenshot: {
       src: '/plugins/loki/loki-mini-default.png',
