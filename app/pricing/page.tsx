@@ -468,7 +468,6 @@ function AllPluginsPlan() {
               'Every plugin, Mini and Complex',
               'Every plugin we release next',
               'Up to 3 computers',
-              'VAT included',
             ].map((f) => (
               <li key={f} className="flex items-start gap-2">
                 <Check />
