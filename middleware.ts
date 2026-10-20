@@ -41,5 +41,9 @@ export const config = {
   matcher: [
     // Refresh browser auth for pages; route handlers validate their own input.
     '/((?!_next/static|_next/image|favicon.ico|.*\\..*|api/).*)',
+    // Product ids contain a dot (/activate/cadencea.athena-complex), which the
+    // static-file exclusion above skips: no CSP, no session refresh, no preview
+    // noindex header. Plugins open this URL, so it must get all three.
+    '/activate/:path*',
   ],
 }

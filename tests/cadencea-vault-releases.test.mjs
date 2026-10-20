@@ -132,3 +132,20 @@ test('a slow manifest drops only its own platform', async () => {
   assert.equal(releases.windows.version, '1.2.0');
   assert.equal(releases.macArm64.version, '1.2.0');
 });
+
+test('a beta plugin asks for the beta feed even on the live site', async () => {
+  assert.equal(
+    releaseFeedRoot({ VERCEL_ENV: 'production' }, { beta: true }),
+    'https://s3.eu-central-003.backblazeb2.com/cadencea-products/updates/cadencea-vault-beta/',
+  );
+  // Only a literal true switches feeds.
+  assert.match(releaseFeedRoot({ VERCEL_ENV: 'production' }, { beta: 'yes' }), /\/cadencea-vault\/$/);
+  const requested = [];
+  const fakeFetch = async (url) => {
+    requested.push(url);
+    return { ok: false, status: 404, text: async () => '' };
+  };
+  await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'production' }, beta: true });
+  assert.equal(requested.length, 3);
+  assert.ok(requested.every((url) => url.includes('/updates/cadencea-vault-beta/')));
+});

@@ -18,7 +18,9 @@ import {
 // routes sit behind the v2 preview gate AND the PARKED_FEATURES_OPEN switch, so
 // they answer 404 even after the v2 gate opens; the navigation, footers and
 // in-page links don't mention them; no credit wording or credits code reaches a
-// live page; /vst-plugins is the plain "coming" page and /cart is gone.
+// live page. /vst-plugins is the plugin store on previews and the plain
+// "coming" page on production until the store's go-live switch; /cart is the
+// plugin cart (docs/PARKED-FEATURES.md §5), never the Market's.
 
 const root = new URL('../', import.meta.url)
 const rootPath = fileURLToPath(root)
@@ -152,7 +154,8 @@ test('the middleware answers 404 for parked paths before anything renders', asyn
 
 test('RootLayout passes the server-computed flag to the navbar, footer and V2FlagProvider', async () => {
   const layout = await read('app/layout.tsx')
-  assert.match(layout, /<Navbar showV2=\{isPreview\} \/>/)
+  assert.match(layout, /<Navbar showV2=\{isPreview\} showStore=\{storeOpen\} \/>/)
+  assert.match(layout, /const storeOpen = pluginStoreOpen\(\)/)
   assert.match(layout, /<Footer showV2=\{isPreview\} \/>/)
   assert.match(layout, /<V2FlagProvider showV2=\{isPreview\}>/)
 })
@@ -163,7 +166,11 @@ test('no client component reads the site channel or the parked switch', async ()
   for (const file of files) {
     const source = await readFile(file, 'utf8')
     if (!/^\s*['"]use client['"]/.test(source)) continue
-    assert.doesNotMatch(source, /isPreviewSite|site-channel|parked-features|parkedRoutesOpen/, `${file} is a client component`)
+    assert.doesNotMatch(
+      source,
+      /isPreviewSite|site-channel|parked-features|parkedRoutesOpen|store-gate|pluginStoreOpen|siteVaultChannel/,
+      `${file} is a client component`,
+    )
   }
 })
 
@@ -180,6 +187,20 @@ const LIVE_SURFACES = [
   'app/software/page.tsx',
   'app/cadenceavault/page.tsx',
   'app/vst-plugins/page.tsx',
+  'app/vst-plugins/[slug]/page.tsx',
+  'app/cart/page.tsx',
+  'app/account/page.tsx',
+  'app/activate/[productId]/page.tsx',
+  'components/plugins/PluginsComingSoon.tsx',
+  'components/plugins/EditionCard.tsx',
+  'components/plugins/StoreGrid.tsx',
+  'components/plugins/CartView.tsx',
+  'components/plugins/CartButton.tsx',
+  'components/plugins/AccountOverview.tsx',
+  'components/plugins/MyPlugins.tsx',
+  'components/plugins/ActivateSteps.tsx',
+  'components/plugins/HowItWorks.tsx',
+  'components/plugins/ProductCard.tsx',
   'app/terms/page.tsx',
   'app/privacy/page.tsx',
   'app/cookies/page.tsx',
@@ -293,22 +314,36 @@ test('no credit wording on any live page, layout or shared component', async () 
 
 /* /vst-plugins and /cart --------------------------------------------------- */
 
-test('/vst-plugins is a plain "coming" page and /cart is gone, with no redirect to the Market', async () => {
+test('/vst-plugins is the store behind its go-live switch, never a redirect to the Market', async () => {
   const config = await read('next.config.ts')
   assert.doesNotMatch(config, /redirects/)
   assert.doesNotMatch(config, /\/market|\/cart|vst-plugins/)
 
-  assert.equal(existsSync(new URL('app/cart', root)), false, 'app/cart must stay deleted (404)')
-  assert.equal(existsSync(new URL('app/(v2)/cart', root)), false)
-  assert.equal(isParkedPath('/cart'), false, '/cart 404s because no route exists, not because it is parked')
-
   const page = await read('app/vst-plugins/page.tsx')
   assert.doesNotMatch(page, /['"]use client['"]/)
-  assert.match(page, /Cadencea plugins are coming\./)
-  assert.match(page, /Coming soon/)
-  assert.match(page, /There is no store, cart or pricing today/)
-  // No invented products, prices, dates or purchase buttons.
-  assert.doesNotMatch(page, /€|\$\d|\d\s*(USD|EUR)|\bVST3?\b|\bAU\b|\bCLAP\b|Buy now|Add to cart|Pre-?order|Purchase|Q[1-4] 20|20\d\d/i)
+  // Production, before go-live: the plain "coming" page, metadata included.
+  assert.match(page, /if \(!pluginStoreOpen\(\)\) return <PluginsComingSoon \/>/)
+  assert.match(page, /pluginStoreOpen\(\) \? storeMetadata : comingSoonMetadata/)
+
+  const comingSoon = await read('components/plugins/PluginsComingSoon.tsx')
+  assert.doesNotMatch(comingSoon, /['"]use client['"]/)
+  assert.match(comingSoon, /Cadencea plugins are coming\./)
+  assert.match(comingSoon, /Coming soon/)
+  assert.match(comingSoon, /There is no store, cart or pricing today/)
+  // No invented products, prices, dates or purchase buttons while the store is closed.
+  assert.doesNotMatch(comingSoon, /€|\$\d|\d\s*(USD|EUR)|VST3?|AU|CLAP|Buy now|Add to cart|Pre-?order|Purchase|Q[1-4] 20|20\d\d|ATHENA/i)
+})
+
+test('the product page and /cart are plugin-store routes that 404 while the store is closed', async () => {
+  assert.equal(existsSync(new URL('app/(v2)/cart', root)), false, 'the cart is not a parked v2 page')
+  assert.equal(isParkedPath('/cart'), false)
+  assert.equal(isParkedPath('/vst-plugins/athena-eq-complex'), false)
+  for (const file of ['app/cart/page.tsx', 'app/vst-plugins/[slug]/page.tsx']) {
+    const source = await read(file)
+    assert.doesNotMatch(source, /^\s*['"]use client['"]/, `${file} must stay a server component`)
+    // Page and metadata both check the gate (Next renders them in parallel).
+    assert.equal(source.match(/if \(!pluginStoreOpen\(\)\) notFound\(\)/g)?.length, 2, file)
+  }
 })
 
 test('the plugin pictures carry no text, so they cannot name or price a product', async () => {

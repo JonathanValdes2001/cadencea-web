@@ -78,9 +78,15 @@ switch (`lib/parked-features.mjs`) are open, so launching v2 cannot publish one.
   Plugins page; nothing links to a parked route. Client code never calls
   `isPreviewSite()`: `VERCEL_ENV` doesn't exist in the browser, so it would
   always answer "preview".
-- **Plugins and the cart.** `/vst-plugins` renders a plain "Cadencea plugins are
-  coming" page on every deployment (no products, prices or dates). `/cart` is
-  deleted and answers 404. Neither redirects to the Market.
+- **Plugins and the cart.** Previews serve the plugin store: `/vst-plugins`,
+  `/vst-plugins/athena`, `/cart` and a cart button in the navbar. Production
+  keeps the plain "Cadencea plugins are coming" page, and 404s the product page
+  and cart, until `PLUGIN_STORE_LIVE` (`lib/plugins/store-gate.mjs`) is flipped
+  at go-live. Prices come from the licensing API (`/v1/access/store/products`)
+  with a local fallback; checkout stays closed until launch plan S5. Previews
+  link "Open Cadencea Vault" to the beta app (`app.cadencea.vault.beta://`),
+  matching their beta downloads. `/account` and `/activate/<id>` work on every
+  deployment. Nothing redirects to the Market.
 - **Demo data only.** Everything under `app/(v2)/`, `components/ui/`,
   `components/v2/` and `lib/v2-demo/` is local demo data with no API, Supabase
   or payment calls (`tests/v2-no-network.test.mjs`). Demo changes are kept in
@@ -98,6 +104,7 @@ Development. Preview deployments use the **Preview** values. Check them in
 | Variable | Preview value |
 |---|---|
 | `NEXT_PUBLIC_API_URL` | The staging API once it exists. Until then it may point at the production API: sign in only with a test account and don't buy anything. |
+| `NEXT_PUBLIC_ACCESS_API_URL` | Optional. The plugin licensing API's origin (it lives at the API root, `/v1/access`). Unset: `NEXT_PUBLIC_API_URL` without its `/api`, else `https://api.cadencea.app`. The API's CORS list allows only cadencea.app, so browser calls (My plugins, Get for free) fail on preview domains until it allows them; the pages say so instead of breaking. |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The staging Supabase project once it exists. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Never the production key once staging exists: server routes in a v2 draft run with it. |
 | `SMTP_*`, `NEWSLETTER_*` | A test inbox, or leave unset so previews can't email real subscribers. |

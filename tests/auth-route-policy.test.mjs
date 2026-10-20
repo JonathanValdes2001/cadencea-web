@@ -9,6 +9,8 @@ import {
 
 test('protects account data and post-checkout pages server-side', () => {
   for (const path of [
+    '/account',
+    '/account/',
     '/account/settings',
     '/account/settings/security',
     '/account/subscription',
@@ -22,7 +24,12 @@ test('protects account data and post-checkout pages server-side', () => {
 test('keeps token links and public commerce pages reachable', () => {
   for (const path of [
     '/account/confirm-deletion',
+    '/accounts',
     '/billing/cancel',
+    '/vst-plugins',
+    '/vst-plugins/athena-eq-complex',
+    '/cart',
+    '/activate/cadencea.athena-complex',
     '/pricing',
     '/login',
     '/signup',

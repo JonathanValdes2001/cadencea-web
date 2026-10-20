@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Faq from '@/components/ui/Faq';
+import { useStoreOpen } from '@/components/plugins/StoreOpenContext';
 import { subscriptionCheckout } from '@/lib/subscription-checkout.mjs';
 import {
   api,
@@ -127,6 +128,7 @@ function activePaidPlan(status: SubscriptionStatusResponse): string | null {
 }
 
 export default function PricingPage() {
+  const storeOpen = useStoreOpen();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [isYearly, setIsYearly] = useState(false);
@@ -316,7 +318,7 @@ export default function PricingPage() {
                     )}
                   </div>
 
-                  <ul className="mt-8 flex flex-col gap-3 text-sm text-ink">
+                  <ul className="mb-10 mt-8 flex flex-col gap-3 text-sm text-ink">
                     <li className="flex items-start gap-2">
                       <Check />
                       <span>{plan.storage}</span>
@@ -330,7 +332,7 @@ export default function PricingPage() {
                   </ul>
 
                   {paidPlan && !isFree && plan.name.toLowerCase() === paidPlan ? (
-                    <p className="mt-10 inline-flex h-11 items-center justify-center rounded-sm border border-line text-sm font-semibold tracking-wide text-ink-muted">
+                    <p className="mt-auto inline-flex h-11 items-center justify-center rounded-sm border border-line text-sm font-semibold tracking-wide text-ink-muted">
                       Current plan
                     </p>
                   ) : (
@@ -339,7 +341,7 @@ export default function PricingPage() {
                       onClick={() => handleSubscribe(plan)}
                       disabled={authLoading || loadingPlan !== null}
                       aria-busy={loadingPlan === plan.name}
-                      className={`mt-10 inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
+                      className={`mt-auto inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
                         isFree
                           ? 'border border-ink text-ink hover:bg-elevated'
                           : 'bg-accent text-white hover:bg-accent-hover'
@@ -379,6 +381,8 @@ export default function PricingPage() {
           </p>
         </div>
       </section>
+
+      {storeOpen && <AllPluginsPlan />}
 
       {/* Included features */}
       <section>
@@ -440,5 +444,46 @@ function Check() {
         d="M5 13l4 4L19 7"
       />
     </svg>
+  );
+}
+
+/**
+ * All Plugins: every Cadencea plugin, Mini and Complex, for one monthly price (founder decision
+ * 2026-10-20). Separate from the storage plans. Checkout comes with the payment step (launch plan
+ * S5); until then the button says when it opens.
+ */
+function AllPluginsPlan() {
+  return (
+    <section id="all-plugins" className="scroll-mt-24 border-b border-line">
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-24">
+        <div className="mx-auto flex max-w-md flex-col rounded-md border border-ink bg-canvas p-8">
+          <h3 className="text-lg font-semibold tracking-tight text-ink">All Plugins</h3>
+          <p className="mt-1 text-xs font-medium uppercase tracking-widest text-ink-subtle">Every Cadencea plugin</p>
+          <div className="mt-6 flex items-baseline gap-1">
+            <span className="text-4xl font-bold tracking-tight text-ink">€4.99</span>
+            <span className="text-sm text-ink-muted">/ month</span>
+          </div>
+          <ul className="mb-10 mt-8 flex flex-col gap-3 text-sm text-ink">
+            {[
+              'Every plugin, Mini and Complex',
+              'Every plugin we release next',
+              'Up to 3 computers',
+            ].map((f) => (
+              <li key={f} className="flex items-start gap-2">
+                <Check />
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            disabled
+            className="mt-auto inline-flex h-11 items-center justify-center rounded-sm bg-accent text-sm font-semibold tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Opens at launch
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }

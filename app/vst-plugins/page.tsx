@@ -1,75 +1,54 @@
 import type { Metadata } from 'next';
-import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import Container, { ShowroomGlow } from '@/components/ui/Container';
-import SectionHeader from '@/components/ui/SectionHeader';
-import PluginWindow from '@/components/v2/plugins/PluginWindow';
+import Container from '@/components/ui/Container';
+import HowItWorks from '@/components/plugins/HowItWorks';
+import PluginsComingSoon, { comingSoonMetadata } from '@/components/plugins/PluginsComingSoon';
+import StoreGrid from '@/components/plugins/StoreGrid';
+import { PLUGIN_PRODUCTS, withListing } from '@/lib/plugins/products';
+import { pluginStoreOpen } from '@/lib/plugins/store-gate.mjs';
+import { loadStoreListing } from '@/lib/plugins/store-products';
 
-export const metadata: Metadata = {
+const storeMetadata: Metadata = {
   title: 'Plugins',
-  description: 'Cadencea plugins are coming. There is nothing to buy yet.',
+  description:
+    'Audio plugins by Cadencea. ATHENA EQ Mini is free; ATHENA EQ Complex adds dynamics, sidechain and EQ Match. Licenses belong to your Cadencea account and install with Cadencea Vault.',
 };
 
-// Deliberately small and plain: no product names, prices, release dates or
-// screenshots, because none exists yet. The store, product pages and checkout
-// come later and wait on the payment-provider decision (docs/v2/README.md).
-const NOTES = [
-  {
-    title: 'Made by Cadencea',
-    body: 'Plugins from the team that builds Cadencea Vault, for the same producers.',
-  },
-  {
-    title: 'Tied to your Cadencea account',
-    body: 'When they launch, your plugins will belong to the account you already use for Vault.',
-  },
-  {
-    title: 'Nothing to buy yet',
-    body: 'There is no store, cart or pricing today. When plugins are ready, they will appear on this page.',
-  },
-];
+// Production keeps the "coming" page until the store's go-live switch
+// (lib/plugins/store-gate.mjs); previews show the store.
+export async function generateMetadata(): Promise<Metadata> {
+  return pluginStoreOpen() ? storeMetadata : comingSoonMetadata;
+}
 
-export default function PluginsPage() {
+export default async function PluginsPage() {
+  if (!pluginStoreOpen()) return <PluginsComingSoon />;
+  const { products, apiReachable } = await loadStoreListing();
+  const cards = PLUGIN_PRODUCTS.flatMap((product) => {
+    const listing = withListing(products, product.id);
+    return listing ? [{ product, listing }] : [];
+  });
+
   return (
     <div className="bg-canvas text-ink">
-      <section className="on-dark relative isolate overflow-hidden bg-showroom py-14 text-dark-text sm:py-20 lg:py-24">
-        <ShowroomGlow />
-        <Container className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:gap-16">
-          <div>
-            <Badge tone="dark" size="md" className="border border-white/15">
-              Coming soon
-            </Badge>
-            <SectionHeader
-              as="h1"
-              onDark
-              className="mt-6"
-              eyebrow="Plugins"
-              title="Cadencea plugins are coming."
-              subtitle="We are building audio plugins for music producers. They are not available yet, and we will announce them here when they are."
-            />
-            <div className="mt-10 flex flex-wrap gap-3">
-              <Button href="/cadenceavault#download" variant="onDark" size="lg">
-                Get Cadencea Vault
-              </Button>
-              <Button href="/contact" variant="onDarkOutline" size="lg">
-                Get in touch
-              </Button>
-            </div>
-          </div>
-          <PluginWindow className="mx-auto w-full max-w-md lg:max-w-none" />
+      <section className="py-14 sm:py-20 lg:py-24">
+        <Container>
+          <h1 className="sr-only">Plugins</h1>
+          <StoreGrid cards={cards} />
+          {!apiReachable && (
+            <p className="mt-6 text-sm text-ink-muted">Prices are list prices. Live prices and the store open at launch.</p>
+          )}
         </Container>
       </section>
 
-      <section className="py-14 sm:py-20 lg:py-24">
+      <section className="border-t border-line py-14 sm:py-20 lg:py-24">
         <Container>
-          <SectionHeader title="What to expect." />
-          <ul className="mt-12 grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-3">
-            {NOTES.map((note) => (
-              <li key={note.title} className="border-t border-line-strong pt-6">
-                <h2 className="text-base font-semibold text-ink md:text-lg">{note.title}</h2>
-                <p className="mt-3 text-sm leading-relaxed text-ink-muted">{note.body}</p>
-              </li>
-            ))}
-          </ul>
+          <HowItWorks id="how-it-works" />
+          <div className="mt-12 flex flex-wrap gap-3">
+            <Button href="/cadenceavault#download">Get Cadencea Vault</Button>
+            <Button href="/account" variant="secondary">
+              My plugins
+            </Button>
+          </div>
         </Container>
       </section>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
@@ -16,6 +16,14 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Carried over to "Create a free account" so a new account lands where sign-in would have.
+  const [redirectQuery, setRedirectQuery] = useState('');
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('redirect');
+    const path = safePostLoginPath(requested);
+    if (requested && path !== '/') setRedirectQuery(`?redirect=${encodeURIComponent(path)}`);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -61,7 +69,7 @@ export default function Login() {
           <h1 className="mt-8 text-3xl font-bold tracking-tight md:text-4xl">Sign in to Cadencea.</h1>
           <p className="mt-3 text-sm text-ink-muted">
             New here?{' '}
-            <Link href="/signup" className="font-medium text-accent-ink hover:text-accent-hover">
+            <Link href={`/signup${redirectQuery}`} className="font-medium text-accent-ink hover:text-accent-hover">
               Create a free account
             </Link>
           </p>

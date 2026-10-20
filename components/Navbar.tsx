@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 import Button from '@/components/ui/Button';
 import Logo from '@/components/ui/Logo';
 import { Chevron, Close, Menu } from '@/components/ui/Icons';
+import CartButton from '@/components/plugins/CartButton';
 
 const productionLinks = [
   { href: '/cadenceavault', label: 'Cadencea Vault' },
@@ -24,9 +25,10 @@ const isActive = (pathname: string, href: string) => pathname === href || pathna
 /**
  * `showV2` comes from RootLayout's server-side preview check; the preview adds
  * the Plugins page. Production shows only Cadencea Vault and Pricing. Parked
- * features are not linked from here.
+ * features are not linked from here. `showStore` (whether the plugin store is
+ * open, also decided on the server) adds the cart.
  */
-const Navbar = ({ showV2 }: { showV2: boolean }) => {
+const Navbar = ({ showV2, showStore = false }: { showV2: boolean; showStore?: boolean }) => {
   const { user, profile, loading, signOut } = useAuth();
   const pathname = usePathname() ?? '';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -127,6 +129,7 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
 
           {/* Desktop auth */}
           <div className="hidden md:flex md:items-center md:gap-4">
+            {showStore && <CartButton active={isActive(pathname, '/cart')} />}
             {loading ? (
               <div className="flex items-center gap-2 text-sm text-dark-muted">
                 <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/10 border-t-brand-400" />
@@ -154,6 +157,9 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                     id="account-menu"
                     className="absolute right-0 mt-2 w-56 rounded-md border border-white/10 bg-dark py-1 shadow-dropdown"
                   >
+                    <Link href="/account" className={menuItem} onClick={closeUserMenu}>
+                      My account
+                    </Link>
                     <Link href="/account/settings" className={menuItem} onClick={closeUserMenu}>
                       Account settings
                     </Link>
@@ -186,17 +192,20 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
             )}
           </div>
 
-          {/* Mobile toggle */}
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen((v) => !v)}
-            className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-sm text-dark-text hover:bg-white/10"
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={isMenuOpen}
-            aria-controls="mobile-menu"
-          >
-            {isMenuOpen ? <Close size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Mobile cart and toggle */}
+          <div className="flex items-center gap-1 md:hidden">
+            {showStore && <CartButton active={isActive(pathname, '/cart')} onNavigate={closeMobileMenu} />}
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((v) => !v)}
+              className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-sm text-dark-text hover:bg-white/10"
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+            >
+              {isMenuOpen ? <Close size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile menu */}
@@ -227,6 +236,9 @@ const Navbar = ({ showV2 }: { showV2: boolean }) => {
                   <div className="px-3 py-2 text-xs uppercase tracking-wider text-dark-muted">
                     {displayName}
                   </div>
+                  <Link href="/account" className={mobileItem} onClick={closeMobileMenu}>
+                    My account
+                  </Link>
                   <Link href="/account/settings" className={mobileItem} onClick={closeMobileMenu}>
                     Account settings
                   </Link>

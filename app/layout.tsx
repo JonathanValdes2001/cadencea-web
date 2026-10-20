@@ -7,15 +7,20 @@ import Footer from "../components/Footer";
 import CookieBanner from "../components/CookieBanner";
 import PreviewBanner from "../components/PreviewBanner";
 import { ToastProvider } from "../components/ui/Toast";
+import { CartProvider } from "../components/plugins/CartContext";
 import { V2FlagProvider } from "../components/v2/common/V2Flag";
 import { AuthProvider } from "../lib/auth-context";
 import { isPreviewSite } from "../lib/site-channel.mjs";
+import { pluginStoreOpen } from "../lib/plugins/store-gate.mjs";
 
 // Preview deployments (the v2 site, branch previews, local runs) are never
 // indexed and carry a banner; production is unaffected. The same flag turns on
 // the v2 navigation (showV2); client components get it as a prop or through
 // V2FlagProvider and never call isPreviewSite() themselves.
 const isPreview = isPreviewSite();
+// The plugin store (cart button, /cart, product pages) is preview-only until its
+// go-live switch is flipped (lib/plugins/store-gate.mjs).
+const storeOpen = pluginStoreOpen();
 
 const description =
   "Cadencea Vault organizes your DAW projects, shows BPM, key and tags, and backs up every session bit for bit. Free app for Windows and macOS. Pay only for cloud space.";
@@ -81,10 +86,12 @@ export default async function RootLayout({
         <AuthProvider>
           <V2FlagProvider showV2={isPreview}>
             <ToastProvider>
-              <Navbar showV2={isPreview} />
-              <main id="main">{children}</main>
-              <Footer showV2={isPreview} />
-              <CookieBanner />
+              <CartProvider>
+                <Navbar showV2={isPreview} showStore={storeOpen} />
+                <main id="main">{children}</main>
+                <Footer showV2={isPreview} />
+                <CookieBanner />
+              </CartProvider>
             </ToastProvider>
           </V2FlagProvider>
         </AuthProvider>

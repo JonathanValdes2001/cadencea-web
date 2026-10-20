@@ -4,8 +4,7 @@ import Link from 'next/link';
 import Badge from '@/components/ui/Badge';
 import Container from '@/components/ui/Container';
 import { ArrowRight } from '@/components/ui/Icons';
-import VaultMock from '@/components/v2/home/VaultMock';
-import PluginWindow from '@/components/v2/plugins/PluginWindow';
+import Image from 'next/image';
 import {
   availabilityLabel,
   RELEASE_FEED_REVALIDATE_S,
@@ -27,7 +26,7 @@ type Product = {
   href: string;
   /** The subtitle: availability for a shipped app, a "Coming soon" badge for what isn't out yet. */
   status: React.ReactNode;
-  media: React.ReactNode;
+  media: React.ReactNode | null;
 };
 
 export default async function SoftwarePage() {
@@ -50,9 +49,13 @@ export default async function SoftwarePage() {
       status: <Badge tone="neutral">{availabilityLabel(releases, { preview })}</Badge>,
       // The library, cropped into the card: a picture of the app, not a logo.
       media: (
-        <div className="absolute inset-x-6 top-6">
-          <VaultMock />
-        </div>
+        <Image
+          src="/vault/table.png"
+          alt=""
+          fill
+          sizes="(min-width: 1024px) 33vw, 100vw"
+          className="object-cover object-left-top"
+        />
       ),
     },
   ];
@@ -63,11 +66,8 @@ export default async function SoftwarePage() {
       description: 'Audio plugins from the team behind Vault. They are not available yet.',
       href: '/vst-plugins',
       status: <Badge tone="neutral">Coming soon</Badge>,
-      media: (
-        <div className="absolute inset-x-10 top-6">
-          <PluginWindow />
-        </div>
-      ),
+      // No picture until there are real screenshots of the plugins.
+      media: null,
     });
   }
 
@@ -98,9 +98,11 @@ export default async function SoftwarePage() {
                 >
                   {/* One media treatment for every product: its own picture on the showroom surface. Decorative:
                       the card's title and text already name it. */}
-                  <div aria-hidden="true" className="relative aspect-[16/9] w-full overflow-hidden bg-showroom">
-                    {p.media}
-                  </div>
+                  {p.media && (
+                    <div aria-hidden="true" className="relative aspect-[16/9] w-full overflow-hidden bg-showroom">
+                      {p.media}
+                    </div>
+                  )}
                   <div className="flex flex-1 flex-col p-6">
                     <div className="flex h-6 items-center">{p.status}</div>
                     <h2 className="mt-2 text-lg font-semibold tracking-tight text-ink">{p.name}</h2>

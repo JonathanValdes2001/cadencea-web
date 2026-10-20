@@ -5,7 +5,7 @@ import Faq from '@/components/ui/Faq';
 import SectionHeader from '@/components/ui/SectionHeader';
 import BeforeAfter from '@/components/v2/home/BeforeAfter';
 import CompareTable from '@/components/v2/home/CompareTable';
-import VaultMock from '@/components/v2/home/VaultMock';
+import Image from 'next/image';
 import WhatsNext from '@/components/v2/home/WhatsNext';
 import {
   anyDownload,
@@ -127,7 +127,19 @@ export default async function Home() {
               ))}
             </ul>
           </div>
-          <VaultMock className="mx-auto w-full max-w-xl lg:max-w-none" />
+          <div className="mx-auto w-full max-w-xl lg:max-w-none">
+            <div className="overflow-hidden rounded-lg border border-white/10 bg-showroom-to ring-1 ring-white/5">
+              <Image
+                src="/vault/table.png"
+                alt="Cadencea Vault's table view: projects with artist, BPM, key, date, DAW, tags and sync status"
+                width={1713}
+                height={957}
+                priority
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="h-auto w-full"
+              />
+            </div>
+          </div>
         </Container>
       </section>
 

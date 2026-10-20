@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { StoreOpenProvider } from '@/components/plugins/StoreOpenContext';
+import { pluginStoreOpen } from '@/lib/plugins/store-gate.mjs';
 
 // The pricing page is a client component, so its metadata lives here.
 export const metadata: Metadata = {
@@ -8,5 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default function PricingLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  // The All Plugins plan shows only while the plugin store is open (preview until launch).
+  return <StoreOpenProvider open={pluginStoreOpen()}>{children}</StoreOpenProvider>;
 }
