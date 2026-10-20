@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import Container, { ShowroomGlow } from '@/components/ui/Container';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { Check } from '@/components/ui/Icons';
+import DownloadButton from '@/components/vault/DownloadButton';
 import VaultMock from '@/components/v2/home/VaultMock';
 import DetectCard from '@/components/v2/vault/DetectCard';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
@@ -460,29 +461,5 @@ function ScreenshotFrame({
         <Image src={src} alt={alt} width={width} height={height} priority={priority} sizes={sizes} className="h-auto w-full" />
       </div>
     </div>
-  );
-}
-
-function DownloadButton({
-  platform,
-  variant,
-  href,
-}: {
-  platform: 'Windows' | 'Mac (Apple Silicon)' | 'Mac (Intel)';
-  variant: 'primary' | 'onDark';
-  href?: string;
-}) {
-  if (!href) {
-    // The longest label is wider than a phone; it wraps inside the button instead of overflowing.
-    return (
-      <Button variant="onDarkOutline" size="lg" disabled className="max-w-full">
-        <span className="whitespace-normal text-center leading-tight">{platform} download unavailable</span>
-      </Button>
-    );
-  }
-  return (
-    <Button href={href} variant={variant} size="lg" rel="noopener noreferrer" prefetch={false}>
-      Download for {platform}
-    </Button>
   );
 }
