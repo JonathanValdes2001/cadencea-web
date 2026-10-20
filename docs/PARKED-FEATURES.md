@@ -14,8 +14,8 @@ tests stay in the repo.
 | Home "Coming in Cadencea 2.0" band (preview only) | Detect and Cadencea plugins. |
 | `/software` cards (preview only) | Cadencea Vault, plus a "Coming soon" Cadencea plugins card. |
 | `/pricing` | No credits lines, credits section or Market FAQ item. It imports no v2 code. |
-| `/vst-plugins` | A plain "Cadencea plugins are coming" page. It no longer redirects to `/market`. |
-| `/cart` | Deleted: 404. The placeholder cart was an empty page with fake €0.00 totals. |
+| `/vst-plugins` | The plugin store (ATHENA EQ) on previews; on production a plain "Cadencea plugins are coming" page until the store's go-live switch (see below). It never redirects to `/market`. |
+| `/cart` | The **plugin** cart, rebuilt for the plugin checkout (2026-10-20, launch plan S6), behind the same go-live switch. The old placeholder cart (an empty page with fake €0.00 totals) stays deleted. |
 
 ## The switch
 
@@ -83,7 +83,21 @@ mentions credits) for four labels. Those labels now live in
 4. **Redirects.** Don't bring back `/vst-plugins` → `/market`: `/vst-plugins` is
    the plugin store. `/market/songs` → `/stream` was dropped with the routes; add
    it back with them if Songs still points at Stream.
-5. **`/cart`** returns with the plugin checkout, built for it.
+5. **`/cart`** came back with the plugin store (2026-10-20), built for plugins:
+   one of each product, saved in the browser, checkout through the single
+   `startCheckout()` hook in `lib/plugins/checkout.ts` (still closed; launch plan
+   S5 fills it). It is not a Market cart: when the Market returns it needs its
+   own design rather than reusing this one.
+
+## The plugin store's go-live switch
+
+Separate from the parked switch. `PLUGIN_STORE_LIVE` in
+`lib/plugins/store-gate.mjs`: the store (`/vst-plugins` catalog,
+`/vst-plugins/athena`, `/cart`, the navbar cart button) is served on previews,
+and on production only once the switch is `true`. Before that, production keeps
+the "coming" page and the product page and cart answer 404.
+`/account` and `/activate/<id>` are not gated (Vault and the plugins link to
+them). `tests/plugins-store.test.mjs` pins it.
 
 The matching Vault switch and the parked specs are in `docs/v2/README.md`
 ("Hidden, not deleted", "Parked: Market, Publish and credits").
