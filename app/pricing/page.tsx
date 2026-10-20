@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Faq from '@/components/ui/Faq';
 import { useStoreOpen } from '@/components/plugins/StoreOpenContext';
+import { startAllPluginsCheckout } from '@/lib/plugins/checkout';
 import { subscriptionCheckout } from '@/lib/subscription-checkout.mjs';
 import {
   api,
@@ -453,6 +454,27 @@ function Check() {
  * S5); until then the button says when it opens.
  */
 function AllPluginsPlan() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const subscribe = async () => {
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent('/pricing#all-plugins')}`);
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    const result = await startAllPluginsCheckout();
+    if (result.status === 'redirect') {
+      window.location.assign(result.url);
+      return;
+    }
+    setBusy(false);
+    setMessage(result.message);
+  };
+
   return (
     <section id="all-plugins" className="scroll-mt-24 border-b border-line">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-24">
@@ -477,11 +499,18 @@ function AllPluginsPlan() {
           </ul>
           <button
             type="button"
-            disabled
-            className="mt-auto inline-flex h-11 items-center justify-center rounded-sm bg-accent text-sm font-semibold tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={subscribe}
+            disabled={loading || busy}
+            aria-busy={busy}
+            className="mt-auto inline-flex h-11 items-center justify-center rounded-sm bg-accent text-sm font-semibold tracking-wide text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Opens at launch
+            {busy ? 'Redirecting…' : 'Get All Plugins'}
           </button>
+          {message && (
+            <p role="alert" className="mt-3 text-center text-sm text-ink-muted">
+              {message}
+            </p>
+          )}
         </div>
       </div>
     </section>

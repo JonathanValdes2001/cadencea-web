@@ -29,6 +29,17 @@ export default function AccountOverview({ vaultChannel, storeOpen }: { vaultChan
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const entitlements = useEntitlements();
+  // Back from Stripe: the licenses arrive with the payment webhook, usually
+  // within seconds, so look again shortly.
+  const [purchased] = useState(
+    () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('purchase') === 'complete',
+  );
+  const { reload } = entitlements;
+  useEffect(() => {
+    if (!purchased) return undefined;
+    const timers = [3000, 8000, 15000].map((ms) => window.setTimeout(reload, ms));
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [purchased, reload]);
 
   // Same gate as the other account pages: the middleware redirects first, this
   // covers a session that ends while the page is open.
@@ -74,6 +85,11 @@ export default function AccountOverview({ vaultChannel, storeOpen }: { vaultChan
               </Link>
             )}
           </div>
+          {purchased && (
+            <p role="status" className="mb-5 rounded-md border border-line bg-elevated px-4 py-3 text-sm text-ink">
+              Thanks for your purchase. Your plugins appear here in a moment; install them in Cadencea Vault ▸ Plugins.
+            </p>
+          )}
           <MyPlugins entitlements={entitlements} vaultChannel={vaultChannel} storeOpen={storeOpen} />
         </section>
 

@@ -202,11 +202,13 @@ test('checkout opens only for API-confirmed, purchasable items', () => {
   assert.equal(checkoutBlock([{ productId: 'cadencea.gone' }], ready, { apiReachable: true }), 'unavailable')
 })
 
-test('startCheckout is the single, still-closed payment hook', async () => {
+test('startCheckout is the single payment hook and sends no prices', async () => {
   const source = await read('lib/plugins/checkout.ts')
   assert.match(source, /export async function startCheckout\(items: readonly CartItem\[\]\): Promise<CheckoutResult>/)
-  assert.match(source, /status: 'unavailable'/)
-  assert.doesNotMatch(source, /fetch\(|stripe\.com|status: 'redirect', url:/)
+  assert.match(source, /createPluginCheckout\(items\.map\(\(item\) => item\.productId\)\)/)
+  assert.doesNotMatch(source, /fetch\(|amount|unit_?price/i)
+  const client = await read('lib/plugins/access-client.ts')
+  assert.match(client, /body: \{ productIds \}/)
   // Only the cart page calls it.
   const cart = await read('components/plugins/CartView.tsx')
   assert.match(cart, /await startCheckout\(cart\.items\)/)

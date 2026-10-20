@@ -209,6 +209,39 @@ export async function redeemSerial(serial: string): Promise<License> {
   return data.license;
 }
 
+/**
+ * Starts a Stripe Checkout for paid plugins. Only product ids go to the API: it
+ * prices them. Returns the hosted Checkout URL.
+ */
+export async function createPluginCheckout(productIds: readonly string[]): Promise<string> {
+  const data = await accessFetch<{ url: string }>('/v1/access/checkout', { method: 'POST', body: { productIds } });
+  return checkoutUrl(data);
+}
+
+/** Starts a Stripe Checkout for the All Plugins subscription. Returns the hosted Checkout URL. */
+export async function createAllPluginsCheckout(): Promise<string> {
+  const data = await accessFetch<{ url: string }>('/v1/access/checkout/all-plugins', { method: 'POST' });
+  return checkoutUrl(data);
+}
+
+/** Only ever follow a redirect to Stripe's own hosted pages. */
+export function isStripeCheckoutUrl(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && (url.hostname === 'checkout.stripe.com' || url.hostname.endsWith('.stripe.com'));
+  } catch {
+    return false;
+  }
+}
+
+function checkoutUrl(data: { url?: unknown } | undefined): string {
+  if (!isStripeCheckoutUrl(data?.url)) {
+    throw new AccessApiError('invalid_response', 'The plugin service sent an unexpected answer.', 200);
+  }
+  return data.url;
+}
+
 /** Licenses that are in force now: the ones that make a product "yours". */
 export function activeLicenseFor(licenses: readonly License[], productId: string): License | undefined {
   return licenses.find((license) => license.productId === productId && license.status === 'active');
