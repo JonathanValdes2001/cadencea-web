@@ -271,6 +271,35 @@ textarea,
   box-shadow: var(--shadow-card-hover);
 }
 
+/* Store cards: the plugin window floats on its stage with a soft, layered shadow */
+.product-float {
+  border-radius: 10px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.10),
+    0 10px 20px -8px rgb(0 0 0 / 0.22),
+    0 28px 56px -20px rgb(0 0 0 / 0.30);
+  transition-property: transform, box-shadow;
+  transition-duration: 250ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .product-float,
+.group:focus-visible .product-float {
+  transform: translateY(-4px);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.10),
+    0 16px 28px -10px rgb(0 0 0 / 0.26),
+    0 40px 72px -24px rgb(0 0 0 / 0.34);
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-float {
+    transition: none;
+  }
+  .group:hover .product-float,
+  .group:focus-visible .product-float {
+    transform: none;
+  }
+}
+
 /* Horizontal tab and chip rows scroll inside themselves, with an edge fade */
 .scrollbar-none {
   scrollbar-width: none;
