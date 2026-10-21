@@ -206,8 +206,6 @@ const LIVE_SURFACES = [
   'app/cookies/page.tsx',
   'app/contact/page.tsx',
   'app/not-found.tsx',
-  'components/v2/home/WhatsNext.tsx',
-  'components/v2/home/BeforeAfter.tsx',
   'components/v2/home/CompareTable.tsx',
   'components/v2/home/VaultMock.tsx',
   'components/v2/vault/DetectCard.tsx',

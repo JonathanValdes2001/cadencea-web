@@ -3,10 +3,8 @@ import Button from '@/components/ui/Button';
 import Container from '@/components/ui/Container';
 import Faq from '@/components/ui/Faq';
 import SectionHeader from '@/components/ui/SectionHeader';
-import BeforeAfter from '@/components/v2/home/BeforeAfter';
 import CompareTable from '@/components/v2/home/CompareTable';
 import Image from 'next/image';
-import WhatsNext from '@/components/v2/home/WhatsNext';
 import {
   anyDownload,
   availabilityLabel,
@@ -142,11 +140,6 @@ export default async function Home() {
           </div>
         </Container>
       </section>
-
-      <BeforeAfter />
-
-      {/* The 2.0 story comes early on the preview, which exists to show it. */}
-      {preview && <WhatsNext />}
 
       {/* What it does, and the DAWs it works with */}
       <section className="bg-elevated py-14 sm:py-20 lg:py-24">
