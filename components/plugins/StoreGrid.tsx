@@ -51,7 +51,7 @@ export default function StoreGrid({ cards }: { cards: { product: PluginProduct; 
           )}
         </div>
       )}
-      <ul className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
         {shown.map(({ product, listing }) => (
           <ProductCard key={product.id} product={product} listing={listing} />
         ))}
