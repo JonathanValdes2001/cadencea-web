@@ -8,27 +8,16 @@ import Button from '@/components/ui/Button';
 import Logo from '@/components/ui/Logo';
 import { Chevron, Close, Menu } from '@/components/ui/Icons';
 import CartButton from '@/components/plugins/CartButton';
-
-const productionLinks = [
-  { href: '/cadenceavault', label: 'Cadencea Vault' },
-  { href: '/pricing', label: 'Pricing' },
-];
-
-const previewLinks = [
-  { href: '/cadenceavault', label: 'Cadencea Vault' },
-  { href: '/vst-plugins', label: 'Plugins' },
-  { href: '/pricing', label: 'Pricing' },
-];
+import { navLinksFor } from '@/lib/nav-links.mjs';
 
 const isActive = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
 /**
- * `showV2` comes from RootLayout's server-side preview check; the preview adds
- * the Plugins page. Production shows only Cadencea Vault and Pricing. Parked
- * features are not linked from here. `showStore` (whether the plugin store is
- * open, also decided on the server) adds the cart.
+ * `showStore` comes from RootLayout's server-side check that the plugin store
+ * is open; it adds the Plugins link and the cart. Parked features are not
+ * linked from here.
  */
-const Navbar = ({ showV2, showStore = false }: { showV2: boolean; showStore?: boolean }) => {
+const Navbar = ({ showStore = false }: { showStore?: boolean }) => {
   const { user, profile, loading, signOut } = useAuth();
   const pathname = usePathname() ?? '';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,7 +25,7 @@ const Navbar = ({ showV2, showStore = false }: { showV2: boolean; showStore?: bo
   const [scrolled, setScrolled] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const userMenuButtonRef = useRef<HTMLButtonElement>(null);
-  const navLinks = showV2 ? previewLinks : productionLinks;
+  const navLinks = navLinksFor(showStore);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 0);

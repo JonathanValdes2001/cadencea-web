@@ -152,11 +152,11 @@ test('the middleware answers 404 for parked paths before anything renders', asyn
   for (const prefix of PARKED_ROUTE_PREFIXES) assert.match(`${prefix}/x`, re, prefix)
 })
 
-test('RootLayout passes the server-computed flag to the navbar, footer and V2FlagProvider', async () => {
+test('RootLayout passes the server-computed flags to the navbar, footer and V2FlagProvider', async () => {
   const layout = await read('app/layout.tsx')
-  assert.match(layout, /<Navbar showV2=\{isPreview\} showStore=\{storeOpen\} \/>/)
+  assert.match(layout, /<Navbar showStore=\{storeOpen\} \/>/)
   assert.match(layout, /const storeOpen = pluginStoreOpen\(\)/)
-  assert.match(layout, /<Footer showV2=\{isPreview\} \/>/)
+  assert.match(layout, /<Footer showStore=\{storeOpen\} \/>/)
   assert.match(layout, /<V2FlagProvider showV2=\{isPreview\}>/)
 })
 
@@ -180,6 +180,7 @@ test('no client component reads the site channel or the parked switch', async ()
 const LIVE_SURFACES = [
   'components/Navbar.tsx',
   'components/Footer.tsx',
+  'lib/nav-links.mjs',
   'app/layout.tsx',
   'app/page.tsx',
   'app/pricing/page.tsx',
@@ -224,10 +225,12 @@ test('no navigation, footer or in-page link on the live site points at a parked 
 test('the live navigation names only Vault, Plugins, Pricing, Software and the company pages', async () => {
   const navbar = await read('components/Navbar.tsx')
   const footer = await read('components/Footer.tsx')
+  const navLinks = await read('lib/nav-links.mjs')
   const links = (source) => [...source.matchAll(/href: '([^']+)'/g)].map((m) => m[1]).sort()
-  assert.deepEqual(links(navbar), ['/cadenceavault', '/cadenceavault', '/pricing', '/pricing', '/vst-plugins'])
-  assert.deepEqual(links(footer), ['/', '/contact', '/cookies', '/cadenceavault', '/pricing', '/privacy', '/software', '/terms', '/vst-plugins'].sort())
-  for (const source of [navbar, footer]) {
+  assert.deepEqual(links(navbar), [])
+  assert.deepEqual(links(navLinks), ['/cadenceavault', '/pricing', '/vst-plugins'])
+  assert.deepEqual(links(footer), ['/', '/contact', '/cookies', '/privacy', '/software', '/terms'])
+  for (const source of [navbar, footer, navLinks]) {
     assert.doesNotMatch(source, /Market|Publish|Studio|Credits|Stream|CreditsChip/)
   }
 })

@@ -10,7 +10,7 @@ tests stay in the repo.
 | Surface | State |
 |---|---|
 | `/market` (and `/market/<slug>`, `/market/u/<handle>`), `/publish` (`/publish/<type>`), `/studio` (`/studio/<id>`, `/studio/<id>/edit`), `/credits`, `/stream` | **404 everywhere**: previews and production. |
-| Navbar, footer, account menu, mobile menu | No links to them, no demo credits chip, no Publish button. The preview adds a **Plugins** link. |
+| Navbar, footer, account menu, mobile menu | No links to them, no demo credits chip, no Publish button. A **Plugins** link shows while the plugin store is open. |
 | Home "Coming in Cadencea 2.0" band (preview only) | Detect and Cadencea plugins. |
 | `/software` cards (preview only) | Cadencea Vault, plus a "Coming soon" Cadencea plugins card. |
 | `/pricing` | No credits lines, credits section or Market FAQ item. It imports no v2 code. |
@@ -93,9 +93,10 @@ mentions credits) for four labels. Those labels now live in
 
 Separate from the parked switch. `PLUGIN_STORE_LIVE` in
 `lib/plugins/store-gate.mjs`: the store (`/vst-plugins` catalog,
-`/vst-plugins/athena`, `/cart`, the navbar cart button) is served on previews,
-and on production only once the switch is `true`. Before that, production keeps
-the "coming" page and the product page and cart answer 404.
+`/vst-plugins/athena`, `/cart`, the navbar cart button and Plugins link) is
+served on previews, and on production only once the switch is `true`. Before
+that, production keeps the "coming" page and the product page and cart answer
+404.
 `/account` and `/activate/<id>` are not gated (Vault and the plugins link to
 them). `tests/plugins-store.test.mjs` pins it.
 

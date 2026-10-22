@@ -72,12 +72,12 @@ switch (`lib/parked-features.mjs`) are open, so launching v2 cannot publish one.
   per request and the gate reads `VERCEL_ENV` (or `SITE_CHANNEL`) when the page
   is served. A local production check needs `SITE_CHANNEL=production` for both
   `npm run build` and `npm start`; otherwise the preview gate stays open.
-- **Navigation.** `RootLayout` computes `isPreviewSite()` once and passes it as
-  `showV2` to the `Navbar` and `Footer` and through `V2FlagProvider`
-  (`useShowV2()`) to client components. On a preview the navigation adds the
-  Plugins page; nothing links to a parked route. Client code never calls
-  `isPreviewSite()`: `VERCEL_ENV` doesn't exist in the browser, so it would
-  always answer "preview".
+- **Navigation.** `RootLayout` computes `isPreviewSite()` once and passes it
+  through `V2FlagProvider` (`useShowV2()`) to client components. The `Navbar`
+  and `Footer` get `pluginStoreOpen()` as `showStore` and link the Plugins page
+  while the store is open; nothing links to a parked route. Client code never
+  calls `isPreviewSite()`: `VERCEL_ENV` doesn't exist in the browser, so it
+  would always answer "preview".
 - **Plugins and the cart.** Previews serve the plugin store: `/vst-plugins`,
   `/vst-plugins/athena`, `/cart` and a cart button in the navbar. Production
   keeps the plain "Cadencea plugins are coming" page, and 404s the product page
