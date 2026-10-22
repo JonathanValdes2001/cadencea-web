@@ -3,12 +3,15 @@ import type { Metadata } from 'next';
 import LegalLayout from '../../components/LegalLayout';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Cadencea',
+  title: 'Terms of Service',
   description:
     'Legally binding terms governing use of Cadencea Vault, the Cadencea website, and related services.',
 };
 
 export default function TermsPage() {
+  // Merge gate (WEB-V2-SPEC §9.3 #2): §5.1 euros reached main on October 13,
+  // 2026 (lastUpdated below). v2 adds the VAT sentence; before v2 ships, legal
+  // approves it, the .docx gets the same text, and effectiveDate is reviewed.
   return (
     <LegalLayout title="Terms of Service" effectiveDate="April 15, 2026" lastUpdated="October 13, 2026">
       <h2>1. Introduction and Acceptance</h2>
@@ -88,7 +91,8 @@ export default function TermsPage() {
         </li>
       </ul>
       <p>
-        All prices are in euros (EUR). Prices, storage limits, features,
+        All prices are in euros (EUR) and include VAT where it applies.
+        Prices, storage limits, features,
         and tier structures are subject to change. We will notify you of any
         pricing changes at least 30 days before they take effect. Changes will
         apply at the start of your next billing cycle.

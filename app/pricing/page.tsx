@@ -3,6 +3,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import Faq from '@/components/ui/Faq';
+import { useStoreOpen } from '@/components/plugins/StoreOpenContext';
+import { startAllPluginsCheckout } from '@/lib/plugins/checkout';
 import { subscriptionCheckout } from '@/lib/subscription-checkout.mjs';
 import {
   api,
@@ -29,7 +32,7 @@ const plans: Plan[] = [
     yearlyPrice: 0,
     yearlyDiscount: '',
     storage: '5 GB cloud storage',
-    features: ['Cloud sync', 'Basic support'],
+    features: ['Project sharing', 'All your computers', 'Email support'],
     cta: 'Start free',
     popular: false,
   },
@@ -39,8 +42,8 @@ const plans: Plan[] = [
     yearlyPrice: 49.99,
     yearlyDiscount: 'Save €9.89',
     storage: '50 GB cloud storage',
-    features: ['Cloud sync', 'Basic support'],
-    cta: 'Choose plan',
+    features: ['Everything in Free'],
+    cta: 'Choose Basic',
     popular: false,
   },
   {
@@ -49,9 +52,9 @@ const plans: Plan[] = [
     yearlyPrice: 149.99,
     yearlyDiscount: 'Save €29.89',
     storage: '250 GB cloud storage',
-    features: ['Cloud sync', 'Priority support'],
-    cta: 'Choose plan',
-    popular: true,
+    features: ['Everything in Basic', 'Priority email support'],
+    cta: 'Choose Standard',
+    popular: false,
   },
   {
     name: 'Pro',
@@ -59,28 +62,74 @@ const plans: Plan[] = [
     yearlyPrice: 249.99,
     yearlyDiscount: 'Save €49.89',
     storage: '500 GB cloud storage',
-    features: ['Cloud sync', 'Priority support'],
-    cta: 'Choose plan',
+    features: ['Everything in Standard', 'Priority email support'],
+    cta: 'Choose Pro',
     popular: false,
   },
 ];
 
 const includedFeatures = [
   {
-    title: 'Secure & private',
-    desc: 'Choose which projects to upload and who you share them with. Keep a separate backup of important work.',
+    title: 'Lossless',
+    desc: 'Files are stored byte for byte. No transcoding or normalizing, on any plan.',
   },
   {
-    title: 'Easy migration',
-    desc: 'Seamlessly import projects from any DAW or existing setup.',
+    title: 'Private by default',
+    desc: 'Encrypted in transit. You choose which projects to upload and who you share them with.',
   },
   {
-    title: 'Human support',
-    desc: 'Help when you need it from a music-savvy support team.',
+    title: 'Bring your library',
+    desc: 'Point Cadencea Vault at the folders you already have. Nothing is moved or converted.',
+  },
+  {
+    title: 'Every computer, plus sharing',
+    desc: 'Use the app on all your computers and share projects with roles.',
+  },
+  {
+    title: 'Downgrade safely',
+    desc: "Downgrading never deletes files. If you're over the new limit, uploads pause until you're back under it.",
+  },
+  {
+    title: 'Real support',
+    desc: 'Email support from the people who build Cadencea.',
   },
 ];
 
+const pricingFaq = [
+  {
+    q: 'Do collaborators need a paid plan?',
+    a: 'No. People you invite join with a free account.',
+  },
+  {
+    q: 'What counts toward my storage?',
+    a: 'The cloud copies of your projects. Your local folders never count.',
+  },
+  {
+    q: 'Can I change plans later?',
+    a: "Yes. Email support@cadencea.app and we'll switch your plan. Downgrading never deletes files.",
+  },
+  {
+    q: 'Which currency do you charge in?',
+    a: 'Euros.',
+  },
+];
+
+const SWITCH_PLAN_HREF = 'mailto:support@cadencea.app?subject=Switch%20my%20Cadencea%20plan';
+
+/**
+ * The paid plan a signed-in user is still billed for, or null. Display only:
+ * the click path goes through subscriptionCheckout, which rechecks the status,
+ * sends subscribers (and API 409s) to the billing portal and never falls back
+ * to a purchase when the lookup fails.
+ */
+function activePaidPlan(status: SubscriptionStatusResponse): string | null {
+  const plan = status.plan?.toLowerCase();
+  if (!plan || plan === 'free') return null;
+  return /^(canceled|incomplete_expired)/.test(status.status ?? '') ? null : plan;
+}
+
 export default function PricingPage() {
+  const storeOpen = useStoreOpen();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [isYearly, setIsYearly] = useState(false);
@@ -88,22 +137,29 @@ export default function PricingPage() {
     useState<BillingPlansResponse | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [subscription, setSubscription] = useState<SubscriptionStatusResponse | null>(null);
+  const [paidPlan, setPaidPlan] = useState<string | null>(null);
+  // Locks every plan button synchronously so a double click can't start two checkouts.
   const checkoutBusy = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
-    setSubscription(null);
-    if (user) {
-      api.get<SubscriptionStatusResponse>('/billing/subscription-status')
-        .then((value) => { if (!cancelled) setSubscription(value); })
-        .catch(() => { /* The click handler rechecks and fails closed. */ });
+    if (!user) {
+      setPaidPlan(null);
+      return;
     }
-    return () => { cancelled = true; };
+    let cancelled = false;
+    api
+      .get<SubscriptionStatusResponse>('/billing/subscription-status')
+      .then((res) => {
+        if (!cancelled) setPaidPlan(activePaidPlan(res));
+      })
+      .catch(() => {
+        // Unknown status: the buttons stay, and handleSubscribe rechecks the
+        // status through subscriptionCheckout, which fails closed.
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
-
-  const hasSubscription = subscription && subscription.plan !== 'free' &&
-    !['canceled', 'incomplete_expired'].includes((subscription.status ?? '').split(' ')[0]);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,8 +184,6 @@ export default function PricingPage() {
       router.push(user ? '/account/subscription' : '/signup');
       return;
     }
-
-    if (authLoading) return;
 
     if (!user) {
       router.push(`/login?redirect=${encodeURIComponent('/pricing')}`);
@@ -178,12 +232,11 @@ export default function PricingPage() {
             Pricing
           </p>
           <h1 className="mx-auto mt-3 max-w-3xl text-5xl font-bold tracking-tight md:text-6xl">
-            Choose your plan.
+            Free app. Pay only for cloud space.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted">
-            Unlock the full potential of Cadencea Vault with flexible pricing
-            designed for every artist, from bedroom producers to professional
-            studios.
+            Cadencea Vault and your local library are free. Choose how much
+            lossless cloud storage you need, and cancel anytime.
           </p>
 
           {/* Monthly / Yearly toggle */}
@@ -239,12 +292,6 @@ export default function PricingPage() {
                       : 'border-line'
                   }`}
                 >
-                  {plan.popular && (
-                    <span className="absolute -top-3 left-6 inline-flex items-center rounded-sm bg-accent px-2 py-1 text-[11px] font-semibold uppercase tracking-widest text-white">
-                      Most popular
-                    </span>
-                  )}
-
                   <div>
                     <h3 className="text-lg font-semibold tracking-tight text-ink">
                       {plan.name}
@@ -272,7 +319,7 @@ export default function PricingPage() {
                     )}
                   </div>
 
-                  <ul className="mt-8 flex flex-col gap-3 text-sm text-ink">
+                  <ul className="mb-10 mt-8 flex flex-col gap-3 text-sm text-ink">
                     <li className="flex items-start gap-2">
                       <Check />
                       <span>{plan.storage}</span>
@@ -285,19 +332,29 @@ export default function PricingPage() {
                     ))}
                   </ul>
 
-                  <button
-                    type="button"
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={authLoading || loadingPlan !== null}
-                    aria-busy={loadingPlan === plan.name}
-                    className={`mt-10 inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
-                      plan.popular
-                        ? 'bg-accent text-white hover:bg-accent-hover'
-                        : 'border border-ink text-ink hover:bg-elevated'
-                    }`}
-                  >
-                    {loadingPlan === plan.name ? 'Redirecting…' : hasSubscription ? 'Manage subscription' : plan.cta}
-                  </button>
+                  {paidPlan && !isFree && plan.name.toLowerCase() === paidPlan ? (
+                    <p className="mt-auto inline-flex h-11 items-center justify-center rounded-sm border border-line text-sm font-semibold tracking-wide text-ink-muted">
+                      Current plan
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={authLoading || loadingPlan !== null}
+                      aria-busy={loadingPlan === plan.name}
+                      className={`mt-auto inline-flex h-11 items-center justify-center rounded-sm text-sm font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isFree
+                          ? 'border border-ink text-ink hover:bg-elevated'
+                          : 'bg-accent text-white hover:bg-accent-hover'
+                      }`}
+                    >
+                      {loadingPlan === plan.name
+                        ? 'Redirecting…'
+                        : paidPlan && !isFree
+                          ? 'Manage subscription'
+                          : plan.cta}
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -305,23 +362,38 @@ export default function PricingPage() {
           {error && (
             <p
               role="alert"
-              className="mx-auto mt-8 max-w-xl text-center text-sm text-red-600"
+              className="mx-auto mt-8 max-w-xl text-center text-sm text-danger"
             >
               {error}
             </p>
           )}
+          {paidPlan && (
+            <p className="mx-auto mt-8 max-w-xl text-center text-sm text-ink">
+              Your subscription is managed in the billing portal. To switch plans, email{' '}
+              <a href={SWITCH_PLAN_HREF} className="font-medium text-accent-ink hover:text-accent-hover">
+                support@cadencea.app
+              </a>{' '}
+              and we&rsquo;ll move your subscription over, so you&rsquo;re never billed twice.
+            </p>
+          )}
+          <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-ink-muted">
+            Prices in euros. Cancel anytime; your plan stays active until the
+            end of the billing period.
+          </p>
         </div>
       </section>
 
+      {storeOpen && <AllPluginsPlan yearly={isYearly} />}
+
       {/* Included features */}
       <section>
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:py-20 lg:py-24 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
               Included in every plan
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink md:text-4xl">
-              The fundamentals never cost extra.
+              What every plan includes.
             </h2>
           </div>
           <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-3">
@@ -334,12 +406,22 @@ export default function PricingPage() {
               </div>
             ))}
           </div>
-          <p className="mt-16 max-w-2xl text-sm text-ink-muted">
-            Questions about pricing?{' '}
+        </div>
+      </section>
+
+      {/* Pricing FAQ */}
+      <section className="border-t border-line">
+        <div className="mx-auto max-w-4xl px-6 py-14 sm:py-20 lg:py-24 lg:px-8">
+          <h2 className="text-3xl font-bold tracking-tight text-ink md:text-4xl">
+            Pricing questions.
+          </h2>
+          <Faq className="mt-10" items={pricingFaq} />
+          <p className="mt-16 text-sm text-ink-muted">
+            Studio or team?{' '}
             <a href="/contact" className="font-medium text-accent hover:text-accent-hover">
-              Contact our sales team
-            </a>{' '}
-            for enterprise solutions.
+              Get in touch
+            </a>
+            .
           </p>
         </div>
       </section>
@@ -363,5 +445,78 @@ function Check() {
         d="M5 13l4 4L19 7"
       />
     </svg>
+  );
+}
+
+/**
+ * All Plugins: every Cadencea plugin, Mini and Complex, for one monthly price (founder decision
+ * 2026-10-20). Separate from the storage plans. Checkout comes with the payment step (launch plan
+ * S5); until then the button says when it opens.
+ */
+// Follows the page's Monthly/Yearly switch above the storage plans.
+function AllPluginsPlan({ yearly }: { yearly: boolean }) {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const subscribe = async () => {
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent('/pricing#all-plugins')}`);
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    const result = await startAllPluginsCheckout(yearly ? 'year' : 'month');
+    if (result.status === 'redirect') {
+      window.location.assign(result.url);
+      return;
+    }
+    setBusy(false);
+    setMessage(result.message);
+  };
+
+  return (
+    <section id="all-plugins" className="scroll-mt-24 border-b border-line">
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-24">
+        <div className="mx-auto flex max-w-md flex-col rounded-md border border-ink bg-canvas p-8">
+          <h3 className="text-lg font-semibold tracking-tight text-ink">All Plugins</h3>
+          <p className="mt-1 text-xs font-medium uppercase tracking-widest text-ink-subtle">Every Cadencea plugin</p>
+          <div className="mt-6 flex items-baseline gap-1">
+            <span className="text-4xl font-bold tracking-tight text-ink">{yearly ? '€49.99' : '€4.99'}</span>
+            <span className="text-sm text-ink-muted">/ {yearly ? 'year' : 'month'}</span>
+          </div>
+          {yearly && (
+            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-price">Save €9.89</p>
+          )}
+          <ul className="mb-10 mt-8 flex flex-col gap-3 text-sm text-ink">
+            {[
+              'Every plugin, Mini and Complex',
+              'Every plugin we release next',
+              'Up to 3 computers',
+            ].map((f) => (
+              <li key={f} className="flex items-start gap-2">
+                <Check />
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={subscribe}
+            disabled={loading || busy}
+            aria-busy={busy}
+            className="mt-auto inline-flex h-11 items-center justify-center rounded-sm bg-accent text-sm font-semibold tracking-wide text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {busy ? 'Redirecting…' : 'Get All Plugins'}
+          </button>
+          {message && (
+            <p role="alert" className="mt-3 text-center text-sm text-ink-muted">
+              {message}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }

@@ -3,6 +3,7 @@ import React from 'react';
 type LegalLayoutProps = {
   title: string;
   effectiveDate: string;
+  /** When the text last changed; defaults to the effective date. */
   lastUpdated?: string;
   children: React.ReactNode;
 };
@@ -10,7 +11,7 @@ type LegalLayoutProps = {
 export default function LegalLayout({
   title,
   effectiveDate,
-  lastUpdated = 'April 15, 2026',
+  lastUpdated = effectiveDate,
   children,
 }: LegalLayoutProps) {
   return (

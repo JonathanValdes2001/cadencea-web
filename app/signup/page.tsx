@@ -1,9 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+import Logo from '@/components/ui/Logo';
+import { CheckboxField, TextField } from '@/components/ui/Field';
 import { useAuth } from '@/lib/auth-context';
+import { AUTH_MESSAGES, looksLikeEmail, signUpErrorMessage } from '@/lib/auth-messages.mjs';
+import { safePostLoginPath } from '@/lib/auth-route-policy.mjs';
+
+type FieldName = 'firstName' | 'lastName' | 'username' | 'email' | 'password' | 'confirmPassword' | 'agreeTerms';
+
+const FIELD_ORDER: FieldName[] = ['firstName', 'lastName', 'username', 'email', 'password', 'confirmPassword', 'agreeTerms'];
 
 export default function Signup() {
   const router = useRouter();
@@ -16,45 +25,56 @@ export default function Signup() {
     password: '',
     confirmPassword: '',
   });
-  const [errors, setErrors] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [formError, setFormError] = useState('');
+  const [sentTo, setSentTo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  // ?redirect= (e.g. from "Get for free" on a plugin page): where to go once
+  // signed in, validated like the sign-in page's.
+  const [redirectPath, setRedirectPath] = useState('/');
+
+  useEffect(() => {
+    setRedirectPath(safePostLoginPath(new URLSearchParams(window.location.search).get('redirect')));
+  }, []);
+  const redirectQuery = redirectPath !== '/' ? `?redirect=${encodeURIComponent(redirectPath)}` : '';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors.length > 0) setErrors([]);
+    if (fieldErrors[name as FieldName]) setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (formError) setFormError('');
+  };
+
+  const validate = (): Partial<Record<FieldName, string>> => {
+    const errors: Partial<Record<FieldName, string>> = {};
+    const username = formData.username.trim();
+    if (!formData.firstName.trim()) errors.firstName = 'Enter your first name.';
+    if (!formData.lastName.trim()) errors.lastName = 'Enter your last name.';
+    if (username.length < 3) errors.username = 'Choose a username of at least 3 characters.';
+    else if (!/^[a-zA-Z0-9_-]+$/.test(username)) errors.username = 'Usernames can only use letters, numbers, - and _.';
+    if (!formData.email.trim()) errors.email = 'Enter your email.';
+    else if (!looksLikeEmail(formData.email)) errors.email = AUTH_MESSAGES.invalidEmail;
+    if (formData.password.length < 8) errors.password = 'Choose a password of at least 8 characters.';
+    if (formData.password !== formData.confirmPassword) errors.confirmPassword = "The passwords don't match.";
+    if (!agreeTerms) errors.agreeTerms = 'Agree to the Terms of Service and Privacy Policy to continue.';
+    return errors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrors([]);
+    setFormError('');
 
-    const newErrors: string[] = [];
-    if (!formData.firstName.trim()) newErrors.push('First name is required');
-    if (!formData.lastName.trim()) newErrors.push('Last name is required');
-    if (!formData.username.trim()) newErrors.push('Username is required');
-    if (formData.username.trim().length < 3)
-      newErrors.push('Username must be at least 3 characters');
-    if (!/^[a-zA-Z0-9_-]+$/.test(formData.username.trim())) {
-      newErrors.push(
-        'Username can only contain letters, numbers, underscores, and hyphens'
-      );
-    }
-    if (!formData.email.trim()) newErrors.push('Email is required');
-    if (!formData.password) newErrors.push('Password is required');
-    if (formData.password !== formData.confirmPassword)
-      newErrors.push('Passwords do not match');
-    if (formData.password && formData.password.length < 6)
-      newErrors.push('Password must be at least 6 characters');
-
-    if (newErrors.length > 0) {
-      setErrors(newErrors);
-      setIsSubmitting(false);
+    const errors = validate();
+    setFieldErrors(errors);
+    const firstInvalid = FIELD_ORDER.find((name) => errors[name]);
+    if (firstInvalid) {
+      formRef.current?.querySelector<HTMLInputElement>(`#${firstInvalid}`)?.focus();
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const { error, session } = await signUp(
         formData.email,
@@ -65,16 +85,15 @@ export default function Signup() {
       );
 
       if (error) {
-        setErrors([error.message]);
+        console.warn('[signup] Sign-up failed:', error.message);
+        setFormError(signUpErrorMessage(error));
       } else if (session) {
-        router.push('/');
+        router.push(redirectPath);
       } else {
-        setSuccessMessage(
-          'Account created. Please check your email and click the confirmation link, then sign in.'
-        );
+        setSentTo(formData.email.trim());
       }
-    } catch {
-      setErrors(['An unexpected error occurred. Please try again.']);
+    } catch (err) {
+      setFormError(signUpErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -84,220 +103,163 @@ export default function Signup() {
     <div className="bg-canvas text-ink">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center px-6 py-16 lg:py-24">
         <div className="mb-10 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-ink"
-            aria-label="Cadencea home"
-          >
-            <span className="inline-block h-4 w-4 bg-ink" aria-hidden="true" />
-            <span className="text-base font-bold tracking-tight">
-              CADENCEA
-            </span>
+          <Link href="/" className="inline-flex items-center" aria-label="Cadencea home">
+            <Logo tone="onLight" size="lg" />
           </Link>
-          <h1 className="mt-8 text-3xl font-bold tracking-tight md:text-4xl">
-            Create your account.
-          </h1>
+          <h1 className="mt-8 text-3xl font-bold tracking-tight md:text-4xl">Create your free account.</h1>
           <p className="mt-3 text-sm text-ink-muted">
-            Already have an account?{' '}
-            <Link
-              href="/login"
-              className="font-medium text-accent hover:text-accent-hover"
-            >
+            One account for Cadencea Vault and this website. Already have one?{' '}
+            <Link href={`/login${redirectQuery}`} className="font-medium text-accent-ink hover:text-accent-hover">
               Sign in
             </Link>
           </p>
         </div>
 
         <div className="rounded-md border border-line bg-canvas p-8">
-          {successMessage && (
-            <div className="mb-6 rounded-sm border border-line bg-elevated px-4 py-3">
-              <p className="text-sm font-semibold text-ink">Account created</p>
-              <p className="mt-1 text-sm text-ink-muted">{successMessage}</p>
+          {sentTo ? (
+            <div role="status">
+              <h2 className="text-lg font-semibold tracking-tight text-ink">Check your inbox</h2>
+              <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                We sent a confirmation link to {sentTo}. Open it, then sign in.
+              </p>
               <Link
-                href="/login"
-                className="mt-3 inline-flex items-center text-sm font-medium text-accent hover:text-accent-hover"
+                href={`/login${redirectQuery}`}
+                className="mt-4 inline-flex items-center text-sm font-medium text-accent-ink hover:text-accent-hover"
               >
                 Go to sign in →
               </Link>
             </div>
-          )}
-
-          {errors.length > 0 && (
-            <div className="mb-6 rounded-sm border border-line bg-elevated px-4 py-3">
-              <p className="text-sm font-semibold text-ink">
-                {errors.length === 1
-                  ? 'Please fix this error'
-                  : 'Please fix the following errors'}
-              </p>
-              {errors.length === 1 ? (
-                <p className="mt-1 text-sm text-ink-muted">{errors[0]}</p>
-              ) : (
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-muted">
-                  {errors.map((er, i) => (
-                    <li key={i}>{er}</li>
-                  ))}
-                </ul>
+          ) : (
+            <>
+              {formError && (
+                <div
+                  role="alert"
+                  className="mb-6 rounded-sm border border-line bg-tone-danger-bg px-4 py-3 text-sm text-tone-danger"
+                >
+                  {formError}
+                </div>
               )}
-            </div>
+
+              <form ref={formRef} className="space-y-5" onSubmit={handleSubmit} noValidate>
+                <div className="grid grid-cols-2 gap-4">
+                  <TextField
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    label="First name"
+                    autoComplete="given-name"
+                    required
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    error={fieldErrors.firstName}
+                  />
+                  <TextField
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    label="Last name"
+                    autoComplete="family-name"
+                    required
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    error={fieldErrors.lastName}
+                  />
+                </div>
+
+                <TextField
+                  id="username"
+                  name="username"
+                  type="text"
+                  label="Username"
+                  autoComplete="username"
+                  required
+                  value={formData.username}
+                  onChange={handleChange}
+                  hint="Collaborators find you by this name. Letters, numbers, - and _ only."
+                  error={fieldErrors.username}
+                />
+
+                <TextField
+                  id="email"
+                  name="email"
+                  type="email"
+                  label="Email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="you@example.com"
+                  error={fieldErrors.email}
+                />
+
+                <TextField
+                  id="password"
+                  name="password"
+                  type="password"
+                  label="Password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  hint="At least 8 characters."
+                  error={fieldErrors.password}
+                />
+
+                <TextField
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  label="Confirm password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  error={fieldErrors.confirmPassword}
+                />
+
+                <CheckboxField
+                  id="agreeTerms"
+                  name="agree-terms"
+                  required
+                  checked={agreeTerms}
+                  onChange={(e) => {
+                    setAgreeTerms(e.target.checked);
+                    if (fieldErrors.agreeTerms) setFieldErrors((prev) => ({ ...prev, agreeTerms: undefined }));
+                  }}
+                  error={fieldErrors.agreeTerms}
+                  label={
+                    <>
+                      I agree to the{' '}
+                      <a
+                        href="/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-accent-ink hover:text-accent-hover"
+                      >
+                        Terms of Service
+                      </a>{' '}
+                      and{' '}
+                      <a
+                        href="/privacy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-accent-ink hover:text-accent-hover"
+                      >
+                        Privacy Policy
+                      </a>
+                      .
+                    </>
+                  }
+                />
+
+                <Button type="submit" size="lg" fullWidth disabled={isSubmitting || loading}>
+                  {isSubmitting ? 'Creating account…' : 'Create account'}
+                </Button>
+              </form>
+            </>
           )}
-
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-4">
-              <Field
-                id="firstName"
-                name="firstName"
-                type="text"
-                label="First name"
-                autoComplete="given-name"
-                required
-                value={formData.firstName}
-                onChange={handleChange}
-              />
-              <Field
-                id="lastName"
-                name="lastName"
-                type="text"
-                label="Last name"
-                autoComplete="family-name"
-                required
-                value={formData.lastName}
-                onChange={handleChange}
-              />
-            </div>
-
-            <Field
-              id="username"
-              name="username"
-              type="text"
-              label="Username"
-              autoComplete="username"
-              required
-              value={formData.username}
-              onChange={handleChange}
-              hint="This is how others will find you when sharing projects."
-            />
-
-            <Field
-              id="email"
-              name="email"
-              type="email"
-              label="Email address"
-              autoComplete="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-            />
-
-            <Field
-              id="password"
-              name="password"
-              type="password"
-              label="Password"
-              autoComplete="new-password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-            />
-
-            <Field
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              label="Confirm password"
-              autoComplete="new-password"
-              required
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
-
-            <label className="flex items-start gap-2 text-sm text-ink-muted">
-              <input
-                type="checkbox"
-                name="agree-terms"
-                required
-                className="mt-1 h-4 w-4 rounded-sm border-line text-accent focus:ring-accent"
-              />
-              <span>
-                I have read and agree to the{' '}
-                <a
-                  href="/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-accent hover:text-accent-hover"
-                >
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a
-                  href="/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-accent hover:text-accent-hover"
-                >
-                  Privacy Policy
-                </a>
-                .
-              </span>
-            </label>
-
-            <button
-              type="submit"
-              disabled={isSubmitting || loading}
-              className="inline-flex h-12 w-full items-center justify-center rounded-sm bg-accent text-sm font-semibold tracking-wide text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? 'Creating account…' : 'Create account'}
-            </button>
-          </form>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Field({
-  id,
-  name,
-  type,
-  label,
-  autoComplete,
-  required,
-  value,
-  onChange,
-  placeholder,
-  hint,
-}: {
-  id: string;
-  name: string;
-  type: string;
-  label: string;
-  autoComplete?: string;
-  required?: boolean;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-  hint?: string;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-2 block text-xs font-semibold uppercase tracking-widest text-ink"
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        autoComplete={autoComplete}
-        required={required}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="block h-11 w-full rounded-sm border border-line bg-elevated px-3.5 text-base text-ink placeholder-ink-subtle focus:border-accent focus:bg-canvas focus:outline-none focus:ring-2 focus:ring-accent/30"
-      />
-      {hint && <p className="mt-2 text-xs text-ink-muted">{hint}</p>}
     </div>
   );
 }

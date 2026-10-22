@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact | Cadencea',
+  title: 'Contact',
   description:
     'Get in touch with the Cadencea team for product support, privacy requests, or general inquiries.',
 };
@@ -113,7 +113,7 @@ export default function ContactPage() {
                 </div>
                 <div className="border-t border-line pt-4">
                   <dt className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
-                    Organisation number
+                    Organization number
                   </dt>
                   <dd className="mt-2 font-mono text-sm text-ink">930343870</dd>
                 </div>

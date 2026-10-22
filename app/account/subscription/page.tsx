@@ -29,12 +29,12 @@ const PLAN_COPY: Record<
   },
   standard: {
     name: 'Standard',
-    tagline: '250 GB cloud storage · Priority support',
+    tagline: '250 GB cloud storage · Priority email support',
     priceMonthly: '€14.99',
   },
   pro: {
     name: 'Pro',
-    tagline: '500 GB cloud storage · Priority support',
+    tagline: '500 GB cloud storage · Priority email support',
     priceMonthly: '€24.99',
   },
 };
@@ -284,12 +284,22 @@ export default function Subscription() {
               </dl>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/pricing"
-                  className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover"
-                >
-                  Upgrade plan
-                </Link>
+                {isPaid ? (
+                  // Checkout would start a second subscription; support switches plans in place.
+                  <a
+                    href="mailto:support@cadencea.app?subject=Switch%20my%20Cadencea%20plan"
+                    className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover"
+                  >
+                    Email us to change plan
+                  </a>
+                ) : (
+                  <Link
+                    href="/pricing"
+                    className="inline-flex h-10 items-center rounded-sm bg-accent px-6 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover"
+                  >
+                    Upgrade plan
+                  </Link>
+                )}
                 {isPaid && (
                   <button
                     type="button"

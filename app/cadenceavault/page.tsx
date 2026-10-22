@@ -1,105 +1,129 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import Button from '@/components/ui/Button';
+import Container, { ShowroomGlow } from '@/components/ui/Container';
+import SectionHeader from '@/components/ui/SectionHeader';
+import { Check } from '@/components/ui/Icons';
+import DownloadButton from '@/components/vault/DownloadButton';
 import AndroidIcon from '@/components/AndroidIcon';
 import { androidRelease } from '@/lib/cadencea-mobile-release';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
+import { isPreviewSite } from '@/lib/site-channel.mjs';
 
-const heroChips = ['Original-quality files', 'Works with any DAW', 'Local project library'];
+export const metadata: Metadata = {
+  title: 'Cadencea Vault — DAW project library with lossless cloud sync',
+  description:
+    'Organize every DAW project, see BPM, key and tags at a glance, and push bit-for-bit copies to the cloud. Free for Windows and macOS.',
+};
+
 
 const showcases = [
   {
-    eyebrow: 'Harmonic filtering',
-    title: 'Find every track in the right key.',
-    desc: 'Browse your catalog through an interactive circle of fifths. Click any major or minor key and your projects filter instantly — ideal for building harmonically compatible sets and finding the track that fits next.',
-    points: ['Major and minor selection', 'Camelot-style key wheel', 'One-click filtering'],
+    eyebrow: 'Key wheel',
+    title: 'Find every project in the right key.',
+    desc: 'Browse your catalog on an interactive circle of fifths. Pick a major or minor key and the library filters instantly, which is ideal for building sets or finding the idea that fits a topline.',
+    points: ['Major and minor keys', 'Camelot-style wheel', 'One-click filtering'],
     src: '/vault/key-wheel.png',
     alt: 'Cadencea Vault circle-of-fifths key wheel filtering projects by musical key',
     width: 1715,
     height: 1137,
-    reverse: false,
   },
   {
-    eyebrow: 'Detail view',
-    title: 'Every detail, at a glance.',
-    desc: 'Switch to a sortable table to see artist, BPM, key, date, DAW, tags, and cloud-sync status across your whole library — then sort by any column to surface exactly what you need.',
-    points: ['BPM, key & metadata', 'Per-project sync status', 'Sort and filter by tag'],
+    eyebrow: 'Table view',
+    title: 'Every detail, sortable.',
+    desc: 'See artist, BPM, key, date, DAW, tags and sync status for every project, and sort by any column to surface exactly what you need.',
+    points: ['BPM, key and metadata', 'Sync status per project', 'Filter by tag'],
     src: '/vault/table.png',
-    alt: 'Cadencea Vault detailed table view showing artist, BPM, key, tags and sync status',
+    alt: 'Cadencea Vault table view showing artist, BPM, key, tags and sync status',
     width: 1713,
     height: 957,
-    reverse: true,
   },
   {
-    eyebrow: 'Built for big libraries',
-    title: 'Hundreds of projects, zero clutter.',
-    desc: 'A compact list packs more of your catalog onto the screen while keeping tags, sync indicators, and instant playback one click away — so moving through a deep library stays fast.',
-    points: ['High-density layout', 'Instant in-app playback', 'Color-coded tags'],
+    eyebrow: 'List view',
+    title: 'Hundreds of projects, no clutter.',
+    desc: 'A compact list fits more of your catalog on screen, with tags, sync status and playback one click away.',
+    points: ['Dense layout', 'Instant playback', 'Color-coded tags'],
     src: '/vault/list.png',
     alt: 'Cadencea Vault compact list view of a large project library',
     width: 1702,
     height: 1002,
-    reverse: false,
   },
 ];
 
 const features = [
   {
-    title: 'Project management',
-    desc: 'Organize your music projects with tags, BPM, musical key, and per-project sharing.',
+    title: 'Organize',
+    desc: 'Projects stay as normal folders on your drive. Cadencea Vault adds BPM, key, tags, artwork and notes without moving or renaming anything.',
   },
   {
-    title: 'Cloud sync you control',
-    desc: 'Upload selected projects in their original quality and download them on another device. Keep a separate backup of important work.',
+    title: 'Back up',
+    desc: "Push a lossless copy when you're ready and see which projects have changes that aren't backed up yet. Sync status comes from content hashes, so you know exactly which files changed.",
   },
   {
-    title: 'File sharing',
-    desc: 'Share projects and collaborate with other artists seamlessly. Control access and permissions per project.',
+    title: 'Share',
+    desc: 'Invite collaborators to a project with roles. They open the full session (project file, stems and artwork) with a free account.',
   },
 ];
+
+const promises: { label: string; href?: string }[] = [
+  { label: 'Normal folders on your drive' },
+  { label: 'Works offline' },
+  { label: 'Never transcoded or normalized' },
+  { label: 'Encrypted in transit (TLS)' },
+  { label: 'Downgrading never deletes files' },
+  { label: 'Export your account data anytime', href: '/account/settings' },
+];
+
+/** How long this page waits for each platform's updater manifest (fetched fresh, never cached). */
+const FEED_TIMEOUT_MS = 3000;
 
 const systemRequirements = [
   {
     name: 'Windows',
-    available: true,
+    available: false,
     items: [
       'Windows 10 or later',
       '64-bit processor',
       '4 GB RAM minimum',
-      '2 GB free disk space',
+      '2 GB free disk space, plus room for your projects',
     ],
   },
   {
     name: 'macOS',
     available: false,
     items: [
-      'macOS 12 or later',
-      'Apple Silicon (M1 or later) or 64-bit Intel',
+      'macOS 12 Monterey or later',
+      'Apple Silicon or Intel',
       '4 GB RAM minimum',
-      '2 GB free disk space',
+      '2 GB free disk space, plus room for your projects',
     ],
   },
   {
     name: 'Linux',
     available: false,
-    items: [
-      'Ubuntu 18.04 or later',
-      '64-bit processor',
-      '4 GB RAM minimum',
-      '2 GB free disk space',
-    ],
+    items: [],
   },
 ];
 
 export default async function CadenceaVault() {
-  const releases = await loadCadenceaVaultReleases();
+  const preview = isPreviewSite();
+  const releases = await loadCadenceaVaultReleases(fetch, { timeoutMs: FEED_TIMEOUT_MS });
   const windowsDownloadUrl = releases.windows?.downloadUrl;
   const macArm64DownloadUrl = releases.macArm64?.downloadUrl;
   const macX64DownloadUrl = releases.macX64?.downloadUrl;
   const macAvailable = Boolean(macArm64DownloadUrl || macX64DownloadUrl);
-  const systems = systemRequirements.map((system) =>
-    system.name === 'macOS' ? { ...system, available: macAvailable } : system,
-  );
+  const noneAvailable = !windowsDownloadUrl && !macAvailable;
+  const someMissing = !noneAvailable && (!windowsDownloadUrl || !macArm64DownloadUrl || !macX64DownloadUrl);
+  // Windows and macOS have both shipped, so a missing build is an outage (or,
+  // on the preview, a beta that isn't published yet), never a planned platform.
+  const unavailableLabel = preview && noneAvailable ? 'Not published yet' : 'Temporarily unavailable';
+  const systems = systemRequirements.map((system) => {
+    if (system.name === 'Windows') return { ...system, available: Boolean(windowsDownloadUrl) };
+    if (system.name === 'macOS') return { ...system, available: macAvailable };
+    return system;
+  });
 
   return (
     <div className="bg-canvas text-ink">
@@ -108,270 +132,232 @@ export default async function CadenceaVault() {
           One continuous violet-lit dark region, the way a product
           gets its own color world on Native Instruments.
           ============================================================ */}
-      <div className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#1A1A1A_0%,#15121c_42%,#100d18_100%)] text-dark-text">
-        {/* Ambient purple glows */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-40 left-1/2 h-[460px] w-[940px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(124,58,237,0.30),transparent)] blur-3xl" />
-          <div className="absolute left-[-10%] top-[38%] h-[420px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(139,92,246,0.18),transparent)] blur-3xl" />
-          <div className="absolute right-[-8%] top-[64%] h-[460px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(167,139,250,0.16),transparent)] blur-3xl" />
-        </div>
+      <div className="on-dark relative isolate overflow-hidden bg-showroom text-dark-text">
+        <ShowroomGlow />
 
         {/* Hero */}
         <section className="relative">
-          <div className="mx-auto max-w-7xl px-6 pt-20 lg:px-8 lg:pt-28">
+          <Container className="pt-20 lg:pt-28">
             <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-widest text-[#c4b5fd]">
-                Cadencea Vault · Desktop app
-              </p>
-              <h1 className="mt-6 text-5xl font-bold leading-tight tracking-tight md:text-6xl lg:text-7xl">
-                Music project management.
+              <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+                Organize, share and back up your music projects.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dark-muted md:text-xl">
-                Organize your samples, projects, and stems. Back them up
-                securely to the cloud.{' '}
-                {macAvailable
-                  ? 'Available for Windows and macOS desktop workflows, with Linux planned for a later release.'
-                  : 'Currently available for Windows, with macOS build support being prepared next.'}
-              </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-2.5">
-                {heroChips.map((chip) => (
-                  <span
-                    key={chip}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#a78bfa]/30 bg-[#a78bfa]/10 px-3 py-1 text-xs font-medium text-[#c4b5fd]"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#a78bfa]" />
-                    {chip}
-                  </span>
-                ))}
+              <div id="download" className="scroll-mt-24">
+                {noneAvailable ? (
+                  <>
+                    <p className="mt-10 text-sm text-dark-muted">
+                      Downloads are temporarily unavailable. Please check back soon.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="mt-10 flex flex-wrap gap-3">
+                      <DownloadButton platform="Windows" variant="primary" href={windowsDownloadUrl} />
+                      <DownloadButton platform="Mac (Apple Silicon)" variant="onDark" href={macArm64DownloadUrl} />
+                      <DownloadButton platform="Mac (Intel)" variant="onDark" href={macX64DownloadUrl} />
+                      <Button href={androidRelease.downloadUrl} variant="onDark" size="lg" prefetch={false}>
+                        <AndroidIcon className="h-5 w-5 shrink-0" />
+                        Download for Android (APK)
+                      </Button>
+                      <Button variant="onDarkOutline" size="lg" disabled>
+                        Linux · planned
+                      </Button>
+                    </div>
+                    {someMissing && (
+                      <p className="mt-4 text-sm text-dark-muted">
+                        Some downloads are temporarily unavailable. Try again later or contact{' '}
+                        <a href="mailto:support@cadencea.app" className="font-medium text-brand-300 hover:text-brand-200">
+                          support@cadencea.app
+                        </a>
+                        .
+                      </p>
+                    )}
+                    {macAvailable && (
+                      <p className="mt-4 text-sm text-dark-muted">
+                        Not sure which Mac you have? Apple menu → About This Mac. &ldquo;Chip: Apple M…&rdquo; means
+                        Apple Silicon; &ldquo;Processor: Intel&rdquo; means Intel.
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
-
-              <div className="mt-10 flex flex-wrap gap-3">
-                <DownloadButton
-                  platform="Windows"
-                  available
-                  primary
-                  href={windowsDownloadUrl}
-                />
-                <DownloadButton
-                  platform="Mac (Apple Silicon)"
-                  available={Boolean(macArm64DownloadUrl)}
-                  href={macArm64DownloadUrl}
-                />
-                <DownloadButton
-                  platform="Mac (Intel)"
-                  available={Boolean(macX64DownloadUrl)}
-                  href={macX64DownloadUrl}
-                />
-                <DownloadButton platform="Linux" available={false} />
-                <a href={androidRelease.downloadUrl} className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-sm border border-[#3ddc84]/50 bg-[#3ddc84]/10 px-6 py-3 text-base font-semibold text-[#7aefb0] transition-colors hover:bg-[#3ddc84]/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3ddc84]">
-                  <AndroidIcon className="h-7 w-7 shrink-0" />
-                  Download for Android
-                  <span className="rounded border border-[#3ddc84]/30 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide">APK</span>
-                </a>
-              </div>
-              {macAvailable && (
-                <p className="mt-4 text-sm text-dark-muted">
-                  Choose Apple Silicon for M1, M2, M3, M4, and newer chips.
-                  Choose Intel for older Intel-based Macs.
-                </p>
-              )}
             </div>
 
-            {/* Flagship screenshot */}
-            <div className="relative mx-auto mt-16 max-w-6xl lg:mt-20">
-              <ScreenshotFrame
-                src="/vault/list.png"
-                alt="Cadencea Vault project list with color-coded tags, play buttons and sync status"
-                width={1702}
-                height={1002}
-                priority
-                sizes="(min-width: 1024px) 1152px, 100vw"
-              />
-            </div>
-          </div>
+          </Container>
         </section>
 
-        {/* Product showcase — alternating screenshot rows */}
+        {/* Product showcase — alternating rows */}
         <section className="relative">
-          <div className="mx-auto max-w-7xl px-6 pb-24 pt-24 lg:px-8 lg:pb-32 lg:pt-32">
-            <div className="mb-16 max-w-2xl lg:mb-20">
-              <p className="text-xs font-semibold uppercase tracking-widest text-[#c4b5fd]">
-                A closer look
-              </p>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
-                Built around the way you work.
-              </h2>
-              <p className="mt-4 text-base leading-relaxed text-dark-muted">
-                Every view in Cadencea Vault is designed to keep your catalog
-                organized and your next idea close at hand.
-              </p>
-            </div>
-
+          <Container className="pb-24 pt-24 lg:pb-32 lg:pt-32">
             <div className="space-y-24 lg:space-y-32">
-              {showcases.map((s) => (
-                <ShowcaseRow key={s.title} {...s} />
+              {showcases.map((s, i) => (
+                <ShowcaseRow
+                  key={s.title}
+                  eyebrow={s.eyebrow}
+                  title={s.title}
+                  desc={s.desc}
+                  points={s.points}
+                  reverse={i % 2 === 1}
+                >
+                  <ScreenshotFrame
+                    src={s.src}
+                    alt={s.alt}
+                    width={s.width}
+                    height={s.height}
+                    sizes="(min-width: 1024px) 600px, 100vw"
+                  />
+                </ShowcaseRow>
               ))}
+              {preview && (
+                <div id="plugins" className="mx-auto max-w-2xl py-6 text-center">
+                  <h3 className="text-xl font-semibold">Your plugin licenses live here too</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-dark-muted">
+                    Cadencea Vault is the license manager for Cadencea plugins: install them, activate them and move a
+                    license between computers, all with the account you already use.
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
+          </Container>
         </section>
       </div>
 
       {/* Features */}
-      <section className="border-b border-line">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
-          <div className="mb-16 max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
-              What it does
-            </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink md:text-4xl">
-              Everything you need to create.
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-ink-muted">
-              Streamline your creative workflow with professional-grade tools
-              designed for modern music production.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-3">
+      <section className="border-b border-line py-14 sm:py-20 lg:py-24">
+        <Container>
+          <SectionHeader
+            eyebrow="What it does"
+            title="Three jobs, done carefully."
+            subtitle="Organize, back up and share, without moving or converting anything."
+          />
+          <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-3">
             {features.map((f) => (
               <div key={f.title} className="border-t border-line pt-6">
-                <h3 className="text-lg font-semibold text-ink">{f.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-                  {f.desc}
-                </p>
+                <h3 className="text-base font-semibold text-ink md:text-lg">{f.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-ink-muted">{f.desc}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Container>
+      </section>
+
+      {/* Promises you can check */}
+      <section className="py-14 sm:py-20 lg:py-24">
+        <Container>
+          <SectionHeader title="Promises you can check" />
+          <ul className="mt-10 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+            {promises.map((p) => (
+              <li key={p.label} className="flex items-start gap-3 text-base text-ink">
+                <Check size={20} className="mt-0.5 shrink-0 text-accent" />
+                {p.href ? (
+                  <Link href={p.href} className="font-medium text-accent-ink underline-offset-2 hover:underline">
+                    {p.label}
+                  </Link>
+                ) : (
+                  p.label
+                )}
+              </li>
+            ))}
+          </ul>
+        </Container>
       </section>
 
       {/* Pricing CTA */}
-      <section className="border-b border-line bg-elevated">
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center lg:px-8 lg:py-32">
-          <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
-            Pricing
-          </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink md:text-4xl">
-            Ready to get started?
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base text-ink-muted">
-            Choose the plan that fits your workflow, from a free tier to get
-            you going, up to 500 GB for serious creators.
-          </p>
-          <Link
-            href="/pricing"
-            className="mt-8 inline-flex h-12 items-center rounded-sm bg-accent px-8 text-sm font-semibold tracking-wide text-white hover:bg-accent-hover"
-          >
-            View plans &amp; pricing
-          </Link>
-        </div>
+      <section className="bg-elevated py-14 sm:py-20 lg:py-24">
+        <Container className="text-center">
+          <SectionHeader
+            align="center"
+            eyebrow="Pricing"
+            title="Free app. Pay only for cloud space."
+            subtitle="Start with 5 GB free. Paid plans go up to 500 GB."
+          />
+          <Button href="/pricing" size="lg" className="mt-8">
+            Compare plans
+          </Button>
+        </Container>
       </section>
 
       {/* System requirements */}
-      <section>
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
-          <div className="mb-16 max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
-              Specs
-            </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink md:text-4xl">
-              System requirements.
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-3">
+      <section className="py-14 sm:py-20 lg:py-24">
+        <Container>
+          <SectionHeader eyebrow="Specs" title="System requirements." />
+          <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-3">
             {systems.map((sys) => (
-              <div
-                key={sys.name}
-                className={`border-t border-line pt-6${!sys.available ? ' opacity-50' : ''}`}
-              >
+              <div key={sys.name} className="border-t border-line pt-6">
                 <h3 className="text-lg font-semibold text-ink">
                   {sys.name}
-                  {!sys.available && (
-                    <span className="ml-2 text-xs font-normal uppercase tracking-wide text-ink-muted">
-                      Coming Soon
+                  {!sys.available && sys.items.length > 0 && (
+                    <span className="ml-2 text-xs font-normal uppercase tracking-wide text-ink-subtle">
+                      {unavailableLabel}
                     </span>
                   )}
                 </h3>
-                <ul className="mt-4 space-y-2 text-sm text-ink-muted">
-                  {sys.items.map((it) => (
-                    <li key={it}>{it}</li>
-                  ))}
-                </ul>
+                {sys.items.length > 0 ? (
+                  <ul className="mt-4 space-y-2 text-sm text-ink-muted">
+                    {sys.items.map((it) => (
+                      <li key={it}>{it}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-4 text-sm text-ink-muted">Planned. No date yet.</p>
+                )}
               </div>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
     </div>
   );
 }
 
 function ShowcaseRow({
+  id,
   eyebrow,
   title,
   desc,
   points,
-  src,
-  alt,
-  width,
-  height,
   reverse,
+  children,
 }: {
+  id?: string;
   eyebrow: string;
   title: string;
   desc: string;
   points: string[];
-  src: string;
-  alt: string;
-  width: number;
-  height: number;
   reverse: boolean;
+  /** The visual: a screenshot or an HTML mock. */
+  children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+    <div id={id} className="grid scroll-mt-24 grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
       <div className={reverse ? 'lg:order-2' : ''}>
-        <p className="text-xs font-semibold uppercase tracking-widest text-[#c4b5fd]">
-          {eyebrow}
-        </p>
-        <h3 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
-          {title}
-        </h3>
-        <p className="mt-4 max-w-xl text-base leading-relaxed text-dark-muted">
-          {desc}
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-brand-300">{eyebrow}</p>
+        <h3 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">{title}</h3>
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-dark-muted">{desc}</p>
         <ul className="mt-6 space-y-3">
           {points.map((p) => (
             <li key={p} className="flex items-center gap-3 text-sm text-dark-text">
-              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-[#a78bfa]/40 bg-[#a78bfa]/10">
-                <svg
-                  className="h-3 w-3 text-[#c4b5fd]"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-brand-400/40 bg-brand-400/10">
+                <Check size={16} className="h-3 w-3 text-brand-300" />
               </span>
               {p}
             </li>
           ))}
         </ul>
       </div>
-      <div className={reverse ? 'lg:order-1' : ''}>
-        <ScreenshotFrame
-          src={src}
-          alt={alt}
-          width={width}
-          height={height}
-          sizes="(min-width: 1024px) 600px, 100vw"
-        />
-      </div>
+      <div className={reverse ? 'lg:order-1' : ''}>{children}</div>
     </div>
+  );
+}
+
+/** The violet bloom behind a framed product visual. */
+function FrameGlow() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute -inset-8 -z-10 bg-[radial-gradient(55%_55%_at_50%_45%,color-mix(in_srgb,var(--color-brand-500)_40%,transparent),color-mix(in_srgb,var(--color-brand-700)_12%,transparent)_55%,transparent_78%)] blur-2xl"
+    />
   );
 }
 
@@ -392,66 +378,10 @@ function ScreenshotFrame({
 }) {
   return (
     <div className="relative isolate">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-8 -z-10 bg-[radial-gradient(55%_55%_at_50%_45%,rgba(139,92,246,0.40),rgba(109,40,217,0.12)_55%,transparent_78%)] blur-2xl"
-      />
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0d0c11] shadow-[0_24px_70px_-24px_rgba(124,58,237,0.55)] ring-1 ring-white/[0.06]">
-        <Image
-          src={src}
-          alt={alt}
-          width={width}
-          height={height}
-          priority={priority}
-          sizes={sizes}
-          className="h-auto w-full"
-        />
+      <FrameGlow />
+      <div className="overflow-hidden rounded-lg border border-white/10 bg-showroom-to shadow-brand-glow ring-1 ring-white/5">
+        <Image src={src} alt={alt} width={width} height={height} priority={priority} sizes={sizes} className="h-auto w-full" />
       </div>
     </div>
-  );
-}
-
-function DownloadButton({
-  platform,
-  primary,
-  available = true,
-  href,
-}: {
-  platform: 'Mac (Apple Silicon)' | 'Mac (Intel)' | 'Windows' | 'Linux';
-  primary?: boolean;
-  available?: boolean;
-  href?: string;
-}) {
-  const isMac = platform === 'Mac (Apple Silicon)' || platform === 'Mac (Intel)';
-  const classes = `inline-flex h-12 items-center justify-center rounded-sm border px-8 text-sm font-semibold tracking-wide shadow-sm ${
-    !available || !href
-      ? 'cursor-not-allowed border-dark-text/30 text-dark-text/40 shadow-none'
-      : primary
-        ? 'border-accent bg-accent text-white shadow-[0_4px_14px_rgba(0,102,255,0.25)] hover:-translate-y-0.5 hover:bg-accent-hover'
-        : isMac
-          ? 'border-white bg-white text-[#111111] shadow-[0_4px_14px_rgba(255,255,255,0.14)] hover:-translate-y-0.5 hover:border-[#e5e5e5] hover:bg-[#e5e5e5]'
-          : 'border-dark-text text-dark-text hover:bg-white/10'
-  }`;
-
-  if (!available) {
-    return (
-      <button type="button" disabled className={classes}>
-        {platform} — Coming Soon
-      </button>
-    );
-  }
-
-  if (!href) {
-    return (
-      <button type="button" disabled className={classes}>
-        Download for {platform}
-      </button>
-    );
-  }
-
-  return (
-    <a href={href} rel="noopener noreferrer" className={classes}>
-      Download for {platform}
-    </a>
   );
 }

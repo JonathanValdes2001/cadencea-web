@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Button from '@/components/ui/Button';
 
 const STORAGE_KEY = 'cadencea.cookie-notice.dismissed';
 
@@ -30,29 +31,24 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
+    // Above toasts and bottom-pinned bars until dismissed (WEB-V2-SPEC §3.6); the skip link stays on top.
     <div
       role="region"
       aria-label="Cookie notice"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-canvas shadow-dropdown"
+      className="fixed inset-x-0 bottom-0 z-[65] border-t border-line bg-canvas shadow-dropdown"
     >
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-ink-muted">
-          We use essential cookies for login and error tracking. See our{' '}
+          We use only essential cookies, for signing in and error tracking. See our{' '}
           <Link
             href="/cookies"
             className="font-medium text-accent hover:text-accent-hover"
           >
             Cookie Notice
-          </Link>{' '}
-          for details.
+          </Link>
+          .
         </p>
-        <button
-          type="button"
-          onClick={dismiss}
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-sm bg-accent px-6 text-sm font-semibold text-white hover:bg-accent-hover"
-        >
-          OK
-        </button>
+        <Button onClick={dismiss}>Got it</Button>
       </div>
     </div>
   );

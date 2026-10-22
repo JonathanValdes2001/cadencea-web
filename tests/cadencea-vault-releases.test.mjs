@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import {
   loadCadenceaVaultReleases,
   parseUpdaterManifest,
+  releaseFeedRoot,
 } from '../lib/cadencea-vault-releases.mjs';
 
 const manifest = (version, artifactNames) => `version: ${version}
@@ -55,7 +56,7 @@ test('loads platform feeds server-side without caching and isolates failures', a
     return { ok: true, status: 200, text: async () => manifest('1.2.0', artifacts) };
   };
 
-  const releases = await loadCadenceaVaultReleases(fakeFetch);
+  const releases = await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'production' } });
 
   assert.equal(
     releases.windows.downloadUrl,
@@ -66,4 +67,85 @@ test('loads platform feeds server-side without caching and isolates failures', a
   assert.equal(releases.macX64, null);
   assert.equal(requests.length, 3);
   assert.ok(requests.every(({ options }) => options.cache === 'no-store'));
+});
+
+test('the live site offers the released app and previews offer the v2 beta builds', async () => {
+  const requested = [];
+  const fakeFetch = async (url) => {
+    requested.push(url);
+    const artifacts = url.includes('/win/')
+      ? ['CadenceaVault Beta Setup 2.0.0-beta.1.exe']
+      : ['CadenceaVault Beta-2.0.0-beta.1-arm64.dmg'];
+    return { ok: true, status: 200, text: async () => manifest('2.0.0-beta.1', artifacts) };
+  };
+
+  assert.equal(
+    releaseFeedRoot({ VERCEL_ENV: 'production' }),
+    'https://s3.eu-central-003.backblazeb2.com/cadencea-products/updates/cadencea-vault/',
+  );
+  assert.equal(
+    releaseFeedRoot({ VERCEL_ENV: 'preview' }),
+    'https://s3.eu-central-003.backblazeb2.com/cadencea-products/updates/cadencea-vault-beta/',
+  );
+
+  const releases = await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'preview' } });
+  assert.ok(requested.every((url) => url.includes('/updates/cadencea-vault-beta/')));
+  assert.equal(releases.windows.version, '2.0.0-beta.1');
+  assert.match(releases.windows.downloadUrl, /\/cadencea-vault-beta\/win\/CadenceaVault%20Beta%20Setup/);
+});
+
+test('busy pages cache each manifest for a few minutes instead of fetching per visitor', async () => {
+  const requests = [];
+  const fakeFetch = async (url, options) => {
+    requests.push(options);
+    const artifacts = url.includes('/win/') ? ['CadenceaVault Setup 1.2.0.exe'] : ['CadenceaVault-1.2.0-arm64.dmg'];
+    return { ok: true, status: 200, text: async () => manifest('1.2.0', artifacts) };
+  };
+
+  await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'production' }, revalidate: 300 });
+
+  assert.equal(requests.length, 3);
+  for (const options of requests) {
+    assert.deepEqual(options.next, { revalidate: 300 });
+    assert.equal(options.cache, undefined, 'no-store would bypass the Data Cache');
+  }
+});
+
+test('a slow manifest drops only its own platform', async () => {
+  const fakeFetch = (url, options) =>
+    new Promise((resolve, reject) => {
+      const artifacts = url.includes('/win/') ? ['CadenceaVault Setup 1.2.0.exe'] : ['CadenceaVault-1.2.0-arm64.dmg'];
+      const respond = () => resolve({ ok: true, status: 200, text: async () => manifest('1.2.0', artifacts) });
+      if (!url.includes('/mac/x64/')) return respond();
+      // The Intel feed hangs until the request is aborted.
+      options.signal.addEventListener('abort', () => reject(options.signal.reason));
+    });
+
+  // AbortSignal.timeout's timer doesn't hold the event loop open; a server's does.
+  const keepAlive = setTimeout(() => {}, 5000);
+  const started = Date.now();
+  const releases = await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'production' }, timeoutMs: 50 });
+  clearTimeout(keepAlive);
+
+  assert.ok(Date.now() - started < 1000);
+  assert.equal(releases.macX64, null);
+  assert.equal(releases.windows.version, '1.2.0');
+  assert.equal(releases.macArm64.version, '1.2.0');
+});
+
+test('a beta plugin asks for the beta feed even on the live site', async () => {
+  assert.equal(
+    releaseFeedRoot({ VERCEL_ENV: 'production' }, { beta: true }),
+    'https://s3.eu-central-003.backblazeb2.com/cadencea-products/updates/cadencea-vault-beta/',
+  );
+  // Only a literal true switches feeds.
+  assert.match(releaseFeedRoot({ VERCEL_ENV: 'production' }, { beta: 'yes' }), /\/cadencea-vault\/$/);
+  const requested = [];
+  const fakeFetch = async (url) => {
+    requested.push(url);
+    return { ok: false, status: 404, text: async () => '' };
+  };
+  await loadCadenceaVaultReleases(fakeFetch, { env: { VERCEL_ENV: 'production' }, beta: true });
+  assert.equal(requested.length, 3);
+  assert.ok(requested.every((url) => url.includes('/updates/cadencea-vault-beta/')));
 });

@@ -1,73 +1,64 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Logo from './ui/Logo';
 
 type Col = { title: string; links: { href: string; label: string }[] };
 
-const columns: Col[] = [
-  {
-    title: 'Products',
-    links: [
-      { href: '/software', label: 'Software' },
-      { href: '/cadenceavault', label: 'Cadencea Vault' },
-      { href: '/pricing', label: 'Pricing' },
-    ],
-  },
-  {
-    title: 'Company',
-    links: [
-      { href: '/', label: 'Home' },
-      { href: '/contact', label: 'Contact' },
-    ],
-  },
-  {
-    title: 'Legal',
-    links: [
-      { href: '/terms', label: 'Terms of Service' },
-      { href: '/privacy', label: 'Privacy Policy' },
-      { href: '/cookies', label: 'Cookie Notice' },
-    ],
-  },
-];
+/**
+ * `showV2` comes from RootLayout's server-side isPreviewSite(): the preview adds
+ * the Plugins page to Product. Parked features are not linked from here.
+ */
+function columnsFor(showV2: boolean): Col[] {
+  return [
+    {
+      title: 'Product',
+      links: [
+        { href: '/cadenceavault', label: 'Cadencea Vault' },
+        { href: '/pricing', label: 'Pricing' },
+        { href: '/software', label: 'Software' },
+        ...(showV2 ? [{ href: '/vst-plugins', label: 'Plugins' }] : []),
+      ],
+    },
+    {
+      title: 'Company',
+      links: [
+        { href: '/', label: 'Home' },
+        { href: '/contact', label: 'Contact' },
+      ],
+    },
+    {
+      title: 'Legal',
+      links: [
+        { href: '/terms', label: 'Terms of Service' },
+        { href: '/privacy', label: 'Privacy Policy' },
+        { href: '/cookies', label: 'Cookie Notice' },
+      ],
+    },
+  ];
+}
 
-const Footer = () => {
+const Footer = ({ showV2 }: { showV2: boolean }) => {
+  const columns = columnsFor(showV2);
   return (
-    <footer className="bg-dark text-dark-muted">
+    <footer className="on-dark bg-dark text-dark-muted">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
         <div className="grid grid-cols-2 gap-12 md:grid-cols-4">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2"
-              aria-label="Cadencea home"
-            >
-              <Image
-                src="/logo/cadencea-mark-grayscale.svg"
-                alt=""
-                width={32}
-                height={32}
-                className="h-7 w-7"
-              />
-              <Image
-                src="/logo/cadencea-text-only.svg"
-                alt="Cadencea"
-                width={460}
-                height={80}
-                className="h-4 w-auto"
-              />
+            <Link href="/" className="inline-flex items-center" aria-label="Cadencea home">
+              <Logo tone="onDark" />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed">
-              Innovative software and technology for music creators.
+              Lossless project vault for music producers.
             </p>
           </div>
 
           {/* Columns */}
           {columns.map((col) => (
             <div key={col.title}>
-              <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-dark-text">
+              <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-dark-text">
                 {col.title}
-              </h4>
+              </h2>
               <ul className="space-y-3">
                 {col.links.map((link) => (
                   <li key={link.href}>
@@ -89,6 +80,7 @@ const Footer = () => {
           <p className="text-xs text-dark-muted">
             &copy; {new Date().getFullYear()} Cadencea. All rights reserved.
           </p>
+          <p className="text-xs text-dark-muted">Prices in euros.</p>
         </div>
       </div>
     </footer>
