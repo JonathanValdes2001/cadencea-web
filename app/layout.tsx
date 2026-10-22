@@ -14,12 +14,11 @@ import { isPreviewSite } from "../lib/site-channel.mjs";
 import { pluginStoreOpen } from "../lib/plugins/store-gate.mjs";
 
 // Preview deployments (the v2 site, branch previews, local runs) are never
-// indexed and carry a banner; production is unaffected. The same flag turns on
-// the v2 navigation (showV2); client components get it as a prop or through
-// V2FlagProvider and never call isPreviewSite() themselves.
+// indexed and carry a banner; production is unaffected. Client components get
+// the flag through V2FlagProvider and never call isPreviewSite() themselves.
 const isPreview = isPreviewSite();
-// The plugin store (cart button, /cart, product pages) is preview-only until its
-// go-live switch is flipped (lib/plugins/store-gate.mjs).
+// The plugin store (Plugins link, cart button, /cart, product pages) is open on
+// previews and wherever its go-live switch is on (lib/plugins/store-gate.mjs).
 const storeOpen = pluginStoreOpen();
 
 const description =
@@ -87,9 +86,9 @@ export default async function RootLayout({
           <V2FlagProvider showV2={isPreview}>
             <ToastProvider>
               <CartProvider>
-                <Navbar showV2={isPreview} showStore={storeOpen} />
+                <Navbar showStore={storeOpen} />
                 <main id="main">{children}</main>
-                <Footer showV2={isPreview} />
+                <Footer showStore={storeOpen} />
                 <CookieBanner />
               </CartProvider>
             </ToastProvider>

@@ -1,23 +1,20 @@
 import React from 'react';
 import Link from 'next/link';
 import Logo from './ui/Logo';
+import { navLinksFor } from '../lib/nav-links.mjs';
 
 type Col = { title: string; links: { href: string; label: string }[] };
 
 /**
- * `showV2` comes from RootLayout's server-side isPreviewSite(): the preview adds
- * the Plugins page to Product. Parked features are not linked from here.
+ * `showStore` comes from RootLayout's server-side check that the plugin store
+ * is open; Product lists the header links (Plugins among them while the store
+ * is open) and Software. Parked features are not linked from here.
  */
-function columnsFor(showV2: boolean): Col[] {
+function columnsFor(showStore: boolean): Col[] {
   return [
     {
       title: 'Product',
-      links: [
-        { href: '/cadenceavault', label: 'Cadencea Vault' },
-        { href: '/pricing', label: 'Pricing' },
-        { href: '/software', label: 'Software' },
-        ...(showV2 ? [{ href: '/vst-plugins', label: 'Plugins' }] : []),
-      ],
+      links: [...navLinksFor(showStore), { href: '/software', label: 'Software' }],
     },
     {
       title: 'Company',
@@ -37,8 +34,8 @@ function columnsFor(showV2: boolean): Col[] {
   ];
 }
 
-const Footer = ({ showV2 }: { showV2: boolean }) => {
-  const columns = columnsFor(showV2);
+const Footer = ({ showStore }: { showStore: boolean }) => {
+  const columns = columnsFor(showStore);
   return (
     <footer className="on-dark bg-dark text-dark-muted">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">

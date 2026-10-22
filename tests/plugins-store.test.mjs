@@ -26,6 +26,7 @@ import {
   serializeCart,
 } from '../lib/plugins/cart-state.ts'
 import { PLUGIN_STORE_LIVE, pluginStoreOpen, siteVaultChannel } from '../lib/plugins/store-gate.mjs'
+import { navLinksFor } from '../lib/nav-links.mjs'
 import { buildContentSecurityPolicy } from '../lib/security-headers.mjs'
 
 const root = new URL('../', import.meta.url)
@@ -271,6 +272,24 @@ test('the store is open on production now that its go-live switch is flipped', (
   assert.equal(pluginStoreOpen({ VERCEL_ENV: 'production' }, 'yes'), false)
   assert.equal(siteVaultChannel({ VERCEL_ENV: 'production' }), 'stable')
   assert.equal(siteVaultChannel({ VERCEL_ENV: 'preview' }), 'beta')
+})
+
+test('the header and footer link Plugins exactly when the store is open', async () => {
+  const hrefs = (storeOpen) => navLinksFor(storeOpen).map((link) => link.href)
+  assert.deepEqual(hrefs(pluginStoreOpen({ VERCEL_ENV: 'production' })), ['/cadenceavault', '/vst-plugins', '/pricing'])
+  assert.deepEqual(hrefs(pluginStoreOpen({ VERCEL_ENV: 'production' }, false)), ['/cadenceavault', '/pricing'])
+  assert.deepEqual(hrefs(pluginStoreOpen({ VERCEL_ENV: 'preview' }, false)), ['/cadenceavault', '/vst-plugins', '/pricing'])
+  assert.equal(navLinksFor(true).find((link) => link.href === '/vst-plugins')?.label, 'Plugins')
+  assert.deepEqual(hrefs('yes'), ['/cadenceavault', '/pricing'])
+  // The layout hands both components the store gate, not the preview flag; the
+  // navbar renders the list on desktop and in the mobile menu.
+  const layout = await read('app/layout.tsx')
+  assert.match(layout, /<Navbar showStore=\{storeOpen\} \/>/)
+  assert.match(layout, /<Footer showStore=\{storeOpen\} \/>/)
+  const navbar = await read('components/Navbar.tsx')
+  assert.match(navbar, /const navLinks = navLinksFor\(showStore\)/)
+  assert.equal(navbar.match(/\{navLinks\.map\(/g)?.length, 2)
+  assert.match(await read('components/Footer.tsx'), /links: \[\.\.\.navLinksFor\(showStore\), /)
 })
 
 test('/account and /activate stay live whatever the switch says', async () => {
