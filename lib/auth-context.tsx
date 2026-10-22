@@ -177,13 +177,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
       
       if (session?.user) {
         // Fetch profile when user signs in
-        const userProfile = await getCurrentUserProfile()
-        setProfile(userProfile)
+        // Do not await an auth API inside this callback: updateUser emits
+        // USER_UPDATED while holding the auth lock. Waiting for getUser here
+        // would make a password change wait forever for its own callback.
+        void getCurrentUserProfile().then(setProfile).catch(() => setProfile(null))
       } else {
         setProfile(null)
       }

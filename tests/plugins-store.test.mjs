@@ -260,10 +260,11 @@ test('/activate/<id> validates the id, 404s unknown products and is never indexe
 
 /* The go-live switch ------------------------------------------------------ */
 
-test('the store is preview-only until its go-live switch is flipped', () => {
-  assert.equal(PLUGIN_STORE_LIVE, false)
-  assert.equal(pluginStoreOpen({ VERCEL_ENV: 'production' }), false)
-  assert.equal(pluginStoreOpen({ SITE_CHANNEL: 'production' }), false)
+test('the store is open on production now that its go-live switch is flipped', () => {
+  assert.equal(PLUGIN_STORE_LIVE, true)
+  assert.equal(pluginStoreOpen({ VERCEL_ENV: 'production' }), true)
+  assert.equal(pluginStoreOpen({ VERCEL_ENV: 'production' }, false), false)
+  assert.equal(pluginStoreOpen({ SITE_CHANNEL: 'production' }, false), false)
   assert.equal(pluginStoreOpen({ VERCEL_ENV: 'preview' }), true)
   assert.equal(pluginStoreOpen({}), true)
   assert.equal(pluginStoreOpen({ VERCEL_ENV: 'production' }, true), true)

@@ -7,6 +7,8 @@ import Container, { ShowroomGlow } from '@/components/ui/Container';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { Check } from '@/components/ui/Icons';
 import DownloadButton from '@/components/vault/DownloadButton';
+import AndroidIcon from '@/components/AndroidIcon';
+import { androidRelease } from '@/lib/cadencea-mobile-release';
 import { loadCadenceaVaultReleases } from '@/lib/cadencea-vault-releases.mjs';
 import { isPreviewSite } from '@/lib/site-channel.mjs';
 
@@ -154,6 +156,10 @@ export default async function CadenceaVault() {
                       <DownloadButton platform="Windows" variant="primary" href={windowsDownloadUrl} />
                       <DownloadButton platform="Mac (Apple Silicon)" variant="onDark" href={macArm64DownloadUrl} />
                       <DownloadButton platform="Mac (Intel)" variant="onDark" href={macX64DownloadUrl} />
+                      <Button href={androidRelease.downloadUrl} variant="onDark" size="lg" prefetch={false}>
+                        <AndroidIcon className="h-5 w-5 shrink-0" />
+                        Download for Android (APK)
+                      </Button>
                       <Button variant="onDarkOutline" size="lg" disabled>
                         Linux · planned
                       </Button>

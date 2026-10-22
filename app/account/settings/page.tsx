@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import ChangePassword from '@/components/ChangePassword';
 import {
   accountDeletion,
   dataExport,
@@ -229,16 +230,11 @@ export default function AccountSettings() {
           {/* Security */}
           <Section title="Security">
             <ul className="divide-y divide-line">
-              {/* Not wired up yet, so these rows are labels, not buttons. */}
+              <ChangePassword key={user.id} />
               {[
                 {
                   title: 'Change email',
                   desc: 'Update the email you sign in with.',
-                  status: 'Coming soon',
-                },
-                {
-                  title: 'Change password',
-                  desc: 'Change your password.',
                   status: 'Coming soon',
                 },
                 {

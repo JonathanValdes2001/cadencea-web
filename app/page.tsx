@@ -70,7 +70,7 @@ const faqs = [
   },
   {
     q: 'Which systems are supported?',
-    a: 'Windows 10 or later (64-bit), and macOS 12 Monterey or later on Apple Silicon or Intel. Linux is planned.',
+    a: 'Windows 10 or later (64-bit), and macOS 12 Monterey or later on Apple Silicon or Intel. An Android companion app lets you browse and play your cloud projects on your phone. Linux is planned.',
   },
 ];
 
