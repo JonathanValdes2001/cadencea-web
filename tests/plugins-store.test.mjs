@@ -301,6 +301,14 @@ test('/account and /activate stay live whatever the switch says', async () => {
 
 /* Product copy ------------------------------------------------------------ */
 
+test('How it works names the plugin on its own page, not a fixed one', async () => {
+  const howItWorks = await read('components/plugins/HowItWorks.tsx')
+  assert.doesNotMatch(howItWorks, /ATHENA|LOKI/)
+  assert.match(howItWorks, /Buy \$\{product\.name\}, or get \$\{product\.family\} Mini for free\./)
+  assert.match(await read('app/vst-plugins/[slug]/page.tsx'), /<HowItWorks product=\{product\} free=\{free\} \/>/)
+  assert.match(await read('app/vst-plugins/page.tsx'), /<HowItWorks id="how-it-works" \/>/)
+})
+
 test('product copy makes no claim the spec does not', async () => {
   const sources = [
     await read('lib/plugins/products.ts'),
