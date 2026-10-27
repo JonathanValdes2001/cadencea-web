@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <LegalLayout title="Cookie and Tracking Notice" effectiveDate="April 15, 2026">
+    <LegalLayout title="Cookie and Tracking Notice" effectiveDate="October 27, 2026">
       <h2>1. Introduction</h2>
       <p>
         This notice explains how Yuma Pellon Valdes (Org.nr. 930343870) uses
@@ -67,6 +67,12 @@ export default function CookiesPage() {
           addresses are not stored beyond 90 days. Sentry does not track your
           browsing behavior or build user profiles
         </li>
+        <li>
+          <strong>Cloudflare Web Analytics:</strong> A small script on
+          cadencea.app counts page views and visits, with the referring site,
+          page, browser and country. It sets no cookies and uses no local
+          storage, and it does not build profiles or follow you across sites
+        </li>
       </ul>
 
       <h3>3.3 Cookies We Do NOT Use</h3>
@@ -77,8 +83,9 @@ export default function CookiesPage() {
           We do not use social media tracking pixels (Facebook Pixel, etc.)
         </li>
         <li>
-          We do not use third-party analytics platforms (Google Analytics,
-          etc.)
+          We do not use cookie-based or cross-site analytics platforms
+          (Google Analytics, etc.); our only website analytics is the
+          cookieless Cloudflare Web Analytics described above
         </li>
         <li>We do not share cookie data with advertising networks</li>
         <li>We do not engage in cross-site tracking of any kind</li>

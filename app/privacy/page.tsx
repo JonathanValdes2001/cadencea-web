@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" effectiveDate="April 15, 2026">
+    <LegalLayout title="Privacy Policy" effectiveDate="October 27, 2026">
       <h2>1. Data Controller</h2>
       <p>
         Yuma Pellon Valdes, sole proprietorship registered in Norway (Org.nr.
@@ -169,7 +169,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Cloudflare (USA):</strong> DNS, content delivery network
-          (CDN), and email routing services
+          (CDN), email routing services, and cookieless website analytics
+          (Cloudflare Web Analytics)
         </li>
       </ul>
       <p>
@@ -271,10 +272,19 @@ export default function PrivacyPage() {
           about application errors for debugging. This operates under our
           legitimate interest in maintaining a functional service
         </li>
+        <li>
+          <strong>Website analytics (Cloudflare Web Analytics):</strong> Counts
+          page views and visits on cadencea.app, with the referring site,
+          page, browser and country, so we can see how people find the
+          Service. It sets no cookies, uses no local storage, and does not
+          build profiles or follow you across sites. This operates under our
+          legitimate interest in understanding how the website is used
+        </li>
       </ul>
       <p>
         We do not use advertising cookies, social media tracking pixels, or
-        third-party analytics platforms.
+        analytics that track you across sites or build profiles (such as
+        Google Analytics).
       </p>
 
       <h2>9. Marketing Communications</h2>

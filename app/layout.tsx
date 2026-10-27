@@ -71,7 +71,7 @@ export default async function RootLayout({
 }>) {
   // Nonce-based CSP requires request-time rendering so Next can apply the
   // middleware-provided nonce to every framework script.
-  await headers();
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="en" className={inter.variable}>
       <body className="bg-canvas text-ink antialiased">
@@ -94,6 +94,16 @@ export default async function RootLayout({
             </ToastProvider>
           </V2FlagProvider>
         </AuthProvider>
+        {/* Cloudflare Web Analytics: cookieless visit counts for the
+            production site only. The token is public and names the site. */}
+        {!isPreview && (
+          <script
+            type="module"
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon='{"token": "ae4933fe4a23476eae26235c25916256"}'
+            nonce={nonce}
+          />
+        )}
       </body>
     </html>
   );

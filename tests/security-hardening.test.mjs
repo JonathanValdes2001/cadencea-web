@@ -144,6 +144,9 @@ test('CSP uses a nonce and repository-wide security headers', () => {
   assert.doesNotMatch(policy, /script-src[^;]*'unsafe-inline'/);
   assert.match(policy, /frame-ancestors 'none'/);
   assert.match(policy, /form-action 'self' https:\/\/api\.cadencea\.app/);
+  // Cloudflare Web Analytics may report visits, and may not run scripts unless nonce'd.
+  assert.match(policy, /connect-src[^;]*https:\/\/cloudflareinsights\.com/);
+  assert.doesNotMatch(policy, /script-src[^;]*cloudflareinsights/);
   assert.deepEqual(
     new Set(STATIC_SECURITY_HEADERS.map((header) => header.key)),
     new Set([
