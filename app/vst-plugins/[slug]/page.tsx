@@ -100,7 +100,7 @@ export default async function PluginPage({ params }: Props) {
 
       <section className="border-t border-line py-14 sm:py-20 lg:py-24">
         <Container>
-          <HowItWorks />
+          <HowItWorks product={product} free={free} />
         </Container>
       </section>
 
