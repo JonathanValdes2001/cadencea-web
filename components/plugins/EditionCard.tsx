@@ -74,7 +74,7 @@ export default function EditionCard({
         ))}
       </ul>
       <p className="mt-auto pt-6 text-xs text-ink-subtle">
-        Up to {listing.maxActivations || SEATS_PER_LICENSE} computers · Installs with Cadencea Vault (free)
+        {free ? 'No computer limit' : `Up to ${listing.maxActivations || SEATS_PER_LICENSE} computers`} · Installs with Cadencea Vault (free)
       </p>
     </article>
   );

@@ -75,7 +75,7 @@ export default function AccountOverview({ vaultChannel, storeOpen }: { vaultChan
                 My plugins
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
-                Install and activate them in Cadencea Vault ▸ Plugins. Each license works on a limited number of
+                Install and activate them in Cadencea Vault ▸ Plugins. Paid licenses work on a limited number of
                 computers; deactivate one here to free it.
               </p>
             </div>

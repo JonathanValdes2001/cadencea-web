@@ -309,6 +309,19 @@ test('How it works names the plugin on its own page, not a fixed one', async () 
   assert.match(await read('app/vst-plugins/page.tsx'), /<HowItWorks id="how-it-works" \/>/)
 })
 
+test('free plugins show no computer limit, paid ones keep theirs', async () => {
+  const products = await read('lib/plugins/products.ts')
+  const fallbacks = products.match(/isFree: true,[\s\S]*?maxActivations: (\w+)/g) ?? []
+  assert.equal(fallbacks.length, 2)
+  for (const fallback of fallbacks) assert.match(fallback, /maxActivations: UNLIMITED_SEATS/)
+  assert.match(products, /isFree: false,[\s\S]*?maxActivations: SEATS_PER_LICENSE/)
+  assert.match(await read('components/plugins/EditionCard.tsx'), /free \? 'No computer limit'/)
+  assert.match(await read('components/plugins/MyPlugins.tsx'), /hasComputerLimit\(license\.maxActivations\)/)
+  const page = await read('app/vst-plugins/[slug]/page.tsx')
+  assert.match(page, /pluginRequirementsFor\(free\)/)
+  assert.match(page, /As many as you like\. Free plugins have no computer limit\./)
+})
+
 test('product copy makes no claim the spec does not', async () => {
   const sources = [
     await read('lib/plugins/products.ts'),

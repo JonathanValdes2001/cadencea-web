@@ -7,7 +7,7 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import EditionCard from '@/components/plugins/EditionCard';
 import HowItWorks from '@/components/plugins/HowItWorks';
 import PluginShot from '@/components/plugins/PluginShot';
-import { PLUGIN_REQUIREMENTS, SEATS_PER_LICENSE, pluginBySlug, withListing, type PluginProduct } from '@/lib/plugins/products';
+import { SEATS_PER_LICENSE, pluginBySlug, pluginRequirementsFor, withListing, type PluginProduct } from '@/lib/plugins/products';
 import { pluginStoreOpen, siteVaultChannel } from '@/lib/plugins/store-gate.mjs';
 import { loadStoreListing } from '@/lib/plugins/store-products';
 
@@ -35,18 +35,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const faqFor = (product: PluginProduct) => [
+const faqFor = (product: PluginProduct, free: boolean) => [
   {
     q: 'Who owns the license?',
     a: 'Your Cadencea account. The license follows the account, not a computer: sign in to Cadencea Vault with the same account on any of your computers and your plugins are there.',
   },
   {
     q: 'How many computers can I use it on?',
-    a: `Up to ${SEATS_PER_LICENSE} at the same time. Each computer you activate in Cadencea Vault uses one of them.`,
+    a: free
+      ? 'As many as you like. Free plugins have no computer limit.'
+      : `Up to ${SEATS_PER_LICENSE} at the same time. Each computer you activate in Cadencea Vault uses one of them.`,
   },
   {
     q: 'I got a new computer. How do I move my license?',
     a: 'Deactivate the old computer any time, in Cadencea Vault ▸ Plugins on that computer or on your account page on this website, then activate the new one in Cadencea Vault.',
+    paidOnly: true,
   },
   {
     q: 'Do I need Cadencea Vault?',
@@ -108,7 +111,7 @@ export default async function PluginPage({ params }: Props) {
         <Container className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <SectionHeader eyebrow="System requirements" title="What you need." />
           <dl className="divide-y divide-line border-y border-line">
-            {PLUGIN_REQUIREMENTS.map((row) => (
+            {pluginRequirementsFor(free).map((row) => (
               <div key={row.label} className="grid gap-1 py-5 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-6">
                 <dt className="text-sm font-semibold text-ink">{row.label}</dt>
                 <dd className="text-sm leading-relaxed text-ink-muted">{row.value}</dd>
@@ -121,7 +124,7 @@ export default async function PluginPage({ params }: Props) {
       <section className="border-t border-line py-14 sm:py-20 lg:py-24">
         <Container className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <SectionHeader eyebrow="FAQ" title="Licenses, computers and Vault." />
-          <Faq items={faqFor(product).filter((item) => !item.paidOnly || !free).map(({ q, a }) => ({ q, a }))} />
+          <Faq items={faqFor(product, free).filter((item) => !item.paidOnly || !free).map(({ q, a }) => ({ q, a }))} />
         </Container>
       </section>
     </div>
