@@ -44,8 +44,18 @@ export interface PluginProduct {
 export const ATHENA_ACCENT = '#ddb45c';
 export const LOKI_ACCENT = '#58de78';
 
-/** The seats every launch license has (S0 decision 4). */
+/** The seats every paid launch license has (S0 decision 4). */
 export const SEATS_PER_LICENSE = 3;
+
+/**
+ * Free plugins have no computer limit. The licensing API reports this number
+ * for them because it is the highest its format allows, so no count is shown.
+ */
+export const UNLIMITED_SEATS = 100;
+
+export function hasComputerLimit(maxActivations: number): boolean {
+  return maxActivations < UNLIMITED_SEATS;
+}
 
 export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
   {
@@ -115,7 +125,7 @@ export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
       isFree: true,
       priceMinor: 0,
       currency: 'EUR',
-      maxActivations: SEATS_PER_LICENSE,
+      maxActivations: UNLIMITED_SEATS,
       trialDays: null,
       purchasable: false,
     },
@@ -188,7 +198,7 @@ export const PLUGIN_PRODUCTS: readonly PluginProduct[] = [
       isFree: true,
       priceMinor: 0,
       currency: 'EUR',
-      maxActivations: SEATS_PER_LICENSE,
+      maxActivations: UNLIMITED_SEATS,
       trialDays: null,
       purchasable: false,
     },
@@ -224,6 +234,12 @@ export const PLUGIN_REQUIREMENTS = [
   { label: 'Install and activate', value: 'Cadencea Vault, free for Windows and macOS, signed in with your Cadencea account.' },
   { label: 'Computers', value: `Up to ${SEATS_PER_LICENSE} computers per license. Free a computer any time in Cadencea Vault or on your account page.` },
 ] as const;
+
+/** The requirements of one product page: a free plugin has no computer limit. */
+export function pluginRequirementsFor(free: boolean): readonly { label: string; value: string }[] {
+  if (!free) return PLUGIN_REQUIREMENTS;
+  return PLUGIN_REQUIREMENTS.map((row) => (row.label === 'Computers' ? { ...row, value: 'No limit.' } : row));
+}
 
 /** @deprecated Use PLUGIN_REQUIREMENTS. */
 export const ATHENA_REQUIREMENTS = PLUGIN_REQUIREMENTS;

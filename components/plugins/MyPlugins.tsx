@@ -13,7 +13,7 @@ import {
   type License,
 } from '@/lib/plugins/access-client';
 import { vaultDeepLink, type VaultChannel } from '@/lib/plugins/catalog';
-import { pluginById } from '@/lib/plugins/products';
+import { hasComputerLimit, pluginById } from '@/lib/plugins/products';
 import type { EntitlementsState } from './useEntitlements';
 
 const STATUS: Record<string, { label: string; tone: BadgeTone }> = {
@@ -150,7 +150,9 @@ export default function MyPlugins({
                 <p className="text-sm font-semibold text-ink">
                   Computers{' '}
                   <span className="font-normal text-ink-muted">
-                    · {license.activations.length} of {license.maxActivations} in use
+                    · {hasComputerLimit(license.maxActivations)
+                      ? `${license.activations.length} of ${license.maxActivations} in use`
+                      : 'No limit'}
                   </span>
                 </p>
                 {license.activations.length === 0 ? (
